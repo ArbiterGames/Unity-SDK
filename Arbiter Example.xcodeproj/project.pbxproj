@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13C745B1858FD5B0037E1F2 /* Arbiter.framework */; };
 		A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042981857C83D00E26BFA /* Foundation.framework */; };
 		A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */; };
 		A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429C1857C83D00E26BFA /* UIKit.framework */; };
@@ -15,14 +16,33 @@
 		A1B042A91857C83D00E26BFA /* AppDelegate.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042A81857C83D00E26BFA /* AppDelegate.m */; };
 		A1B042AC1857C83D00E26BFA /* Main_iPhone.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1B042AA1857C83D00E26BFA /* Main_iPhone.storyboard */; };
 		A1B042AF1857C83D00E26BFA /* Main_iPad.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = A1B042AD1857C83D00E26BFA /* Main_iPad.storyboard */; };
-		A1B042B21857C83D00E26BFA /* FirstViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042B11857C83D00E26BFA /* FirstViewController.m */; };
-		A1B042B51857C83D00E26BFA /* SecondViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042B41857C83D00E26BFA /* SecondViewController.m */; };
 		A1B042B71857C83D00E26BFA /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1B042B61857C83D00E26BFA /* Images.xcassets */; };
 		A1B042BE1857C83D00E26BFA /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042BD1857C83D00E26BFA /* XCTest.framework */; };
 		A1B042BF1857C83D00E26BFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042981857C83D00E26BFA /* Foundation.framework */; };
 		A1B042C01857C83D00E26BFA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429C1857C83D00E26BFA /* UIKit.framework */; };
 		A1B042C81857C83D00E26BFA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1B042C61857C83D00E26BFA /* InfoPlist.strings */; };
 		A1B042CA1857C83D00E26BFA /* Arbiter_ExampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042C91857C83D00E26BFA /* Arbiter_ExampleTests.m */; };
+		A1B042D51857C89000E26BFA /* WalletDetailsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */; };
+		A1B042DC1857CACE00E26BFA /* WithdrawViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */; };
+		A1B042DF1857CBCE00E26BFA /* CreateAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */; };
+		A1B042E11857DA0600E26BFA /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E01857DA0600E26BFA /* Parse.framework */; };
+		A1B042EB1857DA5000E26BFA /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E21857DA5000E26BFA /* AudioToolbox.framework */; };
+		A1B042EC1857DA5000E26BFA /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E31857DA5000E26BFA /* CFNetwork.framework */; };
+		A1B042ED1857DA5000E26BFA /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E41857DA5000E26BFA /* CoreLocation.framework */; };
+		A1B042EE1857DA5000E26BFA /* libz.1.1.3.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E51857DA5000E26BFA /* libz.1.1.3.dylib */; };
+		A1B042EF1857DA5000E26BFA /* MobileCoreServices.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E61857DA5000E26BFA /* MobileCoreServices.framework */; };
+		A1B042F01857DA5000E26BFA /* QuartzCore.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E71857DA5000E26BFA /* QuartzCore.framework */; };
+		A1B042F11857DA5000E26BFA /* Security.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E81857DA5000E26BFA /* Security.framework */; };
+		A1B042F21857DA5000E26BFA /* StoreKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E91857DA5000E26BFA /* StoreKit.framework */; };
+		A1B042F31857DA5000E26BFA /* SystemConfiguration.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042EA1857DA5000E26BFA /* SystemConfiguration.framework */; };
+		A1B042F71857DC8300E26BFA /* LoginViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042F61857DC8300E26BFA /* LoginViewController.m */; };
+		A1B042F91857DD1200E26BFA /* LoginViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A1B042F81857DD1200E26BFA /* LoginViewController.xib */; };
+		A1B042FD1857DD5C00E26BFA /* ActivityView.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042FC1857DD5C00E26BFA /* ActivityView.m */; };
+		A1B043021857E49700E26BFA /* NewUserViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A1B043011857E49700E26BFA /* NewUserViewController.xib */; };
+		A1B043051857E4AE00E26BFA /* NewUserViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B043041857E4AE00E26BFA /* NewUserViewController.m */; };
+		A1B043091857E9C400E26BFA /* WelcomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B043071857E9C400E26BFA /* WelcomeViewController.m */; };
+		A1B0430A1857E9C400E26BFA /* WelcomeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A1B043081857E9C400E26BFA /* WelcomeViewController.xib */; };
+		A1B043121858110700E26BFA /* GlobalData.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B043111858110700E26BFA /* GlobalData.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -36,6 +56,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		A13C745B1858FD5B0037E1F2 /* Arbiter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Arbiter.framework; path = "../../../Library/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts/Arbiter.framework"; sourceTree = "<group>"; };
 		A1B042951857C83D00E26BFA /* Arbiter Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Arbiter Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B042981857C83D00E26BFA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -48,16 +69,41 @@
 		A1B042A81857C83D00E26BFA /* AppDelegate.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = AppDelegate.m; sourceTree = "<group>"; };
 		A1B042AB1857C83D00E26BFA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPhone.storyboard; sourceTree = "<group>"; };
 		A1B042AE1857C83D00E26BFA /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main_iPad.storyboard; sourceTree = "<group>"; };
-		A1B042B01857C83D00E26BFA /* FirstViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = FirstViewController.h; sourceTree = "<group>"; };
-		A1B042B11857C83D00E26BFA /* FirstViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = FirstViewController.m; sourceTree = "<group>"; };
-		A1B042B31857C83D00E26BFA /* SecondViewController.h */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.h; path = SecondViewController.h; sourceTree = "<group>"; };
-		A1B042B41857C83D00E26BFA /* SecondViewController.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = SecondViewController.m; sourceTree = "<group>"; };
 		A1B042B61857C83D00E26BFA /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		A1B042BC1857C83D00E26BFA /* Arbiter ExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Arbiter ExampleTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B042BD1857C83D00E26BFA /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
 		A1B042C51857C83D00E26BFA /* Arbiter ExampleTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Arbiter ExampleTests-Info.plist"; sourceTree = "<group>"; };
 		A1B042C71857C83D00E26BFA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
 		A1B042C91857C83D00E26BFA /* Arbiter_ExampleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Arbiter_ExampleTests.m; sourceTree = "<group>"; };
+		A1B042D31857C88F00E26BFA /* WalletDetailsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WalletDetailsViewController.h; sourceTree = "<group>"; };
+		A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WalletDetailsViewController.m; sourceTree = "<group>"; };
+		A1B042DA1857CACE00E26BFA /* WithdrawViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WithdrawViewController.h; sourceTree = "<group>"; };
+		A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WithdrawViewController.m; sourceTree = "<group>"; };
+		A1B042DD1857CBCE00E26BFA /* CreateAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateAccountViewController.h; sourceTree = "<group>"; };
+		A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreateAccountViewController.m; sourceTree = "<group>"; };
+		A1B042E01857DA0600E26BFA /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Parse.framework; sourceTree = "<group>"; };
+		A1B042E21857DA5000E26BFA /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
+		A1B042E31857DA5000E26BFA /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
+		A1B042E41857DA5000E26BFA /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
+		A1B042E51857DA5000E26BFA /* libz.1.1.3.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.1.1.3.dylib; path = usr/lib/libz.1.1.3.dylib; sourceTree = SDKROOT; };
+		A1B042E61857DA5000E26BFA /* MobileCoreServices.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MobileCoreServices.framework; path = System/Library/Frameworks/MobileCoreServices.framework; sourceTree = SDKROOT; };
+		A1B042E71857DA5000E26BFA /* QuartzCore.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = QuartzCore.framework; path = System/Library/Frameworks/QuartzCore.framework; sourceTree = SDKROOT; };
+		A1B042E81857DA5000E26BFA /* Security.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Security.framework; path = System/Library/Frameworks/Security.framework; sourceTree = SDKROOT; };
+		A1B042E91857DA5000E26BFA /* StoreKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = StoreKit.framework; path = System/Library/Frameworks/StoreKit.framework; sourceTree = SDKROOT; };
+		A1B042EA1857DA5000E26BFA /* SystemConfiguration.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SystemConfiguration.framework; path = System/Library/Frameworks/SystemConfiguration.framework; sourceTree = SDKROOT; };
+		A1B042F51857DC8300E26BFA /* LoginViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = LoginViewController.h; sourceTree = "<group>"; };
+		A1B042F61857DC8300E26BFA /* LoginViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = LoginViewController.m; sourceTree = "<group>"; };
+		A1B042F81857DD1200E26BFA /* LoginViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = LoginViewController.xib; sourceTree = "<group>"; };
+		A1B042FB1857DD5C00E26BFA /* ActivityView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = ActivityView.h; sourceTree = "<group>"; };
+		A1B042FC1857DD5C00E26BFA /* ActivityView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = ActivityView.m; sourceTree = "<group>"; };
+		A1B043011857E49700E26BFA /* NewUserViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = NewUserViewController.xib; sourceTree = "<group>"; };
+		A1B043031857E4AE00E26BFA /* NewUserViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = NewUserViewController.h; sourceTree = "<group>"; };
+		A1B043041857E4AE00E26BFA /* NewUserViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = NewUserViewController.m; sourceTree = "<group>"; };
+		A1B043061857E9C400E26BFA /* WelcomeViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WelcomeViewController.h; sourceTree = "<group>"; };
+		A1B043071857E9C400E26BFA /* WelcomeViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WelcomeViewController.m; sourceTree = "<group>"; };
+		A1B043081857E9C400E26BFA /* WelcomeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = WelcomeViewController.xib; sourceTree = "<group>"; };
+		A1B043101858110700E26BFA /* GlobalData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlobalData.h; sourceTree = "<group>"; };
+		A1B043111858110700E26BFA /* GlobalData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GlobalData.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -65,8 +111,19 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */,
+				A1B042EB1857DA5000E26BFA /* AudioToolbox.framework in Frameworks */,
+				A1B042EC1857DA5000E26BFA /* CFNetwork.framework in Frameworks */,
+				A1B042ED1857DA5000E26BFA /* CoreLocation.framework in Frameworks */,
+				A1B042EE1857DA5000E26BFA /* libz.1.1.3.dylib in Frameworks */,
+				A1B042EF1857DA5000E26BFA /* MobileCoreServices.framework in Frameworks */,
+				A1B042F01857DA5000E26BFA /* QuartzCore.framework in Frameworks */,
+				A1B042F11857DA5000E26BFA /* Security.framework in Frameworks */,
+				A1B042F21857DA5000E26BFA /* StoreKit.framework in Frameworks */,
+				A1B042F31857DA5000E26BFA /* SystemConfiguration.framework in Frameworks */,
 				A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */,
 				A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */,
+				A1B042E11857DA0600E26BFA /* Parse.framework in Frameworks */,
 				A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -106,6 +163,17 @@
 		A1B042971857C83D00E26BFA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A13C745B1858FD5B0037E1F2 /* Arbiter.framework */,
+				A1B042E21857DA5000E26BFA /* AudioToolbox.framework */,
+				A1B042E31857DA5000E26BFA /* CFNetwork.framework */,
+				A1B042E41857DA5000E26BFA /* CoreLocation.framework */,
+				A1B042E51857DA5000E26BFA /* libz.1.1.3.dylib */,
+				A1B042E61857DA5000E26BFA /* MobileCoreServices.framework */,
+				A1B042E71857DA5000E26BFA /* QuartzCore.framework */,
+				A1B042E81857DA5000E26BFA /* Security.framework */,
+				A1B042E91857DA5000E26BFA /* StoreKit.framework */,
+				A1B042EA1857DA5000E26BFA /* SystemConfiguration.framework */,
+				A1B042E01857DA0600E26BFA /* Parse.framework */,
 				A1B042981857C83D00E26BFA /* Foundation.framework */,
 				A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */,
 				A1B0429C1857C83D00E26BFA /* UIKit.framework */,
@@ -117,14 +185,13 @@
 		A1B0429E1857C83D00E26BFA /* Arbiter Example */ = {
 			isa = PBXGroup;
 			children = (
+				A1B042FA1857DD4900E26BFA /* Common */,
+				A1B042F41857DC6900E26BFA /* UserLogin */,
+				A1B042D61857C89700E26BFA /* ViewControllers */,
 				A1B042A71857C83D00E26BFA /* AppDelegate.h */,
 				A1B042A81857C83D00E26BFA /* AppDelegate.m */,
 				A1B042AA1857C83D00E26BFA /* Main_iPhone.storyboard */,
 				A1B042AD1857C83D00E26BFA /* Main_iPad.storyboard */,
-				A1B042B01857C83D00E26BFA /* FirstViewController.h */,
-				A1B042B11857C83D00E26BFA /* FirstViewController.m */,
-				A1B042B31857C83D00E26BFA /* SecondViewController.h */,
-				A1B042B41857C83D00E26BFA /* SecondViewController.m */,
 				A1B042B61857C83D00E26BFA /* Images.xcassets */,
 				A1B0429F1857C83D00E26BFA /* Supporting Files */,
 			);
@@ -158,6 +225,46 @@
 				A1B042C61857C83D00E26BFA /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
+			sourceTree = "<group>";
+		};
+		A1B042D61857C89700E26BFA /* ViewControllers */ = {
+			isa = PBXGroup;
+			children = (
+				A1B042D31857C88F00E26BFA /* WalletDetailsViewController.h */,
+				A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */,
+				A1B042DA1857CACE00E26BFA /* WithdrawViewController.h */,
+				A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */,
+				A1B042DD1857CBCE00E26BFA /* CreateAccountViewController.h */,
+				A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */,
+			);
+			name = ViewControllers;
+			sourceTree = "<group>";
+		};
+		A1B042F41857DC6900E26BFA /* UserLogin */ = {
+			isa = PBXGroup;
+			children = (
+				A1B043061857E9C400E26BFA /* WelcomeViewController.h */,
+				A1B043071857E9C400E26BFA /* WelcomeViewController.m */,
+				A1B043081857E9C400E26BFA /* WelcomeViewController.xib */,
+				A1B042F51857DC8300E26BFA /* LoginViewController.h */,
+				A1B042F61857DC8300E26BFA /* LoginViewController.m */,
+				A1B042F81857DD1200E26BFA /* LoginViewController.xib */,
+				A1B043031857E4AE00E26BFA /* NewUserViewController.h */,
+				A1B043041857E4AE00E26BFA /* NewUserViewController.m */,
+				A1B043011857E49700E26BFA /* NewUserViewController.xib */,
+			);
+			name = UserLogin;
+			sourceTree = "<group>";
+		};
+		A1B042FA1857DD4900E26BFA /* Common */ = {
+			isa = PBXGroup;
+			children = (
+				A1B042FB1857DD5C00E26BFA /* ActivityView.h */,
+				A1B042FC1857DD5C00E26BFA /* ActivityView.m */,
+				A1B043101858110700E26BFA /* GlobalData.h */,
+				A1B043111858110700E26BFA /* GlobalData.m */,
+			);
+			name = Common;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -236,6 +343,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A1B043021857E49700E26BFA /* NewUserViewController.xib in Resources */,
+				A1B0430A1857E9C400E26BFA /* WelcomeViewController.xib in Resources */,
+				A1B042F91857DD1200E26BFA /* LoginViewController.xib in Resources */,
 				A1B042AF1857C83D00E26BFA /* Main_iPad.storyboard in Resources */,
 				A1B042B71857C83D00E26BFA /* Images.xcassets in Resources */,
 				A1B042AC1857C83D00E26BFA /* Main_iPhone.storyboard in Resources */,
@@ -258,9 +368,15 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B042B51857C83D00E26BFA /* SecondViewController.m in Sources */,
+				A1B042FD1857DD5C00E26BFA /* ActivityView.m in Sources */,
+				A1B042DF1857CBCE00E26BFA /* CreateAccountViewController.m in Sources */,
+				A1B043121858110700E26BFA /* GlobalData.m in Sources */,
+				A1B043051857E4AE00E26BFA /* NewUserViewController.m in Sources */,
+				A1B042DC1857CACE00E26BFA /* WithdrawViewController.m in Sources */,
+				A1B043091857E9C400E26BFA /* WelcomeViewController.m in Sources */,
+				A1B042D51857C89000E26BFA /* WalletDetailsViewController.m in Sources */,
+				A1B042F71857DC8300E26BFA /* LoginViewController.m in Sources */,
 				A1B042A91857C83D00E26BFA /* AppDelegate.m in Sources */,
-				A1B042B21857C83D00E26BFA /* FirstViewController.m in Sources */,
 				A1B042A51857C83D00E26BFA /* main.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -398,6 +514,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";
 				INFOPLIST_FILE = "Arbiter Example/Arbiter Example-Info.plist";
@@ -411,6 +532,11 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				ASSETCATALOG_COMPILER_LAUNCHIMAGE_NAME = LaunchImage;
+				FRAMEWORK_SEARCH_PATHS = (
+					"$(inherited)",
+					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
+					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
+				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";
 				INFOPLIST_FILE = "Arbiter Example/Arbiter Example-Info.plist";
@@ -480,6 +606,7 @@
 				A1B042CF1857C83D00E26BFA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 		A1B042D01857C83D00E26BFA /* Build configuration list for PBXNativeTarget "Arbiter ExampleTests" */ = {
 			isa = XCConfigurationList;
@@ -488,6 +615,7 @@
 				A1B042D21857C83D00E26BFA /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
 	};

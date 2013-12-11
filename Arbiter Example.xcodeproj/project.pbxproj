@@ -21,8 +21,6 @@
 		A1B042BE1857C83D00E26BFA /* XCTest.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042BD1857C83D00E26BFA /* XCTest.framework */; };
 		A1B042BF1857C83D00E26BFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042981857C83D00E26BFA /* Foundation.framework */; };
 		A1B042C01857C83D00E26BFA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429C1857C83D00E26BFA /* UIKit.framework */; };
-		A1B042C81857C83D00E26BFA /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1B042C61857C83D00E26BFA /* InfoPlist.strings */; };
-		A1B042CA1857C83D00E26BFA /* Arbiter_ExampleTests.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042C91857C83D00E26BFA /* Arbiter_ExampleTests.m */; };
 		A1B042D51857C89000E26BFA /* WalletDetailsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */; };
 		A1B042DC1857CACE00E26BFA /* WithdrawViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */; };
 		A1B042DF1857CBCE00E26BFA /* CreateAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */; };
@@ -73,16 +71,12 @@
 		A1B042B61857C83D00E26BFA /* Images.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Images.xcassets; sourceTree = "<group>"; };
 		A1B042BC1857C83D00E26BFA /* Arbiter ExampleTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = "Arbiter ExampleTests.xctest"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B042BD1857C83D00E26BFA /* XCTest.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = XCTest.framework; path = Library/Frameworks/XCTest.framework; sourceTree = DEVELOPER_DIR; };
-		A1B042C51857C83D00E26BFA /* Arbiter ExampleTests-Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = "Arbiter ExampleTests-Info.plist"; sourceTree = "<group>"; };
-		A1B042C71857C83D00E26BFA /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
-		A1B042C91857C83D00E26BFA /* Arbiter_ExampleTests.m */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.c.objc; path = Arbiter_ExampleTests.m; sourceTree = "<group>"; };
 		A1B042D31857C88F00E26BFA /* WalletDetailsViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WalletDetailsViewController.h; sourceTree = "<group>"; };
 		A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WalletDetailsViewController.m; sourceTree = "<group>"; };
 		A1B042DA1857CACE00E26BFA /* WithdrawViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = WithdrawViewController.h; sourceTree = "<group>"; };
 		A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = WithdrawViewController.m; sourceTree = "<group>"; };
 		A1B042DD1857CBCE00E26BFA /* CreateAccountViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CreateAccountViewController.h; sourceTree = "<group>"; };
 		A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CreateAccountViewController.m; sourceTree = "<group>"; };
-		A1B042E01857DA0600E26BFA /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Parse.framework; sourceTree = "<group>"; };
 		A1B042E21857DA5000E26BFA /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A1B042E31857DA5000E26BFA /* CFNetwork.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CFNetwork.framework; path = System/Library/Frameworks/CFNetwork.framework; sourceTree = SDKROOT; };
 		A1B042E41857DA5000E26BFA /* CoreLocation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreLocation.framework; path = System/Library/Frameworks/CoreLocation.framework; sourceTree = SDKROOT; };
@@ -146,7 +140,6 @@
 			isa = PBXGroup;
 			children = (
 				A1B0429E1857C83D00E26BFA /* Arbiter Example */,
-				A1B042C31857C83D00E26BFA /* Arbiter ExampleTests */,
 				A1B042971857C83D00E26BFA /* Frameworks */,
 				A1B042961857C83D00E26BFA /* Products */,
 			);
@@ -175,7 +168,6 @@
 				A1B042E81857DA5000E26BFA /* Security.framework */,
 				A1B042E91857DA5000E26BFA /* StoreKit.framework */,
 				A1B042EA1857DA5000E26BFA /* SystemConfiguration.framework */,
-				A1B042E01857DA0600E26BFA /* Parse.framework */,
 				A1B042981857C83D00E26BFA /* Foundation.framework */,
 				A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */,
 				A1B0429C1857C83D00E26BFA /* UIKit.framework */,
@@ -207,24 +199,6 @@
 				A1B042A11857C83D00E26BFA /* InfoPlist.strings */,
 				A1B042A41857C83D00E26BFA /* main.m */,
 				A1B042A61857C83D00E26BFA /* Arbiter Example-Prefix.pch */,
-			);
-			name = "Supporting Files";
-			sourceTree = "<group>";
-		};
-		A1B042C31857C83D00E26BFA /* Arbiter ExampleTests */ = {
-			isa = PBXGroup;
-			children = (
-				A1B042C91857C83D00E26BFA /* Arbiter_ExampleTests.m */,
-				A1B042C41857C83D00E26BFA /* Supporting Files */,
-			);
-			path = "Arbiter ExampleTests";
-			sourceTree = "<group>";
-		};
-		A1B042C41857C83D00E26BFA /* Supporting Files */ = {
-			isa = PBXGroup;
-			children = (
-				A1B042C51857C83D00E26BFA /* Arbiter ExampleTests-Info.plist */,
-				A1B042C61857C83D00E26BFA /* InfoPlist.strings */,
 			);
 			name = "Supporting Files";
 			sourceTree = "<group>";
@@ -359,7 +333,6 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B042C81857C83D00E26BFA /* InfoPlist.strings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -387,7 +360,6 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A1B042CA1857C83D00E26BFA /* Arbiter_ExampleTests.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -424,14 +396,6 @@
 				A1B042AE1857C83D00E26BFA /* Base */,
 			);
 			name = Main_iPad.storyboard;
-			sourceTree = "<group>";
-		};
-		A1B042C61857C83D00E26BFA /* InfoPlist.strings */ = {
-			isa = PBXVariantGroup;
-			children = (
-				A1B042C71857C83D00E26BFA /* en */,
-			);
-			name = InfoPlist.strings;
 			sourceTree = "<group>";
 		};
 /* End PBXVariantGroup section */

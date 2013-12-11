@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13C745B1858FD5B0037E1F2 /* Arbiter.framework */; };
+		A13C745E185900F10037E1F2 /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13C745D185900F10037E1F2 /* Parse.framework */; };
 		A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042981857C83D00E26BFA /* Foundation.framework */; };
 		A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */; };
 		A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429C1857C83D00E26BFA /* UIKit.framework */; };
@@ -25,7 +26,6 @@
 		A1B042D51857C89000E26BFA /* WalletDetailsViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042D41857C89000E26BFA /* WalletDetailsViewController.m */; };
 		A1B042DC1857CACE00E26BFA /* WithdrawViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DB1857CACE00E26BFA /* WithdrawViewController.m */; };
 		A1B042DF1857CBCE00E26BFA /* CreateAccountViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B042DE1857CBCE00E26BFA /* CreateAccountViewController.m */; };
-		A1B042E11857DA0600E26BFA /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E01857DA0600E26BFA /* Parse.framework */; };
 		A1B042EB1857DA5000E26BFA /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E21857DA5000E26BFA /* AudioToolbox.framework */; };
 		A1B042EC1857DA5000E26BFA /* CFNetwork.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E31857DA5000E26BFA /* CFNetwork.framework */; };
 		A1B042ED1857DA5000E26BFA /* CoreLocation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042E41857DA5000E26BFA /* CoreLocation.framework */; };
@@ -57,6 +57,7 @@
 
 /* Begin PBXFileReference section */
 		A13C745B1858FD5B0037E1F2 /* Arbiter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Arbiter.framework; path = "../../../Library/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts/Arbiter.framework"; sourceTree = "<group>"; };
+		A13C745D185900F10037E1F2 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Parse.framework; path = ../../../Downloads/Parse.framework; sourceTree = "<group>"; };
 		A1B042951857C83D00E26BFA /* Arbiter Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Arbiter Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B042981857C83D00E26BFA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -112,6 +113,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */,
+				A13C745E185900F10037E1F2 /* Parse.framework in Frameworks */,
 				A1B042EB1857DA5000E26BFA /* AudioToolbox.framework in Frameworks */,
 				A1B042EC1857DA5000E26BFA /* CFNetwork.framework in Frameworks */,
 				A1B042ED1857DA5000E26BFA /* CoreLocation.framework in Frameworks */,
@@ -123,7 +125,6 @@
 				A1B042F31857DA5000E26BFA /* SystemConfiguration.framework in Frameworks */,
 				A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */,
 				A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */,
-				A1B042E11857DA0600E26BFA /* Parse.framework in Frameworks */,
 				A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -163,6 +164,7 @@
 		A1B042971857C83D00E26BFA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A13C745D185900F10037E1F2 /* Parse.framework */,
 				A13C745B1858FD5B0037E1F2 /* Arbiter.framework */,
 				A1B042E21857DA5000E26BFA /* AudioToolbox.framework */,
 				A1B042E31857DA5000E26BFA /* CFNetwork.framework */,
@@ -518,6 +520,7 @@
 					"$(inherited)",
 					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
+					/Users/andy/Downloads,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";
@@ -536,6 +539,7 @@
 					"$(inherited)",
 					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
+					/Users/andy/Downloads,
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";

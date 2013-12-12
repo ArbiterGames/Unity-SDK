@@ -84,6 +84,7 @@
         self.status.text = @"Verify to get wallet details";
         [self.retryVerificationButton setHidden:NO];
     } else {
+        [self.retryVerificationButton setHidden:YES];
         [self.addressCopy setHidden:NO];
         [self.refreshBalanceButton setHidden:NO];
     }

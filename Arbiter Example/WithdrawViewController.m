@@ -32,6 +32,11 @@
 {
     GlobalData *globals = [GlobalData sharedInstance];
     self.walletBalanceField.text = globals.arbiter.wallet.balance;
+    
+    if (globals.arbiter.wallet.previousWithdrawAddress) {
+        self.withdrawAddressField.text = globals.arbiter.wallet.previousWithdrawAddress;
+    }
+    
     if (globals.arbiter.wallet.depositAddress) {
         [self.refreshBalanceButton setHidden:NO];
     }

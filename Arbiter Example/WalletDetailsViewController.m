@@ -45,12 +45,16 @@
         self.exampleUsernameField.text = @"Anonymous";
     }
     
-    if (globals.arbiterUserId == nil) {
+    if (globals.arbiter.session.userId == nil) {
         self.status.text = @"Initializing Arbiter";
-        globals.arbiter = [[Arbiter alloc] initWithAccessToken:[NSString stringWithFormat:@"94f08d4a4b7ef48cd0ff878f1d34b4eddcc93392"] gameAPIKey:[NSString stringWithFormat:@"212206ab31d94b4e88874fdec3a8111f"] callback:^(NSString *result){
-            globals.arbiterUserId = result;
-            self.arbiterUserIdField.text = globals.arbiterUserId;
-            [self getWalletDetails];
+        globals.arbiter = [[Arbiter alloc] initWithAccessToken:[NSString stringWithFormat:@"94f08d4a4b7ef48cd0ff878f1d34b4eddcc93392"] gameAPIKey:[NSString stringWithFormat:@"212206ab31d94b4e88874fdec3a8111f"] callback:^(NSString *success){
+            if ([success isEqual:@"true"]) {
+                self.arbiterUserIdField.text = globals.arbiter.session.userId;
+                self.arbiterUsernameField.text = globals.arbiter.session.username;
+                [self getWalletDetails];
+            } else {
+                NSLog(@"Error initing arbiter");
+            }
         }];
     } else {
         [self refreshArbiterUserData];
@@ -59,6 +63,7 @@
 
 - (void)getWalletDetails {
     GlobalData *globals = [GlobalData sharedInstance];
+
     // TODO: Save the user_id with this user on the game server
     
     self.status.text = @"Getting wallet details...";
@@ -78,7 +83,6 @@
     GlobalData *globals = [GlobalData sharedInstance];
     self.walletBalanceField.text = globals.arbiter.wallet.balance;
     self.walletDepositAddressField.text = globals.arbiter.wallet.depositAddress;
-    NSLog(@"%@", globals.arbiter.wallet.depositAddress);
     
     if (globals.arbiter.wallet.depositAddress) {
         [self.addressCopy setHidden:NO];

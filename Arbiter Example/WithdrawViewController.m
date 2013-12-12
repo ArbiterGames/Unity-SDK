@@ -43,6 +43,7 @@
 }
 
 - (IBAction)submitWithdrawButtonPressed:(id)sender {
+    [self.view endEditing:YES];
     GlobalData *globals = [GlobalData sharedInstance];
     NSDictionary *settings = @{@"amount": self.withdrawAmountField.text,
                                @"address": self.withdrawAddressField.text};

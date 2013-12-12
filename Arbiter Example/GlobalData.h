@@ -11,7 +11,6 @@
 
 @interface GlobalData : NSObject
 
-@property (nonatomic, retain) NSString *arbiterUserId;
 @property (strong, nonatomic) Arbiter *arbiter;
 
 + (id)sharedInstance;

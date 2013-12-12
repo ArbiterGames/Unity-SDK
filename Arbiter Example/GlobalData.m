@@ -10,7 +10,6 @@
 
 @implementation GlobalData
 
-@synthesize arbiterUserId;
 @synthesize arbiter;
 
 
@@ -31,7 +30,6 @@
 {
     if (self = [super init]) {
         // Set default values
-        arbiterUserId = nil;
         arbiter = nil;
     }
     return self;

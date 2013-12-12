@@ -19,10 +19,12 @@
 @property (strong, nonatomic) IBOutlet UIButton *retryVerificationButton;
 @property (strong, nonatomic) IBOutlet UIButton *refreshBalanceButton;
 @property (strong, nonatomic) IBOutlet UIButton *addressCopy;
+@property (strong, nonatomic) IBOutlet UIButton *loginButton;
 
 - (void)refreshArbiterUserData;
 - (IBAction)copyAddressButtonPressed:(id)sender;
 - (IBAction)retryVerificationButtonPressed:(id)sender;
 - (IBAction)refreshBalanceButtonPressed:(id)sender;
+- (IBAction)loginButtonPressed:(id)sender;
 
 @end

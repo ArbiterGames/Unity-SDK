@@ -16,12 +16,23 @@
 @property (strong, nonatomic) IBOutlet UIButton *claimAccountButton;
 @property (strong, nonatomic) IBOutlet UITextField *arbiterEmailField;
 @property (strong, nonatomic) IBOutlet UITextField *arbiterPasswordField;
+@property (strong, nonatomic) IBOutlet UITextField *arbiterEmailLoginField;
+@property (strong, nonatomic) IBOutlet UITextField *arbiterPasswordLoginField;
+@property (strong, nonatomic) IBOutlet UIButton *arbiterLoginButton;
+@property (strong, nonatomic) IBOutlet UIButton *exampleLoginButton;
 
-
-- (void)shouldEnableSubmitButton;
+- (void)shouldEnableClaimButton;
+- (void)shouldEnableLoginButton;
+- (void)refreshArbiterUserData;
+- (void)refreshExampleUserData;
+- (void)displayExampleLoginView;
 - (void)logoutFromArbiterButtonTouchHandler:(id)sender;
 - (IBAction)claimAccountButtonPressed:(id)sender;
 - (IBAction)arbiterEmailFieldEditingChanged:(id)sender;
 - (IBAction)arbiterPasswordFieldEditingChanged:(id)sender;
+- (IBAction)arbiterEmailLoginFieldEditingChanged:(id)sender;
+- (IBAction)arbiterPasswordLoginFieldEditingChanged:(id)sender;
+- (IBAction)arbiterLoginButtonPressed:(id)sender;
+- (IBAction)exampleLoginButtonPressed:(id)sender;
 
 @end

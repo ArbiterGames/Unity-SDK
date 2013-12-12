@@ -30,11 +30,21 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="vsR-IT-v2C">
-                                                    <rect key="frame" x="175" y="9" width="125" height="21"/>
+                                                    <rect key="frame" x="221" y="9" width="79" height="21"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="VJ0-go-9gW">
+                                                    <rect key="frame" x="175" y="5" width="38" height="30"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <state key="normal" title="Login">
+                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                    </state>
+                                                    <connections>
+                                                        <action selector="loginButtonPressed:" destination="rfA-Mh-YOb" eventType="touchUpInside" id="CGP-Cb-SmG"/>
+                                                    </connections>
+                                                </button>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -199,6 +209,7 @@
                         <outlet property="arbiterUserIdField" destination="k5j-Qe-k3I" id="VXf-ke-fLh"/>
                         <outlet property="arbiterUsernameField" destination="JjV-xs-Zio" id="Jyh-BE-peC"/>
                         <outlet property="exampleUsernameField" destination="vsR-IT-v2C" id="6yP-hw-rnV"/>
+                        <outlet property="loginButton" destination="VJ0-go-9gW" id="C6f-IU-n15"/>
                         <outlet property="refreshBalanceButton" destination="jYj-zd-xI6" id="k21-ZK-Kmz"/>
                         <outlet property="retryVerificationButton" destination="dXp-at-pn6" id="n8H-MN-1UR"/>
                         <outlet property="status" destination="QiN-dB-awS" id="4Cx-gq-wFs"/>
@@ -378,11 +389,21 @@
                                                     <nil key="highlightedColor"/>
                                                 </label>
                                                 <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="" textAlignment="right" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="1we-eJ-T6e">
-                                                    <rect key="frame" x="175" y="9" width="125" height="21"/>
+                                                    <rect key="frame" x="221" y="9" width="79" height="21"/>
                                                     <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
                                                     <fontDescription key="fontDescription" type="system" pointSize="17"/>
                                                     <nil key="highlightedColor"/>
                                                 </label>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="c16-iY-Iq3">
+                                                    <rect key="frame" x="175" y="5" width="38" height="30"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <state key="normal" title="Login">
+                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                    </state>
+                                                    <connections>
+                                                        <action selector="exampleLoginButtonPressed:" destination="72k-pY-EGI" eventType="touchUpInside" id="6mD-t9-zVp"/>
+                                                    </connections>
+                                                </button>
                                             </subviews>
                                         </tableViewCellContentView>
                                     </tableViewCell>
@@ -434,10 +455,86 @@
                                     </tableViewCell>
                                 </cells>
                             </tableViewSection>
+                            <tableViewSection headerTitle="Login with Existing Arbiter Account" id="1M8-4h-tHl">
+                                <cells>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="Rt3-ec-LpN">
+                                        <rect key="frame" x="0.0" y="287" width="320" height="40"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="Rt3-ec-LpN" id="otI-RB-nYN">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Email" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="yZ5-ri-vZM">
+                                                    <rect key="frame" x="20" y="9" width="42" height="21"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" minimumFontSize="17" id="pkX-cl-vMJ">
+                                                    <rect key="frame" x="104" y="5" width="196" height="30"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="arbiterEmailLoginFieldEditingChanged:" destination="72k-pY-EGI" eventType="editingChanged" id="xsb-tT-RbR"/>
+                                                    </connections>
+                                                </textField>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="y3z-Hs-XCk">
+                                        <rect key="frame" x="0.0" y="327" width="320" height="40"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="y3z-Hs-XCk" id="Gzs-l8-5RU">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <label opaque="NO" clipsSubviews="YES" userInteractionEnabled="NO" contentMode="left" horizontalHuggingPriority="251" verticalHuggingPriority="251" text="Password" lineBreakMode="tailTruncation" baselineAdjustment="alignBaselines" adjustsFontSizeToFit="NO" id="oQz-5L-TbA">
+                                                    <rect key="frame" x="20" y="9" width="76" height="21"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="17"/>
+                                                    <color key="textColor" white="0.66666666666666663" alpha="1" colorSpace="calibratedWhite"/>
+                                                    <nil key="highlightedColor"/>
+                                                </label>
+                                                <textField opaque="NO" clipsSubviews="YES" contentMode="scaleToFill" contentHorizontalAlignment="left" contentVerticalAlignment="center" borderStyle="roundedRect" minimumFontSize="17" id="xwN-fv-j3b">
+                                                    <rect key="frame" x="104" y="5" width="196" height="30"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <fontDescription key="fontDescription" type="system" pointSize="14"/>
+                                                    <textInputTraits key="textInputTraits"/>
+                                                    <connections>
+                                                        <action selector="arbiterPasswordLoginFieldEditingChanged:" destination="72k-pY-EGI" eventType="editingChanged" id="udi-Ku-0lK"/>
+                                                    </connections>
+                                                </textField>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                    <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="BYt-Oj-2eR">
+                                        <rect key="frame" x="0.0" y="367" width="320" height="40"/>
+                                        <autoresizingMask key="autoresizingMask"/>
+                                        <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="BYt-Oj-2eR" id="KJC-9K-Eck">
+                                            <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
+                                            <autoresizingMask key="autoresizingMask"/>
+                                            <subviews>
+                                                <button opaque="NO" contentMode="scaleToFill" contentHorizontalAlignment="center" contentVerticalAlignment="center" buttonType="roundedRect" lineBreakMode="middleTruncation" id="a1Q-R1-Lrh">
+                                                    <rect key="frame" x="142" y="5" width="38" height="30"/>
+                                                    <autoresizingMask key="autoresizingMask" flexibleMaxX="YES" flexibleMaxY="YES"/>
+                                                    <state key="normal" title="Login">
+                                                        <color key="titleShadowColor" white="0.5" alpha="1" colorSpace="calibratedWhite"/>
+                                                    </state>
+                                                    <connections>
+                                                        <action selector="arbiterLoginButtonPressed:" destination="72k-pY-EGI" eventType="touchUpInside" id="mDk-Hv-5cA"/>
+                                                    </connections>
+                                                </button>
+                                            </subviews>
+                                        </tableViewCellContentView>
+                                    </tableViewCell>
+                                </cells>
+                            </tableViewSection>
                             <tableViewSection headerTitle="Claim this Arbiter Account" id="x5f-Am-hZw">
                                 <cells>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="MYF-CG-Jxj">
-                                        <rect key="frame" x="0.0" y="287" width="320" height="40"/>
+                                        <rect key="frame" x="0.0" y="455" width="320" height="40"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="MYF-CG-Jxj" id="54L-s6-xXG">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
@@ -463,7 +560,7 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="FYm-lD-eXT">
-                                        <rect key="frame" x="0.0" y="327" width="320" height="40"/>
+                                        <rect key="frame" x="0.0" y="495" width="320" height="40"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="FYm-lD-eXT" id="Zwg-lz-HaA">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
@@ -489,7 +586,7 @@
                                         </tableViewCellContentView>
                                     </tableViewCell>
                                     <tableViewCell contentMode="scaleToFill" selectionStyle="blue" hidesAccessoryWhenEditing="NO" indentationLevel="1" indentationWidth="0.0" id="o18-ko-Qw3">
-                                        <rect key="frame" x="0.0" y="367" width="320" height="40"/>
+                                        <rect key="frame" x="0.0" y="535" width="320" height="40"/>
                                         <autoresizingMask key="autoresizingMask"/>
                                         <tableViewCellContentView key="contentView" opaque="NO" clipsSubviews="YES" multipleTouchEnabled="YES" contentMode="center" tableViewCell="o18-ko-Qw3" id="cHL-qt-J57">
                                             <rect key="frame" x="0.0" y="0.0" width="320" height="39"/>
@@ -519,10 +616,14 @@
                     <navigationItem key="navigationItem" title="Root View Controller" id="bI5-8N-WHK"/>
                     <connections>
                         <outlet property="arbiterEmailField" destination="yza-Iw-OIV" id="Mtm-vb-wCQ"/>
+                        <outlet property="arbiterEmailLoginField" destination="pkX-cl-vMJ" id="sYT-tH-BMq"/>
+                        <outlet property="arbiterLoginButton" destination="a1Q-R1-Lrh" id="YIf-Oo-dmh"/>
                         <outlet property="arbiterPasswordField" destination="n64-UF-IZs" id="VC0-5s-KZw"/>
+                        <outlet property="arbiterPasswordLoginField" destination="xwN-fv-j3b" id="j2S-wc-uE0"/>
                         <outlet property="arbiterUserIdField" destination="zjW-g8-3rN" id="670-XT-eEY"/>
                         <outlet property="arbiterUsernameField" destination="9U8-dB-Gut" id="nUb-KT-HCB"/>
                         <outlet property="claimAccountButton" destination="1nh-vj-VbH" id="RKf-OY-01c"/>
+                        <outlet property="exampleLoginButton" destination="c16-iY-Iq3" id="iFy-Db-5bM"/>
                         <outlet property="exampleUsernameField" destination="1we-eJ-T6e" id="CEw-8G-PSi"/>
                     </connections>
                 </tableViewController>

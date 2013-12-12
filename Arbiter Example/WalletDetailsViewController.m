@@ -26,11 +26,6 @@
     [self.refreshBalanceButton setHidden:YES];
     
     self.title = @"Wallet Details";
-    if (![PFUser currentUser]) {
-        WelcomeViewController *welcomeViewController = [[WelcomeViewController alloc] initWithNibName:@"WelcomeViewController" bundle:nil];
-        UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:welcomeViewController];
-        [self presentViewController:navController animated:YES completion:nil];
-    }
 }
 
 - (void)viewDidAppear:(BOOL)animated
@@ -41,30 +36,29 @@
     
     if ([PFUser currentUser]) {
         self.exampleUsernameField.text = [PFUser currentUser].username;
+        [self.loginButton setHidden:YES];
     } else {
-        self.exampleUsernameField.text = @"Anonymous";
+        self.exampleUsernameField.text = @"Anon";
     }
     
     if (globals.arbiter.session.userId == nil) {
         self.status.text = @"Initializing Arbiter";
         globals.arbiter = [[Arbiter alloc] initWithAccessToken:[NSString stringWithFormat:@"94f08d4a4b7ef48cd0ff878f1d34b4eddcc93392"] gameAPIKey:[NSString stringWithFormat:@"212206ab31d94b4e88874fdec3a8111f"] callback:^(NSString *success){
             if ([success isEqual:@"true"]) {
-                self.arbiterUserIdField.text = globals.arbiter.session.userId;
-                self.arbiterUsernameField.text = globals.arbiter.session.username;
-                [self getWalletDetails];
+                [self refreshArbiterUserData];
             } else {
                 NSLog(@"Error initing arbiter");
             }
         }];
-    } else {
-        [self refreshArbiterUserData];
     }
+    
+    [self refreshArbiterUserData];
 }
 
 - (void)getWalletDetails {
     GlobalData *globals = [GlobalData sharedInstance];
 
-    // TODO: Save the user_id with this user on the game server
+    // TODO: Save the user_id with this user on the game server so the server can make calls on this users behalf
     
     self.status.text = @"Getting wallet details...";
     [globals.arbiter getWalletDetailsWithCallback:^(NSString *success){
@@ -83,8 +77,13 @@
     GlobalData *globals = [GlobalData sharedInstance];
     self.walletBalanceField.text = globals.arbiter.wallet.balance;
     self.walletDepositAddressField.text = globals.arbiter.wallet.depositAddress;
+    self.arbiterUserIdField.text = globals.arbiter.session.userId;
+    self.arbiterUsernameField.text = globals.arbiter.session.username;
     
-    if (globals.arbiter.wallet.depositAddress) {
+    if (globals.arbiter.wallet.balance.length == 0) {
+        self.status.text = @"Verify to get wallet details";
+        [self.retryVerificationButton setHidden:NO];
+    } else {
         [self.addressCopy setHidden:NO];
         [self.refreshBalanceButton setHidden:NO];
     }
@@ -115,5 +114,13 @@
     [globals.arbiter getWalletDetailsWithCallback:^(NSString *success) {
         [self refreshArbiterUserData];
     }];
+}
+
+- (IBAction)loginButtonPressed:(id)sender {
+    [self.loginButton setHidden:YES];
+    WelcomeViewController *welcomeViewController = [[WelcomeViewController alloc] initWithNibName:@"WelcomeViewController" bundle:nil];
+    UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:welcomeViewController];
+    [self presentViewController:navController animated:YES completion:nil];
+
 }
 @end

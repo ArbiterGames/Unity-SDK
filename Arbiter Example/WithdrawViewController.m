@@ -18,10 +18,14 @@
 - (void)viewDidLoad
 {
     [super viewDidLoad];
-    GlobalData *globals = [GlobalData sharedInstance];
-    self.title = @"Withdraw";
-    self.walletBalanceField.text = globals.arbiter.wallet.balance;
     [self.submitWithdrawButton setEnabled:NO];
+    self.title = @"Withdraw";
+}
+
+- (void)viewDidAppear:(BOOL)animated
+{
+    [super viewDidAppear:animated];
+    [self refreshArbiterUserData];
 }
 
 - (void)refreshArbiterUserData

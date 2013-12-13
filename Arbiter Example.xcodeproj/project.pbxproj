@@ -7,8 +7,6 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13C745B1858FD5B0037E1F2 /* Arbiter.framework */; };
-		A13C745E185900F10037E1F2 /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A13C745D185900F10037E1F2 /* Parse.framework */; };
 		A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B042981857C83D00E26BFA /* Foundation.framework */; };
 		A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */; };
 		A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1B0429C1857C83D00E26BFA /* UIKit.framework */; };
@@ -41,6 +39,8 @@
 		A1B043091857E9C400E26BFA /* WelcomeViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B043071857E9C400E26BFA /* WelcomeViewController.m */; };
 		A1B0430A1857E9C400E26BFA /* WelcomeViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A1B043081857E9C400E26BFA /* WelcomeViewController.xib */; };
 		A1B043121858110700E26BFA /* GlobalData.m in Sources */ = {isa = PBXBuildFile; fileRef = A1B043111858110700E26BFA /* GlobalData.m */; };
+		A1CE2357185B83CC006B233E /* Arbiter.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1CE2356185B83CC006B233E /* Arbiter.framework */; };
+		A1CE2359185B83E3006B233E /* Parse.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A1CE2358185B83E3006B233E /* Parse.framework */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,8 +54,6 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		A13C745B1858FD5B0037E1F2 /* Arbiter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Arbiter.framework; path = "../../../Library/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts/Arbiter.framework"; sourceTree = "<group>"; };
-		A13C745D185900F10037E1F2 /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Parse.framework; path = ../../../Downloads/Parse.framework; sourceTree = "<group>"; };
 		A1B042951857C83D00E26BFA /* Arbiter Example.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "Arbiter Example.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		A1B042981857C83D00E26BFA /* Foundation.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Foundation.framework; path = System/Library/Frameworks/Foundation.framework; sourceTree = SDKROOT; };
 		A1B0429A1857C83D00E26BFA /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
@@ -99,6 +97,8 @@
 		A1B043081857E9C400E26BFA /* WelcomeViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = WelcomeViewController.xib; sourceTree = "<group>"; };
 		A1B043101858110700E26BFA /* GlobalData.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = GlobalData.h; sourceTree = "<group>"; };
 		A1B043111858110700E26BFA /* GlobalData.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = GlobalData.m; sourceTree = "<group>"; };
+		A1CE2356185B83CC006B233E /* Arbiter.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Arbiter.framework; sourceTree = "<group>"; };
+		A1CE2358185B83E3006B233E /* Parse.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; path = Parse.framework; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -106,9 +106,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A13C745C1858FD5B0037E1F2 /* Arbiter.framework in Frameworks */,
-				A13C745E185900F10037E1F2 /* Parse.framework in Frameworks */,
 				A1B042EB1857DA5000E26BFA /* AudioToolbox.framework in Frameworks */,
+				A1CE2357185B83CC006B233E /* Arbiter.framework in Frameworks */,
 				A1B042EC1857DA5000E26BFA /* CFNetwork.framework in Frameworks */,
 				A1B042ED1857DA5000E26BFA /* CoreLocation.framework in Frameworks */,
 				A1B042EE1857DA5000E26BFA /* libz.1.1.3.dylib in Frameworks */,
@@ -117,6 +116,7 @@
 				A1B042F11857DA5000E26BFA /* Security.framework in Frameworks */,
 				A1B042F21857DA5000E26BFA /* StoreKit.framework in Frameworks */,
 				A1B042F31857DA5000E26BFA /* SystemConfiguration.framework in Frameworks */,
+				A1CE2359185B83E3006B233E /* Parse.framework in Frameworks */,
 				A1B0429B1857C83D00E26BFA /* CoreGraphics.framework in Frameworks */,
 				A1B0429D1857C83D00E26BFA /* UIKit.framework in Frameworks */,
 				A1B042991857C83D00E26BFA /* Foundation.framework in Frameworks */,
@@ -142,6 +142,7 @@
 				A1B0429E1857C83D00E26BFA /* Arbiter Example */,
 				A1B042971857C83D00E26BFA /* Frameworks */,
 				A1B042961857C83D00E26BFA /* Products */,
+				A1CE2355185B83A6006B233E /* Dependencies */,
 			);
 			sourceTree = "<group>";
 		};
@@ -157,8 +158,6 @@
 		A1B042971857C83D00E26BFA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
-				A13C745D185900F10037E1F2 /* Parse.framework */,
-				A13C745B1858FD5B0037E1F2 /* Arbiter.framework */,
 				A1B042E21857DA5000E26BFA /* AudioToolbox.framework */,
 				A1B042E31857DA5000E26BFA /* CFNetwork.framework */,
 				A1B042E41857DA5000E26BFA /* CoreLocation.framework */,
@@ -241,6 +240,16 @@
 				A1B043111858110700E26BFA /* GlobalData.m */,
 			);
 			name = Common;
+			sourceTree = "<group>";
+		};
+		A1CE2355185B83A6006B233E /* Dependencies */ = {
+			isa = PBXGroup;
+			children = (
+				A1CE2358185B83E3006B233E /* Parse.framework */,
+				A1CE2356185B83CC006B233E /* Arbiter.framework */,
+			);
+			name = Dependencies;
+			path = "Arbiter Example";
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -485,6 +494,7 @@
 					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
 					/Users/andy/Downloads,
+					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example/Arbiter\\ Example",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";
@@ -504,6 +514,7 @@
 					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example",
 					"$(USER_LIBRARY_DIR)/Developer/Xcode/DerivedData/Arbiter-dfygplrvdrnqbufaoegitqsydmhn/Build/Intermediates/ArchiveIntermediates/Arbiter/IntermediateBuildFilesPath/UninstalledProducts",
 					/Users/andy/Downloads,
+					"/Users/andy/work/Arbiter\\ Example/Arbiter\\ Example/Arbiter\\ Example",
 				);
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = "Arbiter Example/Arbiter Example-Prefix.pch";

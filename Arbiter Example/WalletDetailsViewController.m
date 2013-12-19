@@ -6,10 +6,11 @@
 //  Copyright (c) 2013 Arbiter. All rights reserved.
 //
 
-#import "WalletDetailsViewController.h"
-#import "WelcomeViewController.h"
 #import <Parse/Parse.h>
 #import <Arbiter/Arbiter.h>
+#import <GameKit/GameKit.h>
+#import "WalletDetailsViewController.h"
+#import "WelcomeViewController.h"
 #import "GlobalData.h"
 
 @interface WalletDetailsViewController ()
@@ -17,6 +18,8 @@
 @end
 
 @implementation WalletDetailsViewController
+
+@synthesize cachedController = _cachedController;
 
 - (void)viewDidLoad
 {
@@ -43,7 +46,13 @@
     
     if (globals.arbiter.session.userId == nil) {
         self.status.text = @"Initializing Arbiter";
-        globals.arbiter = [[Arbiter alloc] initWithAccessToken:[NSString stringWithFormat:@"94f08d4a4b7ef48cd0ff878f1d34b4eddcc93392"] gameAPIKey:[NSString stringWithFormat:@"212206ab31d94b4e88874fdec3a8111f"] callback:^(NSString *success){
+        
+        
+        // Production credentials
+        NSString *gameAPIKey = @"212206ab31d94b4e88874fdec3a8111f";
+        NSString *accessToken = @"94f08d4a4b7ef48cd0ff878f1d34b4eddcc93392";
+        
+        globals.arbiter = [[Arbiter alloc] initWithAccessToken:accessToken gameAPIKey:gameAPIKey callback:^(NSString *success){
             if ([success isEqual:@"true"]) {
                 [self refreshArbiterUserData];
             } else {
@@ -89,6 +98,14 @@
         [self.addressCopy setHidden:NO];
         [self.refreshBalanceButton setHidden:NO];
     }
+    
+    if (globals.localPlayer.isAuthenticated) {
+        self.gameCenterPlayerIdField.text = globals.localPlayer.playerID;
+        [self.gameCenterLoginButton setHidden:YES];
+    } else {
+        self.gameCenterPlayerIdField.text = @"";
+        [self.gameCenterLoginButton setHidden:NO];
+    }
 }
 
 - (IBAction)copyAddressButtonPressed:(id)sender {
@@ -124,5 +141,45 @@
     UINavigationController *navController = [[UINavigationController alloc] initWithRootViewController:welcomeViewController];
     [self presentViewController:navController animated:YES completion:nil];
 
+}
+
+- (IBAction)gameCenterLoginButtonPressed:(id)sender {
+    GlobalData *globals = [GlobalData sharedInstance];
+    [self displayGameCenterLoginWithCallback:^(NSString *success) {
+        [globals.arbiter loginWithGameCenterPlayer:globals.localPlayer callback:^(NSString *success) {
+            [self refreshArbiterUserData];
+        }];
+    }];
+}
+
+- (void)displayGameCenterLoginWithCallback:(void (^)(NSString *))handler
+{
+    GlobalData *globals = [GlobalData sharedInstance];
+    _completionHandler = [handler copy];
+    
+    __weak GKLocalPlayer *blockLocalPlayer = globals.localPlayer;
+    blockLocalPlayer.authenticateHandler = ^(UIViewController *viewController, NSError *error) {
+        if (viewController != nil) {
+            _cachedController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+            [[UIApplication sharedApplication] keyWindow].rootViewController = viewController;
+        }
+        else if (blockLocalPlayer.isAuthenticated) {
+            if (_cachedController != nil) {
+                [[UIApplication sharedApplication] keyWindow].rootViewController = _cachedController;
+                _cachedController = nil;
+            }
+            
+            _completionHandler(@"true");
+            _completionHandler = nil;
+            [self refreshArbiterUserData];
+        }
+        else {
+            [[UIApplication sharedApplication] keyWindow].rootViewController = _cachedController;
+            _cachedController = nil;
+            _completionHandler(@"true");
+            _completionHandler = nil;
+            [self refreshArbiterUserData];
+        }
+    };
 }
 @end

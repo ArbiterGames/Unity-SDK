@@ -8,10 +8,12 @@
 
 #import <Foundation/Foundation.h>
 #import <Arbiter/Arbiter.h>
+#import <GameKit/GameKit.h>
 
 @interface GlobalData : NSObject
 
 @property (strong, nonatomic) Arbiter *arbiter;
+@property (strong, nonatomic) GKLocalPlayer *localPlayer;
 
 + (id)sharedInstance;
 

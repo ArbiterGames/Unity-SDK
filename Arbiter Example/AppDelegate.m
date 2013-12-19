@@ -6,8 +6,8 @@
 //  Copyright (c) 2013 Arbiter. All rights reserved.
 //
 
-#import "AppDelegate.h"
 #import <Parse/Parse.h>
+#import "AppDelegate.h"
 #import "GlobalData.h"
 
 @implementation AppDelegate
@@ -18,7 +18,7 @@
     [Parse setApplicationId:@"xQzsaGsYPuUtUF8MkP7ZjiofziNOdtfeM0gVB4kg"
                   clientKey:@"lpOGGqxK0gTcFHkIoGoA3cOnj1JpSlJSgMIbF0xZ"];
     [PFAnalytics trackAppOpenedWithLaunchOptions:launchOptions];
-
+    
     return YES;
 }
 							

@@ -6,9 +6,10 @@
 //  Copyright (c) 2013 Arbiter. All rights reserved.
 //
 
+#import <Parse/Parse.h>
+#import <GameKit/GameKit.h>
 #import "CreateAccountViewController.h"
 #import "WelcomeViewController.h"
-#import <Parse/Parse.h>
 #import "GlobalData.h"
 
 @interface CreateAccountViewController ()
@@ -16,6 +17,8 @@
 @end
 
 @implementation CreateAccountViewController
+
+@synthesize cachedController = _cachedController;
 
 - (void)viewDidLoad
 {
@@ -92,6 +95,14 @@
     } else {
         self.exampleUsernameField.text = @"Anon";
     }
+    
+    if (globals.localPlayer.isAuthenticated) {
+        self.gameCenterPlayerIdField.text = globals.localPlayer.playerID;
+        [self.gameCenterLoginButton setHidden:YES];
+    } else {
+        self.gameCenterPlayerIdField.text = @"";
+        [self.gameCenterLoginButton setHidden:NO];
+    }
 }
 
 - (void)displayExampleLoginView
@@ -101,9 +112,50 @@
     [self presentViewController:navController animated:YES completion:nil];
 }
 
+- (void)displayGameCenterLoginWithCallback:(void (^)(NSString *))handler
+{
+    GlobalData *globals = [GlobalData sharedInstance];
+    _completionHandler = [handler copy];
+    
+    __weak GKLocalPlayer *blockLocalPlayer = globals.localPlayer;
+    blockLocalPlayer.authenticateHandler = ^(UIViewController *viewController, NSError *error) {
+        if (viewController != nil) {
+            _cachedController = [[UIApplication sharedApplication] keyWindow].rootViewController;
+            [[UIApplication sharedApplication] keyWindow].rootViewController = viewController;
+        } else if (blockLocalPlayer.isAuthenticated) {
+            if (_cachedController != nil) {
+                [[UIApplication sharedApplication] keyWindow].rootViewController = _cachedController;
+                _cachedController = nil;
+            }
+            
+            _completionHandler(@"true");
+            _completionHandler = nil;
+            [self refreshExampleUserData];
+        } else {
+            [[UIApplication sharedApplication] keyWindow].rootViewController = _cachedController;
+            _cachedController = nil;
+            _completionHandler(@"true");
+            _completionHandler = nil;
+            [self refreshExampleUserData];
+        }
+    };
+}
+
+- (void)generateGameCenterSignature
+{
+    GlobalData *globals = [GlobalData sharedInstance];
+    [globals.arbiter loginWithGameCenterPlayer:globals.localPlayer callback:^(NSString *success) {
+        NSLog(@"handler.success: %@", success);
+        NSLog(@"TODO: Once the arbiter account is linked to game center, be sure we are getting the user back, then refresh the arbiterUserData");
+    }];
+}
+
 - (void)logoutFromArbiterButtonTouchHandler:(id)sender {
     GlobalData *globals = [GlobalData sharedInstance];
+    // Logout of parse
     [PFUser logOut];
+    
+    // Logout of arbiter
     [globals.arbiter logout];
     globals.arbiter = nil;
     
@@ -133,6 +185,15 @@
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:nil cancelButtonTitle:@"Close" otherButtonTitles:nil];
         [alert show];
     }];
+}
+
+- (IBAction)claimAccountUsingGameCenterButtonPressed:(id)sender {
+    GlobalData *globals = [GlobalData sharedInstance];
+    if (!globals.localPlayer.isAuthenticated) {
+        [self displayGameCenterLoginWithCallback:^(NSString *success) {
+            [self generateGameCenterSignature];
+        }];
+    }
 }
 
 - (IBAction)arbiterEmailFieldEditingChanged:(id)sender {
@@ -167,6 +228,12 @@
 - (IBAction)exampleLoginButtonPressed:(id)sender
 {
     [self displayExampleLoginView];
+}
+
+- (IBAction)gameCenterLoginButtonPressed:(id)sender {
+    [self displayGameCenterLoginWithCallback:^(NSString *success) {
+        [self generateGameCenterSignature];
+    }];
 }
 
 - (void)didReceiveMemoryWarning

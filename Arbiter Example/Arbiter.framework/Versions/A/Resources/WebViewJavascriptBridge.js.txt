@@ -114,3 +114,4 @@
 	readyEvent.bridge = WebViewJavascriptBridge
 	doc.dispatchEvent(readyEvent)
 })();
+alert('js')

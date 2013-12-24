@@ -8,6 +8,7 @@
 
 #import <Foundation/Foundation.h>
 #import <UIKit/UIKit.h>
+#import <GameKit/GameKit.h>
 #import "ArbiterSession.h"
 #import "ArbiterWallet.h"
 
@@ -27,6 +28,7 @@
 - (void)withdrawWithSettings:(NSDictionary *)withdrawDetails callback:(void(^)(NSString *))handler;
 - (void)claimAccountWithCredentials:(NSDictionary*)credentials callback:(void(^)(NSString *))handler;
 - (void)loginWithCredentials:(NSDictionary*)credentials callback:(void(^)(NSString *))handler;
+- (void)loginWithGameCenterPlayer:(GKLocalPlayer *)localPlayer callback:(void(^)(NSString *))handler;
 - (void)logout;
 
 @end

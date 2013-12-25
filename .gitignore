@@ -19,3 +19,5 @@ DerivedData
 
 #CocoaPods
 Pods
+**/iOS_Build/*
+**/Library/metadata

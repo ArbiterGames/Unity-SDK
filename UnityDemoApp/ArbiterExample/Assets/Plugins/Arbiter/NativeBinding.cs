@@ -2,10 +2,17 @@
 using System.Collections;
 using System.Runtime.InteropServices;
 
-public class NativeBinding {
+public class NativeBinding : MonoBehaviour {
 
 	static NativeBinding() {
-		//tttDebug.LogError("ttt make a GO here!");
+		GameObject go = new GameObject( "ArbiterBinding" );
+		go.AddComponent< NativeBinding >();
+		GameObject.DontDestroyOnLoad( go );
+	}
+
+	public void ReceiveMessage( string msg ){
+		Debug.Log( "===== Received message from iOS =====" );
+		Debug.Log( msg );
 	}
 
 	public static void Foo() {
@@ -18,6 +25,6 @@ public class NativeBinding {
 	
 	
 	[DllImport ("__Internal")]
-	private static extern float foo(string msg);
+	private static extern float foo( string msg );
 	
 }

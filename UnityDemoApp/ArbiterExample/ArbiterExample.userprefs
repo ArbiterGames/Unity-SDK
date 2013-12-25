@@ -1,9 +1,9 @@
 ﻿<Properties>
   <MonoDevelop.Ide.Workspace ActiveConfiguration="Debug" PreferredExecutionTarget="MonoDevelop.Default" />
-  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Arbiter/NativeBinding.cs">
+  <MonoDevelop.Ide.Workbench ActiveDocument="Assets/Plugins/Arbiter/NativeBinding.cs">
     <Files>
-      <File FileName="Assets/Entrypoint.cs" Line="9" Column="16" />
-      <File FileName="Assets/Arbiter/NativeBinding.cs" Line="20" Column="1" />
+      <File FileName="Assets/Entrypoint.cs" Line="9" Column="21" />
+      <File FileName="Assets/Plugins/Arbiter/NativeBinding.cs" Line="8" Column="8" />
     </Files>
   </MonoDevelop.Ide.Workbench>
   <MonoDevelop.Ide.DebuggingService.Breakpoints>

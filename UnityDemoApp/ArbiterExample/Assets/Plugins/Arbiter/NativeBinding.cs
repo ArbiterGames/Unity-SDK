@@ -3,7 +3,11 @@ using System.Collections;
 using System.Runtime.InteropServices;
 
 public class NativeBinding {
-	
+
+	static NativeBinding() {
+		//tttDebug.LogError("ttt make a GO here!");
+	}
+
 	public static void Foo() {
 #if UNITY_IOS && !UNITY_EDITOR
 		foo("Hi from Unity");

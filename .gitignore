@@ -20,7 +20,7 @@ DerivedData
 #CocoaPods
 Pods
 **/iOS_Build/*
-**/Library**
+**/Library/*
 **/Temp*
 *.sln
 *.userprefs

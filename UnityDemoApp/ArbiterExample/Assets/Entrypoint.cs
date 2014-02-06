@@ -15,11 +15,17 @@ public class Entrypoint : MonoBehaviour {
     }
     
     void ArbiterStep1() {
-		Arbiter.Initialize( ArbiterStep2 );
+        Arbiter.Initialize( ArbiterStep2 );
 	}
     
     void ArbiterStep2() {
-        Arbiter.VerifyUser( ArbiterStep3 );
+        Debug.Log( "Hello, " + Arbiter.Username + "!" );
+        Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
+
+        if( Arbiter.Verified )
+            ArbiterStep3();
+        else
+            Arbiter.VerifyUser( ArbiterStep3 );
     }
     
     void ArbiterStep3() {

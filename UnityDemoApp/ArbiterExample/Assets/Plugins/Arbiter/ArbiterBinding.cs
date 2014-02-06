@@ -6,38 +6,8 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SimpleJSON;
 
-
-// ttt I'm pretty sure this is old/startig point. Probably can just remove this class.
-/*
-public class NativeBinding : MonoBehaviour {
-
-	static NativeBinding() {
-		GameObject go = new GameObject( "ArbiterBinding" );
-		go.AddComponent< NativeBinding >();
-		GameObject.DontDestroyOnLoad( go );
-	}
-
-	public void ReceiveMessage( string msg ){
-		Debug.Log( "===== Received message from iOS =====" );
-		Debug.Log( msg );
-	}
-
-	public static void Foo() {
-#if UNITY_IOS && !UNITY_EDITOR
-		foo("Hi from Unity");
-#else
-		Debug.Log( "Call was made to native function. Has no effect in editor." );
-#endif
-	}
-
-
-	[DllImport ("__Internal")]
-	private static extern float foo( string msg );
-
-}
-*/
-
 namespace ArbiterInternal {
+
 
 
 /// <summary>
@@ -47,13 +17,16 @@ public class ArbiterBinding : MonoBehaviour
 {
 	[DllImport ("__Internal")]
 	private static extern void _init();
-    public delegate void InitializeCallback( string userId, Wallet wallet );
+    public delegate void InitializeCallback( User user, bool isVerified, Wallet wallet );
 	private static InitializeCallback initCallback;
 	public static void Init( InitializeCallback callback ) {
         initCallback = callback;
 #if UNITY_EDITOR
         ReportIgnore( "Initialize" );
-        initCallback( "0", null );
+        User user = new User();
+        user.Id = "0";
+        user.Name = "McMockison";
+        initCallback( user, false, null );
 #elif UNITY_IOS
 		_init();
 #endif
@@ -62,8 +35,9 @@ public class ArbiterBinding : MonoBehaviour
 
 	[DllImport ("__Internal")]
 	private static extern void _verifyUser();
-    private static Action<bool> verifyUserCallback;
-	public static void VerifyUser( Action<bool> callback ) {
+    public delegate void VerifyUserCallback( bool isVerified );
+    private static VerifyUserCallback verifyUserCallback;
+	public static void VerifyUser( VerifyUserCallback callback ) {
         verifyUserCallback = callback;
 #if UNITY_EDITOR
         ReportIgnore( "VerifyUser" );
@@ -107,30 +81,31 @@ public class ArbiterBinding : MonoBehaviour
 
 	public void InitHandler( string jsonString )
 	{
-		JSONNode json = JSON.Parse(jsonString);
-        string userId = json["user_id"];
+		JSONNode json = JSON.Parse( jsonString );
+        JSONNode userNode = json["user"];
+        User user = new User();
+        user.Id = userNode["id"].Value;
+        user.Name = userNode["username"].Value;
+        bool verified = userNode["is_verified"].Value == "true";
         Wallet wallet = null;
         if( json["wallet"] != null ) {
             wallet = parseWallet( json["wallet"] );
         }
-		initCallback( userId, wallet );
+
+        initCallback( user, verified, wallet );
 	}
 
 	public void VerifyUserHandler( string jsonString )
 	{
-        JSONNode json = JSON.Parse(jsonString);
-		Dictionary<string, string> dict = new Dictionary<string, string>();
-            // ttt TODO: Properly parse the wallet from a verify call? Is it really needed?
-		dict.Add("success", json["success"]);
-		wallet.Add("depositAddress", json["wallet"]["deposit_address"].Value);
-		wallet.Add("balance", json ["wallet"] ["balance"].Value);
-        bool response = dict["success"] == "true";
-        verifyUserCallback( response );
+        JSONNode json = JSON.Parse( jsonString );
+            // ttt TODO: parse response
+		
+        verifyUserCallback( true );
 	}
 
 	public void GetWalletHandler( string jsonString )
 	{
-        JSONNode json = JSON.Parse(jsonString);
+        JSONNode json = JSON.Parse( jsonString );
         if( wasSuccess( json )) {
             getWalletCallback( parseWallet( json["wallet"] ));
         } else {
@@ -170,8 +145,6 @@ public class ArbiterBinding : MonoBehaviour
         rv.WithdrawAddress = json["withdraw_address"].Value;
         return rv;
     }
-
-	private Dictionary<string, string> wallet = new Dictionary<string, string>();
 }
 
 

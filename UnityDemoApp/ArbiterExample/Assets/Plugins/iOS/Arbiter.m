@@ -33,7 +33,9 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
     self = [super init];
     if ( self ) {
         _connectionHandler = [^(NSDictionary *responseDict) {
-            self.userId = [responseDict objectForKey:@"user_id"];
+            NSDictionary *userDict = [responseDict objectForKey:@"user"];
+            self.userId = [userDict objectForKey:@"id"];
+            self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
             handler(responseDict);
         } copy];
 

@@ -1,6 +1,6 @@
 
-
 namespace ArbiterInternal {
+
 
 public class Wallet
 {
@@ -9,5 +9,6 @@ public class Wallet
     public string DepositQrCode;
     public string WithdrawAddress;
 }
+
 
 } // namespace ArbiterInternal

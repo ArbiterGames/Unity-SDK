@@ -48,8 +48,6 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     _connectionHandler = [^(NSDictionary *responseDict) {
-        self.verificationUrl = [responseDict objectForKey:@"verification_url"];
-
         if ([[responseDict objectForKey:@"success"] boolValue] == NO) {
             NSString *error = [responseDict objectForKey:@"errors"][0];
             if ([error isEqualToString:@"This user has not verified their age."]) {
@@ -139,9 +137,10 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 
 #pragma mark UIAlertView Delegate Methods
 
-- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex
-{
-    if (buttonIndex == 1) {
+- (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
+    if (buttonIndex == 0) {
+        NSLog(@"User has hit the cancel button. TODO: Implement handling this!");
+    } else if (buttonIndex == 1) {
         _connectionHandler = [^(NSDictionary *responseDict) {
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 NSLog(@"saving wallet");
@@ -156,7 +155,11 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
         NSError *error;
         NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
 
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:self.verificationUrl]];
+        NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+        [verificationUrl appendString: self.userId];
+        [verificationUrl appendString: @"/verify"];
+
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
         [request setHTTPMethod:@"POST"];
         [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
         [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];

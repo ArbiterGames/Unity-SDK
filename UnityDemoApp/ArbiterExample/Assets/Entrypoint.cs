@@ -1,10 +1,28 @@
 ﻿using UnityEngine;
+using UnityEngine.SocialPlatforms;
+using System;
 using System.Collections;
+
 
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
+        LogInToGameCenter();
+    }
+
+
+    void LogInToGameCenter() {
+#if UNITY_EDITOR
         ArbiterOptionalStep();
+#elif UNITY_IOS
+        Action<bool> processAuth = ( success ) => {
+            if( success )
+                ArbiterOptionalStep();
+            else
+                Debug.LogError( "Could not authenticate to Game Center!" );
+        };
+        Social.localUser.Authenticate( processAuth ); 
+#endif
     }
 
 

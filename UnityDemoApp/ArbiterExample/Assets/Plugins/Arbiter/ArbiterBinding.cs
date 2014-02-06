@@ -35,10 +35,12 @@ public class ArbiterBinding : MonoBehaviour
 
 	[DllImport ("__Internal")]
 	private static extern void _verifyUser();
-    public delegate void VerifyUserCallback( bool isVerified );
+    public delegate void VerifyUserCallback( bool isVerified );    
     private static VerifyUserCallback verifyUserCallback;
-	public static void VerifyUser( VerifyUserCallback callback ) {
+    private static ErrorHandler verifyUserErrorHandler;
+	public static void VerifyUser( VerifyUserCallback callback, ErrorHandler errorHandler ) {
         verifyUserCallback = callback;
+        verifyUserErrorHandler = errorHandler;
 #if UNITY_EDITOR
         ReportIgnore( "VerifyUser" );
         verifyUserCallback( true );
@@ -86,7 +88,7 @@ public class ArbiterBinding : MonoBehaviour
         User user = new User();
         user.Id = userNode["id"].Value;
         user.Name = userNode["username"].Value;
-        bool verified = userNode["is_verified"].Value == "true";
+        bool verified = isVerified( userNode );
         Wallet wallet = null;
         if( json["wallet"] != null ) {
             wallet = parseWallet( json["wallet"] );
@@ -98,9 +100,12 @@ public class ArbiterBinding : MonoBehaviour
 	public void VerifyUserHandler( string jsonString )
 	{
         JSONNode json = JSON.Parse( jsonString );
-            // ttt TODO: parse response
-		
-        verifyUserCallback( true );
+        if( wasSuccess( json )) {
+            bool verified = isVerified( json["user"] );
+            verifyUserCallback( verified );
+        } else {
+            verifyUserErrorHandler( getErrors( json ));
+        }
 	}
 
 	public void GetWalletHandler( string jsonString )
@@ -122,6 +127,9 @@ public class ArbiterBinding : MonoBehaviour
 
     private bool wasSuccess( JSONNode json ) {
         return (string.Equals( json["success"].Value, "true"));
+    }
+    private bool isVerified( JSONNode userNode) {
+        return string.Equals( userNode["is_verified"].Value, "true" );
     }
 
 

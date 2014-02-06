@@ -50,7 +50,7 @@ public class Arbiter : MonoBehaviour
                 verified = VerificationStatus.Unverified;
             done();
         };
-        ArbiterBinding.VerifyUser( parse );
+        ArbiterBinding.VerifyUser( parse, verifyErrorHandler );
     }
     
     
@@ -85,10 +85,10 @@ public class Arbiter : MonoBehaviour
         };
         ArbiterBinding.GetWallet( parse, walletErrorHandler );
     }
-    private static void defaultWalletErrorHandler( List<string> errors ) {
+    private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error );
-        Debug.LogError( "There was a problem getting the wallet!\n"+msg );
+        Debug.LogError( "There was a problem with an Arbiter call!\n"+msg );
     }
     
     
@@ -107,5 +107,6 @@ public class Arbiter : MonoBehaviour
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static List<Action> walletQueryListeners = new List<Action>();
-    private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultWalletErrorHandler;
+    private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
+    private static ArbiterBinding.ErrorHandler verifyErrorHandler = defaultErrorHandler;
 }

@@ -4,9 +4,15 @@ using System.Collections;
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
+        ArbiterOptionalStep();
+    }
+
+
+    void ArbiterOptionalStep() {
+        // ttt TODO: Custom Override Error Handler registration!
+
         ArbiterStep1();
     }
-    
     
     void ArbiterStep1() {
 		Arbiter.Initialize( ArbiterStep2 );
@@ -18,6 +24,7 @@ public class Entrypoint : MonoBehaviour {
     
     void ArbiterStep3() {
         Arbiter.AddWalletListener( UpdateWalletElements );
+        Arbiter.AddWalletListener( SomeOtherHandler );
 
         ArbiterDoTheseAsOftenAsYouWant();
     }
@@ -42,5 +49,10 @@ public class Entrypoint : MonoBehaviour {
             "depositQr="+depositQrCode+"\n"+
             "withdraw="+withdrawAddress
         );
+    }
+
+
+    void SomeOtherHandler() {
+        Debug.Log( "Example of other wallet listeners triggering." );
     }
 }

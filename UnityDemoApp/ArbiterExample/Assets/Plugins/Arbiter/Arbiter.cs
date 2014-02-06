@@ -65,8 +65,7 @@ public class Arbiter : MonoBehaviour
             Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
 
         Action pingListeners = () => {
-            foreach( Action listener in walletQueryListeners )
-                listener();
+            walletQueryListeners.ForEach( listener => listener() );
         };
         queryWalletIfAble( pingListeners );
     }
@@ -77,7 +76,12 @@ public class Arbiter : MonoBehaviour
             wallet = responseWallet;
             callback();
         };
-        ArbiterBinding.GetWallet( parse );
+        ArbiterBinding.GetWallet( parse, walletErrorHandler );
+    }
+    private static void defaultWalletErrorHandler( List<string> errors ) {
+        string msg = "";
+        errors.ForEach( error => msg+=error );
+        Debug.LogError( "There was a problem getting the wallet!\n"+msg );
     }
     
     
@@ -96,4 +100,5 @@ public class Arbiter : MonoBehaviour
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static List<Action> walletQueryListeners = new List<Action>();
+    private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultWalletErrorHandler;
 }

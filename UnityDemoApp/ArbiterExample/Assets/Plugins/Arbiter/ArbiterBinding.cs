@@ -78,8 +78,10 @@ public class ArbiterBinding : MonoBehaviour
 	private static extern void _getWallet();
     public delegate void GetWalletCallback( Wallet wallet );
     private static GetWalletCallback getWalletCallback;
-	public static void GetWallet( GetWalletCallback callback ) {
+    private static ErrorHandler getWalletErrorHandler;
+	public static void GetWallet( GetWalletCallback callback, ErrorHandler errorHandler ) {
         getWalletCallback = callback;
+        getWalletErrorHandler = errorHandler;
 #if UNITY_EDITOR
         ReportIgnore( "GetWallet" );
         getWalletCallback( new Wallet() );
@@ -132,7 +134,7 @@ public class ArbiterBinding : MonoBehaviour
         if( wasSuccess( json )) {
             getWalletCallback( parseWallet( json["wallet"] ));
         } else {
-            throw new NotImplementedException(); // TODO: Implement failure handlers
+            getWalletErrorHandler( getErrors( json ));
         }
 	}
 
@@ -145,6 +147,18 @@ public class ArbiterBinding : MonoBehaviour
 
     private bool wasSuccess( JSONNode json ) {
         return json["success"] == "true";
+    }
+
+
+    public delegate void ErrorHandler( List<string> errors );
+    private List<string> getErrors( JSONNode json ) {
+        List<string> rv = new List<string>();
+        JSONArray errors = json["errors"].AsArray;
+        IEnumerator enumerator = errors.GetEnumerator();
+        while( enumerator.MoveNext() ) {
+            rv.Add( ((JSONData)(enumerator.Current)).Value );
+        }
+        return rv;
     }
 
 

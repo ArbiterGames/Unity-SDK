@@ -69,17 +69,19 @@ public class Arbiter : MonoBehaviour
         else if( verified == VerificationStatus.Unknown )
             Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
 
-        Action pingListeners = () => {
-            walletQueryListeners.ForEach( listener => listener() );
-        };
-        queryWalletIfAble( pingListeners );
+        queryWalletIfAble( null );
     }
     private static void queryWalletIfAble( Action callback ) {
         if( user == null || verified != VerificationStatus.Verified ) return;
-        
+
+        Action done = () => {
+            walletQueryListeners.ForEach( listener => listener() );
+            if( callback != null )
+                callback();
+        };
         ArbiterBinding.GetWalletCallback parse = ( responseWallet ) => {
             wallet = responseWallet;
-            callback();
+            done();
         };
         ArbiterBinding.GetWallet( parse, walletErrorHandler );
     }

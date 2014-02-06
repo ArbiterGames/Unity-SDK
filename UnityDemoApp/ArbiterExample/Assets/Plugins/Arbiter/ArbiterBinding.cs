@@ -121,7 +121,7 @@ public class ArbiterBinding : MonoBehaviour
 
 
     private bool wasSuccess( JSONNode json ) {
-        return json["success"] == "true";
+        return (string.Equals( json["success"].Value, "true"));
     }
 
 

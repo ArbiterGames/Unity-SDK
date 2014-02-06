@@ -3,14 +3,30 @@ using System.Collections;
 
 public class Entrypoint : MonoBehaviour {
 	
-	// Use this for initialization
 	void Start () {
-		Debug.Log( "Started the Unity test app." );
-		NativeBinding.Foo();
+        ArbiterStep1();
+    }
+    
+    
+    void ArbiterStep1() {
+		Arbiter.Initialize( ArbiterStep2 );
 	}
-	
-	// Update is called once per frame
-	void Update () {
-		
-	}
+    
+    void ArbiterStep2() {
+        Arbiter.VerifyUser( ArbiterStep3 );
+    }
+    
+    void ArbiterStep3() {
+        ArbiterDoTheseAsOftenAsYouWant();
+    }
+    
+    
+    
+    void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
+        Arbiter.QueryWallet( UpdateWalletElements );
+    }
+
+    void UpdateWalletElements() {
+        // ttt update the wallet totals and stuff
+    }
 }

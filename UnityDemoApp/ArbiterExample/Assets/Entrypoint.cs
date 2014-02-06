@@ -17,16 +17,30 @@ public class Entrypoint : MonoBehaviour {
     }
     
     void ArbiterStep3() {
+        Arbiter.AddWalletListener( UpdateWalletElements );
+
         ArbiterDoTheseAsOftenAsYouWant();
     }
     
     
     
     void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
-        Arbiter.QueryWallet( UpdateWalletElements );
+        Arbiter.QueryWallet();
     }
 
+
+
     void UpdateWalletElements() {
-        // ttt update the wallet totals and stuff
+        string balance = Arbiter.Balance;
+        string depositAddress = Arbiter.DepositAddress;
+        string depositQrCode = Arbiter.DepositQrCode;
+        string withdrawAddress = Arbiter.WithdrawAddress;
+
+        Debug.Log( "Update elements if needed.\n"+
+            "balance="+balance+"\n"+
+            "deposit="+depositAddress+"\n"+
+            "depositQr="+depositQrCode+"\n"+
+            "withdraw="+withdrawAddress
+        );
     }
 }

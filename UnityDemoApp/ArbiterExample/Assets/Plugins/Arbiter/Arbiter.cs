@@ -9,15 +9,26 @@ public class Arbiter : MonoBehaviour
 	static Arbiter() {
 		// Add a GO to the scene for iOS to send responses back to
 		GameObject go = new GameObject("ArbiterBinding");
-		binding = go.AddComponent<ArbiterBinding>();
+		go.AddComponent<ArbiterBinding>();
         poller = go.AddComponent<Poller>();
+        wallet = new Wallet();
 		GameObject.DontDestroyOnLoad( go );
 	}
 
 
+    public static string    Balance                     { get { return wallet.Balance; } }
+    public static string    DepositAddress              { get { return wallet.DepositAddress; } }
+    public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
+    public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
+
+
+
 	public static void Initialize( Action done ) {
-		Action<Dictionary<string, string>> parse = ( response ) => {
-            userId = response[ "user_id" ];
+		ArbiterBinding.InitializeCallback parse = ( responseUserId, responseWallet ) => {
+            userId = responseUserId;
+            if( responseWallet != null )
+                wallet = responseWallet;
+            		
             poller.SetAction( queryWalletIfAble );
             resetWalletPolling();
             done();
@@ -38,24 +49,36 @@ public class Arbiter : MonoBehaviour
     }
     
     
-    public static void QueryWallet( Action callback ) {
+    public static void AddWalletListener( Action listener ) {
+        if( !walletQueryListeners.Contains( listener ))
+            walletQueryListeners.Add( listener );
+    }
+    public static void RemoveWalletListener( Action listener ) {
+        walletQueryListeners.Remove( listener );
+    }
+
+
+    public static void QueryWallet() {
         if( userId == null )
             Debug.LogWarning( "Cannot query an Arbiter Wallet without first logging in. Did you call Arbiter.Initialize()?" );
         else if( verified == VerificationStatus.Unknown )
             Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
-        queryWalletIfAble( callback );
+
+        Action pingListeners = () => {
+            foreach( Action listener in walletQueryListeners )
+                listener();
+        };
+        queryWalletIfAble( pingListeners );
     }
-    private static void queryWalletIfAble( Action done ) {
+    private static void queryWalletIfAble( Action callback ) {
         if( userId == null || verified != VerificationStatus.Verified ) return;
         
-        Action<Dictionary<string, string>> parse = ( response ) => {
-            Debug.Log( response );
-            if( done != null ) 
-                done();
+        ArbiterBinding.GetWalletCallback parse = ( responseWallet ) => {
+            wallet = responseWallet;
+            callback();
         };
         ArbiterBinding.GetWallet( parse );
     }
-
     
     
     private static void resetWalletPolling() {
@@ -66,10 +89,11 @@ public class Arbiter : MonoBehaviour
     void Update() {
     }
 
-    
-	private static ArbiterBinding binding;
+
     private static Poller poller;
     private static string userId;
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
+    private static Wallet wallet;
+    private static List<Action> walletQueryListeners = new List<Action>();
 }

@@ -47,21 +47,19 @@ public class ArbiterBinding : MonoBehaviour
 {
 	[DllImport ("__Internal")]
 	private static extern void _init();
-	private static Action<Dictionary<string, string>> initCallback;
-	public static void Init( Action<Dictionary<string, string>> callback ) {
+    public delegate void InitializeCallback( string userId, Wallet wallet );
+	private static InitializeCallback initCallback;
+	public static void Init( InitializeCallback callback ) {
         initCallback = callback;
 #if UNITY_EDITOR
         ReportIgnore( "Initialize" );
-        Dictionary<string,string> dummyResponse = new Dictionary<string,string>();
-        dummyResponse.Add( "user_id", "0" );
-        initCallback( dummyResponse );
+        initCallback( "0", null );
 #elif UNITY_IOS
 		_init();
 #endif
 	}
 
 
-	// VerifyUser
 	[DllImport ("__Internal")]
 	private static extern void _verifyUser();
     private static Action<bool> verifyUserCallback;
@@ -78,13 +76,13 @@ public class ArbiterBinding : MonoBehaviour
 
 	[DllImport ("__Internal")]
 	private static extern void _getWallet();
-    private static Action<Dictionary<string, string>> getWalletCallback;
-	public static void GetWallet( Action<Dictionary<string, string>> callback ) {
+    public delegate void GetWalletCallback( Wallet wallet );
+    private static GetWalletCallback getWalletCallback;
+	public static void GetWallet( GetWalletCallback callback ) {
         getWalletCallback = callback;
 #if UNITY_EDITOR
         ReportIgnore( "GetWallet" );
-        Dictionary<string,string> dummyResponse = new Dictionary<string,string>();
-        getWalletCallback( dummyResponse );
+        getWalletCallback( new Wallet() );
 #elif UNITY_IOS
 		_getWallet();
 #endif
@@ -107,16 +105,20 @@ public class ArbiterBinding : MonoBehaviour
 
 	public void InitHandler( string jsonString )
 	{
-		JSONNode json = JSON.Parse (jsonString);
-		Dictionary<string, string> dict = new Dictionary<string, string>();
-		dict.Add ("user_id", json["user_id"]);
-		initCallback (dict);
+		JSONNode json = JSON.Parse(jsonString);
+        string userId = json["user_id"];
+        Wallet wallet = null;
+        if( json["wallet"] != null ) {
+            wallet = parseWallet( json["wallet"] );
+        }
+		initCallback( userId, wallet );
 	}
 
 	public void VerifyUserHandler( string jsonString )
 	{
         JSONNode json = JSON.Parse(jsonString);
 		Dictionary<string, string> dict = new Dictionary<string, string>();
+            // ttt TODO: Properly parse the wallet from a verify call? Is it really needed?
 		dict.Add("success", json["success"]);
 		wallet.Add("depositAddress", json["wallet"]["deposit_address"].Value);
 		wallet.Add("balance", json ["wallet"] ["balance"].Value);
@@ -127,11 +129,11 @@ public class ArbiterBinding : MonoBehaviour
 	public void GetWalletHandler( string jsonString )
 	{
         JSONNode json = JSON.Parse(jsonString);
-		Dictionary<string, string> dict = new Dictionary<string, string>();
-		dict.Add ("success", json["success"]);
-		wallet["depositAddress"] = json["wallet"]["deposit_address"].Value;
-		wallet["balance"] = json ["wallet"] ["balance"].Value;
-		getWalletCallback (dict);
+        if( wasSuccess( json )) {
+            getWalletCallback( parseWallet( json["wallet"] ));
+        } else {
+            throw new NotImplementedException(); // TODO: Implement failure handlers
+        }
 	}
 
 #if UNITY_EDITOR
@@ -140,6 +142,20 @@ public class ArbiterBinding : MonoBehaviour
     }
 #endif
 
+
+    private bool wasSuccess( JSONNode json ) {
+        return json["success"] == "true";
+    }
+
+
+    private Wallet parseWallet( JSONNode json ) {
+        Wallet rv = new Wallet();
+        rv.Balance = json["balance"].Value;
+        rv.DepositAddress = json["deposit_address"].Value;
+        rv.DepositQrCode = json["deposit_address_qr_code"].Value;
+        rv.WithdrawAddress = json["withdraw_address"].Value;
+        return rv;
+    }
 
 	private Dictionary<string, string> wallet = new Dictionary<string, string>();
 }

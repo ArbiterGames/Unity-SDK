@@ -46,7 +46,7 @@ public class ArbiterBinding : MonoBehaviour
         user.Name = "McMockison";
         loginWithGameCenterCallback( user, false, null );
 #elif UNITY_IOS
-            Debug.Log("ttt checkpoint3");
+//            Debug.Log("ttt checkpoint3");
         _loginWithGameCenterPlayer();
 #endif
     }
@@ -116,7 +116,7 @@ public class ArbiterBinding : MonoBehaviour
 	}
 
     public void LoginWithGameCenterHandler( string jsonString ) {
-        Debug.Log(" ttt native response="+jsonString);
+//        Debug.Log(" ttt native response="+jsonString);
         loginWithGameCenterCallback( null, true, null );
     }
 

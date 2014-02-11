@@ -48,10 +48,10 @@ public class Arbiter : MonoBehaviour
     /// <param name="done">Done.</param>
     public static void LoginWithGameCenter( Action done ) { // ttt make this iOS-only!
         ArbiterBinding.LoginCallback ttt = ( a, b, c ) => {
-            Debug.Log("ttt got back from GC login call!");
+//            Debug.Log("ttt got back from GC login call!");
             done();
         };
-        Debug.Log("ttt checkpoint2");
+//        Debug.Log("ttt checkpoint2");
         ArbiterBinding.LoginWithGameCenter( ttt );
     }
 

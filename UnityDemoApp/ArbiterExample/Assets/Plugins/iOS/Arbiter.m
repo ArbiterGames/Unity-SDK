@@ -162,12 +162,12 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 // TTT kind of worked- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt checkpoint n1");
+//    NSLog(@"ttt checkpoint n1");
     
 //    GKLocalPlayer *localPlayer; // ttt need to get this, here!
 //    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-        NSLog(@"localplayer=%@", localPlayer);
-    NSLog(@"ttt checkpoint n2");
+//        NSLog(@"localplayer=%@", localPlayer);
+//    NSLog(@"ttt checkpoint n2");
     
     NSDictionary *tttFakeResponse = @{
         @"ttt" : [NSNumber numberWithInt:13],

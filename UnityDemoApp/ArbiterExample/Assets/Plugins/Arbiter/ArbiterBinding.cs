@@ -17,9 +17,9 @@ public class ArbiterBinding : MonoBehaviour
 {
 	[DllImport ("__Internal")]
 	private static extern void _init();
-    public delegate void InitializeCallback( User user, bool isVerified, Wallet wallet );
-	private static InitializeCallback initCallback;
-	public static void Init( InitializeCallback callback ) {
+    public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
+    private static LoginCallback initCallback;
+    public static void Init( LoginCallback callback ) {
         initCallback = callback;
 #if UNITY_EDITOR
         ReportIgnore( "Initialize" );
@@ -31,6 +31,25 @@ public class ArbiterBinding : MonoBehaviour
 		_init();
 #endif
 	}
+
+
+    [DllImport ("__Internal")]
+    private static extern void _loginWithGameCenterPlayer();
+    public delegate void LoginWithGameCenterCallback( User user, bool isVerified, Wallet wallet );
+    private static LoginCallback loginWithGameCenterCallback;
+    public static void LoginWithGameCenter( LoginCallback callback ) {
+        loginWithGameCenterCallback = callback;
+#if UNITY_EDITOR
+        ReportIgnore( "Login:GameCenter" );
+        User user = new User();
+        user.Id = "0";
+        user.Name = "McMockison";
+        loginWithGameCenterCallback( user, false, null );
+#elif UNITY_IOS
+            Debug.Log("ttt checkpoint3");
+        _loginWithGameCenterPlayer();
+#endif
+    }
 
 
 	[DllImport ("__Internal")]
@@ -81,8 +100,7 @@ public class ArbiterBinding : MonoBehaviour
 	// Response handlers for APIs
 	//////////////////////////////
 
-	public void InitHandler( string jsonString )
-	{
+	public void InitHandler( string jsonString ) {
 		JSONNode json = JSON.Parse( jsonString );
         JSONNode userNode = json["user"];
         User user = new User();
@@ -97,8 +115,12 @@ public class ArbiterBinding : MonoBehaviour
         initCallback( user, verified, wallet );
 	}
 
-	public void VerifyUserHandler( string jsonString )
-	{
+    public void LoginWithGameCenterHandler( string jsonString ) {
+        Debug.Log(" ttt native response="+jsonString);
+        loginWithGameCenterCallback( null, true, null );
+    }
+
+	public void VerifyUserHandler( string jsonString ) {
         JSONNode json = JSON.Parse( jsonString );
         if( wasSuccess( json )) {
             bool verified = isVerified( json["user"] );
@@ -108,8 +130,7 @@ public class ArbiterBinding : MonoBehaviour
         }
 	}
 
-	public void GetWalletHandler( string jsonString )
-	{
+	public void GetWalletHandler( string jsonString ) {
         JSONNode json = JSON.Parse( jsonString );
         if( wasSuccess( json )) {
             getWalletCallback( parseWallet( json["wallet"] ));

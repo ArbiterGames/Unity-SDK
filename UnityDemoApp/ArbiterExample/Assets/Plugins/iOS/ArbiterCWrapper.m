@@ -35,6 +35,19 @@ void _init()
     }];
 }
 
+void _loginWithGameCenterPlayer()
+{
+    [arbiter loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
+        NSLog(@"--- _loginWithGameCenterPlayer.response");
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", jsonString);
+        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage("ArbiterBinding", "LoginWithGameCenterHandler", jsonChar);
+    }];
+}
+
 void _verifyUser()
 {
     [arbiter verifyUser:^(NSDictionary *jsonDict) {

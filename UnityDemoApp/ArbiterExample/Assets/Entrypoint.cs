@@ -7,17 +7,20 @@ using System.Collections;
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
-        LogInToGameCenter();
+        ArbiterOptionalStep();
+
+        Arbiter.Initialize( LogInToGameCenter );
     }
 
 
     void LogInToGameCenter() {
 #if UNITY_EDITOR
-        ArbiterOptionalStep();
+        ArbiterStep2();
 #elif UNITY_IOS
         Action<bool> processAuth = ( success ) => {
+            Debug.Log("ttt checkpoint1");
             if( success )
-                ArbiterOptionalStep();
+                Arbiter.LoginWithGameCenter( ArbiterStep2 );
             else
                 Debug.LogError( "Could not authenticate to Game Center!" );
         };
@@ -28,14 +31,9 @@ public class Entrypoint : MonoBehaviour {
 
     void ArbiterOptionalStep() {
         // ttt TODO: Custom Override Error Handler registration!
-
-        ArbiterStep1();
     }
-    
-    void ArbiterStep1() {
-        Arbiter.Initialize( ArbiterStep2 );
-	}
-    
+
+
     void ArbiterStep2() {
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
@@ -45,6 +43,7 @@ public class Entrypoint : MonoBehaviour {
         else
             Arbiter.VerifyUser( ArbiterStep3 );
     }
+
     
     void ArbiterStep3() {
         Arbiter.AddWalletListener( UpdateWalletElements );

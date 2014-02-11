@@ -6,6 +6,7 @@
 //  Copyright (c) 2013 Arbiter. All rights reserved.
 //
 
+#import <GameKit/GameKit.h>
 #import "Arbiter.h"
 
 // Production URLS
@@ -28,6 +29,117 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 
 #pragma mark Arbiter Methods
 
+/** ttt from other repo... integrate or delete each one of these!
+
+
+- (void)withdrawWithSettings:(NSDictionary *)settings callback:(void (^)(NSString *))handler
+{
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager POST:[NSString stringWithFormat:@"%@%@", APIWalletURL, self.session.userId]
+       parameters:settings
+          success:^(AFHTTPRequestOperation *operation, id responseObject)
+     {
+         NSDictionary *jsonDict = (NSDictionary *) responseObject;
+         BOOL success = [[jsonDict objectForKey:@"success"] boolValue];
+
+         if (success) {
+             self.wallet = [[ArbiterWallet alloc] initWithDetails:[jsonDict objectForKey:@"wallet"]];
+             _completionHandler = [handler copy];
+             _completionHandler(@"true");
+             _completionHandler = nil;
+         } else {
+             NSString *verificationURL = [jsonDict objectForKey:@"verification_url"];
+             ArbiterVerificationWebView *view = [[ArbiterVerificationWebView alloc] initWithVerificationURL:verificationURL callback:handler];
+             view = nil;
+         }
+     }
+          failure:^(AFHTTPRequestOperation *operation, NSError *error)
+     {
+         NSLog(@"Withdraw error: %@", error);
+     }];
+}
+
+- (void)claimAccountWithCredentials:(NSDictionary *)credentials callback:(void (^)(NSString *))handler
+{
+    _completionHandler = [handler copy];
+
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager GET:[NSString stringWithFormat:@"%@%@", APIUserDetailsURL, self.session.userId]
+      parameters:nil
+         success:^(AFHTTPRequestOperation *operation, id responseObject)
+     {
+         NSDictionary *jsonDict = (NSDictionary *) responseObject;
+         NSDictionary *user = [jsonDict objectForKey:@"user"];
+         NSString *redemptionURL = [user objectForKey:@"account_redemption_url"];
+         if ([redemptionURL isEqual:@"User already redeemed their account"]) {
+             NSLog(@"Alreday claimed");
+             _completionHandler(@"true");
+             _completionHandler(nil);
+         } else {
+             AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+             [manager POST:redemptionURL
+                parameters:credentials
+                   success:^(AFHTTPRequestOperation *operation, id responseObject)
+              {
+                  NSDictionary *jsonDict = (NSDictionary *) responseObject;
+                  BOOL success = [[jsonDict objectForKey:@"success"] boolValue];
+                  if (success) {
+                      _completionHandler(@"true");
+                      _completionHandler = nil;
+                  } else {
+                      NSArray *errors = [jsonDict objectForKey:@"errors"];
+                      NSString *error = [errors objectAtIndex:0];
+                      _completionHandler(error);
+                      _completionHandler = nil;
+                  }
+              }
+                   failure:^(AFHTTPRequestOperation *operation, NSError *error)
+              {
+                  NSLog(@"Error making claim request: %@", error);
+              }];
+         }
+     }
+         failure:^(AFHTTPRequestOperation *operation, NSError *error)
+     {
+         NSLog(@"Error making redemption url request: %@", error);
+     }];
+}
+
+- (void)loginWithCredentials:(NSDictionary *)credentials callback:(void (^)(NSString *))handler
+{
+    [self logout];
+    _completionHandler = [handler copy];
+    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+    [manager POST:APIUserLoginURL
+       parameters:credentials
+          success:^(AFHTTPRequestOperation *operation, id responseObject)
+     {
+         NSDictionary *jsonDict = (NSDictionary *) responseObject;
+         NSDictionary *user = [jsonDict objectForKey:@"user"];
+         self.session.userId = [user objectForKey:@"uid"];
+         self.session.username = [user objectForKey:@"username"];
+         [self getWalletDetailsWithCallback:handler];
+     }
+          failure:^(AFHTTPRequestOperation *operation, NSError *error)
+     {
+         NSLog(@"Error making redemption url request: %@", error);
+     }];
+}
+
+- (void)logout
+{
+    NSHTTPCookie *cookie;
+    for (cookie in [[NSHTTPCookieStorage sharedHTTPCookieStorage] cookies])
+    {
+        if ([cookie.domain  isEqual: @"www.arbiter.me"]) {
+            [[NSHTTPCookieStorage sharedHTTPCookieStorage] deleteCookie:cookie];
+        }
+    }
+}
+
+*/
+
+
 - (id)init:(void(^)(NSDictionary *))handler
 {
     self = [super init];
@@ -43,6 +155,61 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
     return self;
+}
+
+
+// ttt from other repo- (void)loginWithGameCenterPlayer:(GKLocalPlayer *)localPlayer callback:(void (^)(NSString *))handler
+- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
+// TTT kind of worked- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
+{
+    NSLog(@"ttt checkpoint n1");
+    
+//    GKLocalPlayer *localPlayer; // ttt need to get this, here!
+//    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+        NSLog(@"localplayer=%@", localPlayer);
+    NSLog(@"ttt checkpoint n2");
+    
+    NSDictionary *tttFakeResponse = @{
+        @"ttt" : [NSNumber numberWithInt:13],
+    };
+    handler(tttFakeResponse);
+    
+    /* ttt   Why don't I need a _connectionHandler here?
+    [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+        if (error) {
+            NSLog(@"ERROR: %@", error);
+            _completionHandler(@"false");
+            _completionHandler = nil;
+        }
+        else {
+            NSDictionary *params = @{@"publicKeyUrl": publicKeyUrl,
+                                     @"timestamp": [NSString stringWithFormat:@"%llu", timestamp],
+                                     @"signature": [signature base64EncodedStringWithOptions:0],
+                                     @"salt": [salt base64EncodedStringWithOptions:0],
+                                     @"playerID": localPlayer.playerID,
+                                     @"bundleID": [[NSBundle mainBundle] bundleIdentifier]};
+
+            AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
+            [manager POST:APILinkWithGameCenterURL
+               parameters:params
+constructingBodyWithBlock:nil
+                  success:^(AFHTTPRequestOperation *operation, id responseObject) {
+                      NSDictionary *jsonDict = (NSDictionary *) responseObject;
+                      NSDictionary *user = [jsonDict objectForKey:@"user"];
+                      self.session.userId = [user objectForKey:@"uid"];
+                      self.session.username = [user objectForKey:@"username"];
+                      self.wallet = [[ArbiterWallet alloc] initWithDetails:[jsonDict objectForKey:@"wallet"]];
+                      _completionHandler(@"true");
+                      _completionHandler = nil;
+                  }
+                  failure:^(AFHTTPRequestOperation *operation, NSError *error) {
+                      NSLog(@"manager.failure: %@", error);
+                      _completionHandler(@"false");
+                      _completionHandler = nil;
+                  }];
+        }
+    }];
+    */
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler

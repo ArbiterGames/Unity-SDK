@@ -18,6 +18,7 @@
 @property (nonatomic, copy) NSString *verificationUrl;
 
 - (id)init:(void(^)(NSDictionary *))handler;
+- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)copyDepositAddressToClipboard;

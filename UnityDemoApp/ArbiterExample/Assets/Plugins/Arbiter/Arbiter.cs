@@ -27,7 +27,7 @@ public class Arbiter : MonoBehaviour
 
 
 	public static void Initialize( Action done ) {
-		ArbiterBinding.InitializeCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             user = responseUser;
             if( responseVerified )
                 verified = VerificationStatus.Verified;
@@ -40,7 +40,21 @@ public class Arbiter : MonoBehaviour
 		};
 		ArbiterBinding.Init( parse );
 	}
-    
+
+
+    /// <summary>
+    /// Uses Game Center credentials to log in to an Arbiter Account. Note this will clobber any anonymous account this user has already logged-in to.
+    /// </summary>
+    /// <param name="done">Done.</param>
+    public static void LoginWithGameCenter( Action done ) { // ttt make this iOS-only!
+        ArbiterBinding.LoginCallback ttt = ( a, b, c ) => {
+            Debug.Log("ttt got back from GC login call!");
+            done();
+        };
+        Debug.Log("ttt checkpoint2");
+        ArbiterBinding.LoginWithGameCenter( ttt );
+    }
+
 
     public static void VerifyUser( Action done ) {
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {

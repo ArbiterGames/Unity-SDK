@@ -18,7 +18,6 @@ public class Entrypoint : MonoBehaviour {
         ArbiterStep2();
 #elif UNITY_IOS
         Action<bool> processAuth = ( success ) => {
-            Debug.Log("ttt checkpoint1");
             if( success )
                 Arbiter.LoginWithGameCenter( ArbiterStep2 );
             else

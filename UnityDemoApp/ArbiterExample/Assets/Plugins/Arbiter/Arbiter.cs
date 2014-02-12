@@ -28,32 +28,22 @@ public class Arbiter : MonoBehaviour
 
 	public static void Initialize( Action done ) {
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
-            user = responseUser;
-            if( responseVerified )
-                verified = VerificationStatus.Verified;
-            if( responseWallet != null )
-                wallet = responseWallet;
-            		
-            poller.SetAction( queryWalletIfAble );
-            resetWalletPolling();
-            done();
-		};
+            parseLoginResponse( responseUser, responseVerified, responseWallet, done );
+        };
 		ArbiterBinding.Init( parse );
 	}
-
 
     /// <summary>
     /// Uses Game Center credentials to log in to an Arbiter Account. Note this will clobber any anonymous account this user has already logged-in to.
     /// </summary>
     /// <param name="done">Done.</param>
     public static void LoginWithGameCenter( Action done ) { // ttt make this iOS-only!
-        ArbiterBinding.LoginCallback ttt = ( a, b, c ) => {
-            Debug.Log("ttt got back from GC login call!");
-            done();
+        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+            parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-        Debug.Log("ttt checkpoint2");
-        ArbiterBinding.LoginWithGameCenter( ttt );
+        ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
     }
+
 
 
     public static void VerifyUser( Action done ) {
@@ -99,12 +89,27 @@ public class Arbiter : MonoBehaviour
         };
         ArbiterBinding.GetWallet( parse, walletErrorHandler );
     }
+
+
+
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
-        errors.ForEach( error => msg+=error );
+        errors.ForEach( error => msg+=error+"\n" );
         Debug.LogError( "There was a problem with an Arbiter call!\n"+msg );
     }
-    
+
+
+    private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
+        user = responseUser;
+        verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
+        wallet = responseWallet == null? responseWallet : new Wallet();
+        
+        poller.SetAction( queryWalletIfAble );
+        resetWalletPolling();
+        done();
+    }
+
+
     
     private static void resetWalletPolling() {
         poller.Reset();
@@ -123,4 +128,5 @@ public class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyErrorHandler = defaultErrorHandler;
+    private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 }

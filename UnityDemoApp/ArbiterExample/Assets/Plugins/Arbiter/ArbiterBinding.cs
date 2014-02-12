@@ -37,8 +37,10 @@ public class ArbiterBinding : MonoBehaviour
     private static extern void _loginWithGameCenterPlayer();
     public delegate void LoginWithGameCenterCallback( User user, bool isVerified, Wallet wallet );
     private static LoginCallback loginWithGameCenterCallback;
-    public static void LoginWithGameCenter( LoginCallback callback ) {
+    private static ErrorHandler loginWithGameCenterErrorHandler;
+    public static void LoginWithGameCenter( LoginCallback callback, ErrorHandler errorHandler ) {
         loginWithGameCenterCallback = callback;
+        loginWithGameCenterErrorHandler = errorHandler;
 #if UNITY_EDITOR
         ReportIgnore( "Login:GameCenter" );
         User user = new User();
@@ -46,7 +48,6 @@ public class ArbiterBinding : MonoBehaviour
         user.Name = "McMockison";
         loginWithGameCenterCallback( user, false, null );
 #elif UNITY_IOS
-            Debug.Log("ttt checkpoint3");
         _loginWithGameCenterPlayer();
 #endif
     }
@@ -116,8 +117,16 @@ public class ArbiterBinding : MonoBehaviour
 	}
 
     public void LoginWithGameCenterHandler( string jsonString ) {
-        Debug.Log(" ttt native response="+jsonString);
-        loginWithGameCenterCallback( null, true, null );
+        JSONNode json = JSON.Parse( jsonString );
+        if( wasSuccess( json )) {
+            // TODO: Get this from the native response
+            User user = new User();
+            user.Id = "0";
+            user.Name = "GameCenterUser";
+            loginWithGameCenterCallback( user, false, null );
+        } else {
+            loginWithGameCenterErrorHandler( getErrors( json ));
+        }
     }
 
 	public void VerifyUserHandler( string jsonString ) {

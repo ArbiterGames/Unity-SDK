@@ -158,13 +158,15 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 }
 
 
-// ttt from other repo- (void)loginWithGameCenterPlayer:(GKLocalPlayer *)localPlayer callback:(void (^)(NSString *))handler
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
-// TTT kind of worked- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
     //
     // Note/TODO: This function assumes the player used Unity to authenticate. Would be better to handle this all native...
     //
+    
+    _connectionHandler = [^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy];
     
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     NSDictionary *response;
@@ -175,49 +177,32 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
         };
         handler(response);
     } else {
-        response = @{
-            @"success": @"true"
-        };
-
-        NSLog("@ttt check gc1");
         [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
             if (error) {
-                NSLog("@ttt check gc1e");
                 NSLog(@"ERROR: %@", error);
-                _completionHandler(@"false");
-                _completionHandler = nil;
+                _connectionHandler( @{
+                    @"success": @"false",
+                    @"errors": @[error]
+                });
+                _connectionHandler = nil;
             }
             else {
-                NSLog("@ttt check gc2");
-                NSDictionary *params = @{@"publicKeyUrl": publicKeyUrl,
-                                         @"timestamp": [NSString stringWithFormat:@"%llu", timestamp],
-                                         @"signature": [signature base64EncodedStringWithOptions:0],
-                                         @"salt": [salt base64EncodedStringWithOptions:0],
-                                         @"playerID": localPlayer.playerID,
-                                         @"bundleID": [[NSBundle mainBundle] bundleIdentifier]};
+                NSString *params = [@"publicKeyUrl=" stringByAppendingString: [publicKeyUrl absoluteString]];
+                params = [params stringByAppendingString: [@"&timestamp=" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
+                params = [params stringByAppendingString: [@"&signature=" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]];
+                params = [params stringByAppendingString: [@"&salt=" stringByAppendingString: [salt base64EncodedStringWithOptions:0]]];
+                params = [params stringByAppendingString: [@"&playerID=" stringByAppendingString: localPlayer.playerID]];
+                params = [params stringByAppendingString: [@"&bundleID=" stringByAppendingString: [[NSBundle mainBundle] bundleIdentifier]]];
 
-                AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-                [manager POST:APILinkWithGameCenterURL
-                   parameters:params
-    constructingBodyWithBlock:nil
-                      success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                      NSLog("@ttt check gc3");
-                          NSDictionary *jsonDict = (NSDictionary *) responseObject;
-                          NSDictionary *user = [jsonDict objectForKey:@"user"];
-                          self.session.userId = [user objectForKey:@"uid"];
-                          self.session.username = [user objectForKey:@"username"];
-                          self.wallet = [[ArbiterWallet alloc] initWithDetails:[jsonDict objectForKey:@"wallet"]];
-                          _completionHandler(@"true");
-                          _completionHandler = nil;
-                      }
-                      failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                            NSLog("@ttt check gc3e");
-                          NSLog(@"manager.failure: %@", error);
-                          _completionHandler(@"false");
-                          _completionHandler = nil;
-                      }];
-                      
-                //handler(response); // ttt I added this... not sure it's correct
+                NSURL *url = [NSURL URLWithString:APILinkWithGameCenterURL];
+                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                                   timeoutInterval:60.0];
+                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                [request setHTTPMethod:@"POST"];
+                [request setHTTPBody:[NSData dataWithBytes:[params UTF8String] length:strlen([params UTF8String])]];
+                
+                [NSURLConnection connectionWithRequest:request delegate:self];
             }
         }];
     }

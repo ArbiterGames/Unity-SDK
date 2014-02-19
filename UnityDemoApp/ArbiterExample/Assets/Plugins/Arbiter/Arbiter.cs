@@ -33,11 +33,13 @@ public class Arbiter : MonoBehaviour
 		ArbiterBinding.Init( parse );
 	}
 
+
+#if UNITY_IOS
     /// <summary>
-    /// Uses Game Center credentials to log in to an Arbiter Account. Note this will clobber any anonymous account this user has already logged-in to.
+    /// Uses Game Center credentials to log in to an Arbiter Account.
     /// </summary>
-    /// <param name="done">Done.</param>
-    public static void LoginWithGameCenter( Action done ) { // ttt make this iOS-only!
+    /// <param name="done">Called when login was completed successfully</param>
+    public static void LoginWithGameCenter( Action done ) {
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
@@ -60,7 +62,7 @@ public class Arbiter : MonoBehaviour
     }
     */
     public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
-
+#endif
 
 
     public static void VerifyUser( Action done ) {
@@ -145,5 +147,7 @@ public class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyErrorHandler = defaultErrorHandler;
+#if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
+#endif
 }

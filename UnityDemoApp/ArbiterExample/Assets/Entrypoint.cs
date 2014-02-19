@@ -36,10 +36,12 @@ public class Entrypoint : MonoBehaviour {
         // Authentication is critical. You can't really bet unless Arbiter knows who you are!
         //
         // TODO: Handle initialize errors in a similar manner as GC errors
+#if UNITY_IOS
         Arbiter.LoginWithGameCenterErrorHandler = ( errors ) => {
             errors.ForEach( e => Debug.LogError( e ));
             Debug.LogError( "Cannot continue betting flow unless Game Center login errors are fixed!" );
         };
+#endif
     }
 
 

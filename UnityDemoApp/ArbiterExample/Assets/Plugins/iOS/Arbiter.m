@@ -10,18 +10,22 @@
 #import "Arbiter.h"
 
 // Production URLS
+/*
 NSString * const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";
 NSString * const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
 NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";
 NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
-
+*/
 // Local URLS
-//NSString * const APIUserInitializeURL = @"http://10.0.0.6:5000/api/v1/user/initialize";
-//NSString * const APIWalletURL = @"http://10.0.0.6:5000/api/v1/wallet/";
-//NSString * const APIUserLoginURL = @"http://10.0.0.6:5000/api/v1/user/login";
-//NSString * const APILinkWithGameCenterURL = @"http://10.0.0.6:5000/api/v1/user/link-with-game-center";
-//NSString * const APIUserDetailsURL = @"http://10.0.0.6:5000/api/v1/user/";
+NSString * const APIUserInitializeURL = @"http://192.168.1.12:5000/api/v1/user/initialize";
+NSString * const APIWalletURL = @"http://192.168.1.12:5000/api/v1/wallet/";
+NSString * const APIUserLoginURL = @"http://192.168.1.12:5000/api/v1/user/login";
+NSString * const APILinkWithGameCenterURL = @"http://192.168.1.12:5000/api/v1/user/link-with-game-center";
+NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
+
+
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
 @implementation Arbiter
@@ -168,8 +172,20 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
         handler(responseDict);
     } copy];
     
-    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     NSDictionary *response;
+    
+    NSLog(@"ttt checking iOS version");
+    if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
+            NSLog(@"ttt fail");
+        response = @{
+            @"success": @"false",
+            @"errors": @[@"Linking a Game Center account requires iOS >=7.0"]
+        };
+        handler(response);
+        return;
+    }
+            NSLog(@"ttt pass");
+    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         response = @{
             @"success": @"false",
@@ -178,6 +194,7 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
         handler(response);
     } else {
         [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+            NSLog(@"ttt checkpoint"); // ttt
             if (error) {
                 NSLog(@"ERROR: %@", error);
                 _connectionHandler( @{
@@ -187,20 +204,82 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
                 _connectionHandler = nil;
             }
             else {
+            
+            NSLog(@"signature=%@", signature); // ttt
+                NSLog(@"encoded=%@", [signature base64EncodedStringWithOptions:0]);
+                
+                
+                /* ttt was working
                 NSString *params = [@"publicKeyUrl=" stringByAppendingString: [publicKeyUrl absoluteString]];
                 params = [params stringByAppendingString: [@"&timestamp=" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
-                params = [params stringByAppendingString: [@"&signature=" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]];
+                params = [params stringByAppendingString: [@"&signature=" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]]; // ttt does this need to be a multiple of 4??
                 params = [params stringByAppendingString: [@"&salt=" stringByAppendingString: [salt base64EncodedStringWithOptions:0]]];
                 params = [params stringByAppendingString: [@"&playerID=" stringByAppendingString: localPlayer.playerID]];
                 params = [params stringByAppendingString: [@"&bundleID=" stringByAppendingString: [[NSBundle mainBundle] bundleIdentifier]]];
+NSLog(@"Whole thing=\n%@", params);
+*/
 
+
+                
+                NSDictionary *paramsdict = @{
+                    @"publicKeyUrl":[publicKeyUrl absoluteString],
+                    @"playerID": localPlayer.playerID
+                };
+
+                
                 NSURL *url = [NSURL URLWithString:APILinkWithGameCenterURL];
+                
+                
+                
+
+                   /// Trying it the AFNetworking way...  
+                   /*              
+                NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
+                [request setHTTPMethod:@"POST"];
+                request = [[self requestBySerializingRequest:request withParameters:parameters error:nil] mutableCopy];
+*/
+
+
+                
+                
+                
+                // Trying to just send it as json
+                /*
+                NSString *paramsttt = @"{\"publicKeyUrl\":\"https://sandbox.gc.apple.com/public-key/gc-sb.cer&timestamp=1392773668730\"}";
+                 */
+                NSString *params = [@"{\"publicKeyUrl\":\"" stringByAppendingString: [publicKeyUrl absoluteString]];
+                params = [params stringByAppendingString: [@"\", \"timestamp\":\"" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
+                params = [params stringByAppendingString: [@"\", \"signature\":\"" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]]; // ttt does this need to be a multiple of 4??
+                params = [params stringByAppendingString: [@"\", \"salt\":\"" stringByAppendingString: [salt base64EncodedStringWithOptions:0]]];
+                params = [params stringByAppendingString: [@"\", \"playerID\":\"" stringByAppendingString: localPlayer.playerID]];
+                params = [params stringByAppendingString: [@"\", \"bundleID\":\"" stringByAppendingString: [[NSBundle mainBundle] bundleIdentifier]]];
+                params = [params stringByAppendingString: @"\"}"];
+                NSLog(@"Whole thing=\n%@", params);
                 NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
                                                                        cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                                    timeoutInterval:60.0];
-                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
                 [request setHTTPMethod:@"POST"];
-                [request setHTTPBody:[NSData dataWithBytes:[params UTF8String] length:strlen([params UTF8String])]];
+                [request setHTTPBody:[params dataUsingEncoding:NSUTF8StringEncoding]];
+                
+                
+                
+                
+                
+                
+/* ttt was working                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                                   timeoutInterval:60.0];
+                                                                   
+// ttt was also mostly working                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
+                [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                [request setHTTPMethod:@"POST"];
+                // ttt was mostly working... [request setHTTPBody:[NSData dataWithBytes:[params UTF8String] length:strlen([params UTF8String])]];
+                [request setHTTPBody:[paramsttt dataUsingEncoding:NSUTF8StringEncoding]];
+//                [request setHTTPBody:paramsttt];
+*/
+
+
                 
                 [NSURLConnection connectionWithRequest:request delegate:self];
             }
@@ -284,8 +363,13 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     NSLog(@"aa: connectionDidFinishLoading");
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:nil];
-    NSLog(@"%@", dict);
+    NSError* error = nil;
+    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:&error];
+    if( error ) {
+        NSLog( @"Error: %@", error );
+    } else {
+        NSLog( @"%@", dict );
+    }
     _connectionHandler(dict);
     _connectionHandler = nil;
 }

@@ -15,6 +15,7 @@ public class Entrypoint : MonoBehaviour {
 
     void LogInToGameCenter() {
 #if UNITY_EDITOR
+        // Skip logging in since we're in editor
         ArbiterStep2();
 #elif UNITY_IOS
         Action<bool> processAuth = ( success ) => {
@@ -23,13 +24,22 @@ public class Entrypoint : MonoBehaviour {
             else
                 Debug.LogError( "Could not authenticate to Game Center!" );
         };
-        Social.localUser.Authenticate( processAuth ); 
+        Social.localUser.Authenticate( processAuth );
 #endif
     }
 
 
     void ArbiterOptionalStep() {
-        // ttt TODO: Custom Override Error Handler registration!
+        // Override some of the default handlers
+
+        //
+        // Authentication is critical. You can't really bet unless Arbiter knows who you are!
+        //
+        // TODO: Handle initialize errors in a similar manner as GC errors
+        Arbiter.LoginWithGameCenterErrorHandler = ( errors ) => {
+            errors.ForEach( e => Debug.LogError( e ));
+            Debug.LogError( "Cannot continue betting flow unless Game Center login errors are fixed!" );
+        };
     }
 
 

@@ -174,9 +174,7 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
     
     NSDictionary *response;
     
-    NSLog(@"ttt checking iOS version");
     if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
-            NSLog(@"ttt fail");
         response = @{
             @"success": @"false",
             @"errors": @[@"Linking a Game Center account requires iOS >=7.0"]
@@ -184,7 +182,7 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
         handler(response);
         return;
     }
-            NSLog(@"ttt pass");
+
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         response = @{
@@ -194,7 +192,6 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
         handler(response);
     } else {
         [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
-            NSLog(@"ttt checkpoint"); // ttt
             if (error) {
                 NSLog(@"ERROR: %@", error);
                 _connectionHandler( @{
@@ -204,49 +201,43 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
                 _connectionHandler = nil;
             }
             else {
-            
-            NSLog(@"signature=%@", signature); // ttt
-                NSLog(@"encoded=%@", [signature base64EncodedStringWithOptions:0]);
-                
-                
-                /* ttt was working
-                NSString *params = [@"publicKeyUrl=" stringByAppendingString: [publicKeyUrl absoluteString]];
-                params = [params stringByAppendingString: [@"&timestamp=" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
-                params = [params stringByAppendingString: [@"&signature=" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]]; // ttt does this need to be a multiple of 4??
-                params = [params stringByAppendingString: [@"&salt=" stringByAppendingString: [salt base64EncodedStringWithOptions:0]]];
-                params = [params stringByAppendingString: [@"&playerID=" stringByAppendingString: localPlayer.playerID]];
-                params = [params stringByAppendingString: [@"&bundleID=" stringByAppendingString: [[NSBundle mainBundle] bundleIdentifier]]];
-NSLog(@"Whole thing=\n%@", params);
-*/
-
-
-                
-                NSDictionary *paramsdict = @{
-                    @"publicKeyUrl":[publicKeyUrl absoluteString],
-                    @"playerID": localPlayer.playerID
-                };
-
-                
                 NSURL *url = [NSURL URLWithString:APILinkWithGameCenterURL];
-                
-                
-                
 
-                   /// Trying it the AFNetworking way...  
-                   /*              
-                NSMutableURLRequest *request = [[NSMutableURLRequest alloc] initWithURL:url];
-                [request setHTTPMethod:@"POST"];
-                request = [[self requestBySerializingRequest:request withParameters:parameters error:nil] mutableCopy];
-*/
-
-
+                NSDictionary *paramsDict = @{
+                    @"publicKeyUrl":[publicKeyUrl absoluteString],
+                    @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
+                    @"signature":[signature base64EncodedStringWithOptions:0],
+                    @"salt":[salt base64EncodedStringWithOptions:0],
+                    @"playerID":localPlayer.playerID,
+                    @"bundleID":[[NSBundle mainBundle] bundleIdentifier]
+                };
+                
+                NSError *error;
+                NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
+                                                                     options:0
+                                                                       error:&error];
+                if( !paramsData ) {
+                    NSLog(@"ERROR: %@", error);
+                    _connectionHandler( @{
+                        @"success": @"false",
+                        @"errors": @[error]
+                    });
+                    _connectionHandler = nil;
+                } else {
+                    NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+                    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                                       timeoutInterval:60.0];
+                    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                    [request setHTTPMethod:@"POST"];
+                    [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+                    
+                    [NSURLConnection connectionWithRequest:request delegate:self];
+                }
                 
                 
                 
-                // Trying to just send it as json
-                /*
-                NSString *paramsttt = @"{\"publicKeyUrl\":\"https://sandbox.gc.apple.com/public-key/gc-sb.cer&timestamp=1392773668730\"}";
-                 */
+                /* ttt was working. keep for now until it REALLY works!
                 NSString *params = [@"{\"publicKeyUrl\":\"" stringByAppendingString: [publicKeyUrl absoluteString]];
                 params = [params stringByAppendingString: [@"\", \"timestamp\":\"" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
                 params = [params stringByAppendingString: [@"\", \"signature\":\"" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]]; // ttt does this need to be a multiple of 4??
@@ -261,27 +252,11 @@ NSLog(@"Whole thing=\n%@", params);
                 [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
                 [request setHTTPMethod:@"POST"];
                 [request setHTTPBody:[params dataUsingEncoding:NSUTF8StringEncoding]];
-                
-                
-                
-                
-                
-                
-/* ttt was working                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                                   timeoutInterval:60.0];
-                                                                   
-// ttt was also mostly working                [request setValue:@"application/x-www-form-urlencoded" forHTTPHeaderField:@"Content-Type"];
-                [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-                [request setHTTPMethod:@"POST"];
-                // ttt was mostly working... [request setHTTPBody:[NSData dataWithBytes:[params UTF8String] length:strlen([params UTF8String])]];
-                [request setHTTPBody:[paramsttt dataUsingEncoding:NSUTF8StringEncoding]];
-//                [request setHTTPBody:paramsttt];
-*/
 
-
-                
                 [NSURLConnection connectionWithRequest:request delegate:self];
+                 */
+                
+                
             }
         }];
     }

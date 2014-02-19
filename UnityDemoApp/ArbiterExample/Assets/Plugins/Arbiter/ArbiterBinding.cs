@@ -119,7 +119,7 @@ public class ArbiterBinding : MonoBehaviour
     public void LoginWithGameCenterHandler( string jsonString ) {
         JSONNode json = JSON.Parse( jsonString );
         if( wasSuccess( json )) {
-            // TODO: Get this from the native response
+            // TODO: Get this from the native response ttt td
             User user = new User();
             user.Id = "0";
             user.Name = "GameCenterUser";

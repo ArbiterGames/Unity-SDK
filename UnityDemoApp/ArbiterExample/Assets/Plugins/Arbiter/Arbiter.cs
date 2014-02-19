@@ -43,24 +43,8 @@ public class Arbiter : MonoBehaviour
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-        /* ttt overkill?
-        ArbiterBinding.ErrorHandler errorHandler = loginWithGameCenterErrorHandler;
-        if( errorHandler == defaultErrorHandler ) {
-            // By default, wrap handler around the standard callback to continue Arbiter flow
-            errorHandler = ( errors ) => {
-                loginWithGameCenterErrorHandler( errors );
-                done();
-            };
-        }
-        ArbiterBinding.LoginWithGameCenter( parse, errorHandler );
-        */
         ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
     }
-    /* ttt
-    public static void SetLoginWithGameCenterErrorHandler( Action<List<string>> handler ) {
-        loginWithGameCenterErrorHandler = ( errors ) => handler( errors );
-    }
-    */
     public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
 

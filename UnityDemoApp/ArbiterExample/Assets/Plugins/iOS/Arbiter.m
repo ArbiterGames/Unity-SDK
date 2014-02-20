@@ -342,6 +342,7 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
     NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:&error];
     if( error ) {
         NSLog( @"Error: %@", error );
+        dict = @{@"success": @"false", @"errors":@[@"received null response from connection"]};
     } else {
         NSLog( @"%@", dict );
     }

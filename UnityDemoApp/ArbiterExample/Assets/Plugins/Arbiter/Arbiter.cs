@@ -32,6 +32,7 @@ public class Arbiter : MonoBehaviour
         };
         ArbiterBinding.Init( parse, initErrorHandler );
 	}
+    public static Action<List<string>> InitializeErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 
 
 #if UNITY_IOS

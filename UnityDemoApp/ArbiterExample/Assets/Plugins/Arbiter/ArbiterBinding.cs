@@ -106,16 +106,12 @@ namespace ArbiterInternal {
     	public void InitHandler( string jsonString ) {
     		JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                JSONNode userNode = json["user"];
-                User user = new User();
-                user.Id = userNode["id"].Value;
-                user.Name = userNode["username"].Value;
-                bool verified = isVerified( userNode );
+                User user = parseUser( json["user"] );
+                bool verified = isVerified( json["user"] );
                 Wallet wallet = null;
                 if( json["wallet"] != null ) {
                     wallet = parseWallet( json["wallet"] );
                 }
-
                 initCallback( user, verified, wallet );
             } else {
                 initErrorHandler( getErrors( json ));
@@ -125,10 +121,8 @@ namespace ArbiterInternal {
         public void LoginWithGameCenterHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                // TODO: Get this from the native response ttt td
-                User user = new User();
-                user.Id = "0";
-                user.Name = "GameCenterUser";
+                User user = parseUser( json["user"] );
+                bool verified = isVerified( json["user"] );
                 loginWithGameCenterCallback( user, false, null );
             } else {
                 loginWithGameCenterErrorHandler( getErrors( json ));
@@ -181,12 +175,20 @@ namespace ArbiterInternal {
         }
 
 
-        private Wallet parseWallet( JSONNode json ) {
+        private User parseUser( JSONNode userNode ) {
+            User rv = new User();
+            rv.Id = userNode["id"].Value;
+            rv.Name = userNode["username"].Value;
+            return rv;
+        }
+
+
+        private Wallet parseWallet( JSONNode walletNode ) {
             Wallet rv = new Wallet();
-            rv.Balance = json["balance"].Value;
-            rv.DepositAddress = json["deposit_address"].Value;
-            rv.DepositQrCode = json["deposit_address_qr_code"].Value;
-            rv.WithdrawAddress = json["withdraw_address"].Value;
+            rv.Balance = walletNode["balance"].Value;
+            rv.DepositAddress = walletNode["deposit_address"].Value;
+            rv.DepositQrCode = walletNode["deposit_address_qr_code"].Value;
+            rv.WithdrawAddress = walletNode["withdraw_address"].Value;
             return rv;
         }
     }

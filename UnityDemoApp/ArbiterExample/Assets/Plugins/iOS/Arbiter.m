@@ -10,20 +10,20 @@
 #import "Arbiter.h"
 
 // Production URLS
-/*
 NSString * const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";
 NSString * const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
 NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";
 NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
-*/
+
 // Local URLS
+/*
 NSString * const APIUserInitializeURL = @"http://10.1.60.1:5000/api/v1/user/initialize";
 NSString * const APIWalletURL = @"http://10.1.60.1:5000/api/v1/wallet/";
 NSString * const APIUserLoginURL = @"http://10.1.60.1:5000/api/v1/user/login";
 NSString * const APILinkWithGameCenterURL = @"http://10.1.60.1:5000/api/v1/user/link-with-game-center";
 NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
-
+*/
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 

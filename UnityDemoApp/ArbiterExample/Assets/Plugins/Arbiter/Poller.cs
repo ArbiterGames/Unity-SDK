@@ -20,14 +20,14 @@ public class Poller : MonoBehaviour {
 
 
     void Update() {
-        if( !this.waitingForResponse ) {
-            this.currentPollTime -= Time.deltaTime;
-            if( this.currentPollTime < 0 ) {
+        this.currentPollTime -= Time.deltaTime;
+        if( this.currentPollTime < 0 ) {
+            if( !this.waitingForResponse ) {
                 this.nextPollPeriod *= 2.0f;
                 this.currentPollTime = nextPollPeriod;
                 this.waitingForResponse = true;
                           
-                if( Verbose ) Debug.Log( "Poll timer complete. Will poll again in " + currentPollTime + " seconds." );                                
+                if( Verbose ) Debug.Log( "Poll timer complete. Will poll again in " + currentPollTime + " seconds after receiving its callback." );                                
                                 
                 this.poll( callback );
             }
@@ -36,6 +36,7 @@ public class Poller : MonoBehaviour {
         
         
     private void callback() {
+        if( Verbose ) Debug.Log( "Poll timer callback" );
         this.waitingForResponse = false;
     }
 

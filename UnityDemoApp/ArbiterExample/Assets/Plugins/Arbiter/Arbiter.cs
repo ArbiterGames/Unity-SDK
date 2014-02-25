@@ -80,7 +80,10 @@ public class Arbiter : MonoBehaviour
         queryWalletIfAble( null );
     }
     private static void queryWalletIfAble( Action callback ) {
-        if( user == null || verified != VerificationStatus.Verified ) return;
+        if( user == null || verified != VerificationStatus.Verified ) {
+            callback();
+            return;
+        }
 
         Action done = () => {
             walletQueryListeners.ForEach( listener => listener() );

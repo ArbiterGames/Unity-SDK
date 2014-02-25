@@ -2,6 +2,8 @@
 using UnityEngine.SocialPlatforms;
 using System;
 using System.Collections;
+using System.Collections.Generic;
+
 
 
 public class Entrypoint : MonoBehaviour {
@@ -15,22 +17,34 @@ public class Entrypoint : MonoBehaviour {
 
     void LogInToGameCenter() {
 #if UNITY_EDITOR
+        // Skip logging in since we're in editor
         ArbiterStep2();
 #elif UNITY_IOS
         Action<bool> processAuth = ( success ) => {
-//            Debug.Log("ttt checkpoint1");
             if( success )
                 Arbiter.LoginWithGameCenter( ArbiterStep2 );
             else
                 Debug.LogError( "Could not authenticate to Game Center!" );
         };
-        Social.localUser.Authenticate( processAuth ); 
+        Social.localUser.Authenticate( processAuth );
 #endif
     }
 
 
     void ArbiterOptionalStep() {
-        // ttt TODO: Custom Override Error Handler registration!
+        // Override some of the default handlers
+
+        //
+        // Authentication is critical. You can't really bet unless Arbiter knows who you are!
+        //
+        Action<List<string>> criticalErrorHandler = ( errors ) => {
+            Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
+            errors.ForEach( e => Debug.LogError( e ));
+        };
+        Arbiter.InitializeErrorHandler = criticalErrorHandler;
+#if UNITY_IOS
+        Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
+#endif
     }
 
 

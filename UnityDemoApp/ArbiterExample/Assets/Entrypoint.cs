@@ -64,6 +64,8 @@ public class Entrypoint : MonoBehaviour {
         Arbiter.AddWalletListener( SomeOtherHandler );
 
         ArbiterDoTheseAsOftenAsYouWant();
+
+        Application.LoadLevel( "SecondScene" );
     }
     
     

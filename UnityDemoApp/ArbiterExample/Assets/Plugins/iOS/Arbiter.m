@@ -353,7 +353,7 @@ NSString * const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     NSLog(@"aa: connection didFailWithError");
     NSLog(@"%@", error);
-    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:error, @"error", nil];
+    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:@[[error localizedDescription]], @"errors", @"false", @"success", nil];
     _connectionHandler(dict);
     _connectionHandler = nil;
 }

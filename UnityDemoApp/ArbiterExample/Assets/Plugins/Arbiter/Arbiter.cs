@@ -30,7 +30,7 @@ public class Arbiter : MonoBehaviour
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-		ArbiterBinding.Init( parse );
+        ArbiterBinding.Init( parse, initErrorHandler );
 	}
 
 
@@ -129,6 +129,7 @@ public class Arbiter : MonoBehaviour
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static List<Action> walletQueryListeners = new List<Action>();
+    private static ArbiterBinding.ErrorHandler initErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyErrorHandler = defaultErrorHandler;
 #if UNITY_IOS

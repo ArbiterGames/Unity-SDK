@@ -17,11 +17,15 @@ NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user
 NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 
 // Local URLS
-//NSString * const APIUserInitializeURL = @"http://10.0.0.6:5000/api/v1/user/initialize";
-//NSString * const APIWalletURL = @"http://10.0.0.6:5000/api/v1/wallet/";
-//NSString * const APIUserLoginURL = @"http://10.0.0.6:5000/api/v1/user/login";
-//NSString * const APILinkWithGameCenterURL = @"http://10.0.0.6:5000/api/v1/user/link-with-game-center";
-//NSString * const APIUserDetailsURL = @"http://10.0.0.6:5000/api/v1/user/";
+/*
+NSString * const APIUserInitializeURL = @"http://10.1.60.1:5000/api/v1/user/initialize";
+NSString * const APIWalletURL = @"http://10.1.60.1:5000/api/v1/wallet/";
+NSString * const APIUserLoginURL = @"http://10.1.60.1:5000/api/v1/user/login";
+NSString * const APILinkWithGameCenterURL = @"http://10.1.60.1:5000/api/v1/user/link-with-game-center";
+NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
+*/
+
+#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
 @implementation Arbiter
@@ -158,58 +162,81 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 }
 
 
-// ttt from other repo- (void)loginWithGameCenterPlayer:(GKLocalPlayer *)localPlayer callback:(void (^)(NSString *))handler
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
-// TTT kind of worked- (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-//    NSLog(@"ttt checkpoint n1");
+    //
+    // Note/TODO: This function assumes the player used Unity to authenticate. Would be better to handle this all native...
+    //
     
-//    GKLocalPlayer *localPlayer; // ttt need to get this, here!
-//    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
-//        NSLog(@"localplayer=%@", localPlayer);
-//    NSLog(@"ttt checkpoint n2");
+    _connectionHandler = [^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy];
     
-    NSDictionary *tttFakeResponse = @{
-        @"ttt" : [NSNumber numberWithInt:13],
-    };
-    handler(tttFakeResponse);
+    NSDictionary *response;
     
-    /* ttt   Why don't I need a _connectionHandler here?
-    [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
-        if (error) {
-            NSLog(@"ERROR: %@", error);
-            _completionHandler(@"false");
-            _completionHandler = nil;
-        }
-        else {
-            NSDictionary *params = @{@"publicKeyUrl": publicKeyUrl,
-                                     @"timestamp": [NSString stringWithFormat:@"%llu", timestamp],
-                                     @"signature": [signature base64EncodedStringWithOptions:0],
-                                     @"salt": [salt base64EncodedStringWithOptions:0],
-                                     @"playerID": localPlayer.playerID,
-                                     @"bundleID": [[NSBundle mainBundle] bundleIdentifier]};
+    if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
+        response = @{
+            @"success": @"false",
+            @"errors": @[@"Linking a Game Center account requires iOS >=7.0"]
+        };
+        handler(response);
+        return;
+    }
 
-            AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-            [manager POST:APILinkWithGameCenterURL
-               parameters:params
-constructingBodyWithBlock:nil
-                  success:^(AFHTTPRequestOperation *operation, id responseObject) {
-                      NSDictionary *jsonDict = (NSDictionary *) responseObject;
-                      NSDictionary *user = [jsonDict objectForKey:@"user"];
-                      self.session.userId = [user objectForKey:@"uid"];
-                      self.session.username = [user objectForKey:@"username"];
-                      self.wallet = [[ArbiterWallet alloc] initWithDetails:[jsonDict objectForKey:@"wallet"]];
-                      _completionHandler(@"true");
-                      _completionHandler = nil;
-                  }
-                  failure:^(AFHTTPRequestOperation *operation, NSError *error) {
-                      NSLog(@"manager.failure: %@", error);
-                      _completionHandler(@"false");
-                      _completionHandler = nil;
-                  }];
-        }
-    }];
-    */
+    GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
+    if( !localPlayer.isAuthenticated ) {
+        response = @{
+            @"success": @"false",
+            @"errors": @[@"local player is not authenticated"]
+        };
+        handler(response);
+    } else {
+        [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+            if (error) {
+                NSLog(@"ERROR: %@", error);
+                _connectionHandler( @{
+                    @"success": @"false",
+                    @"errors": @[error]
+                });
+                _connectionHandler = nil;
+            }
+            else {
+                NSURL *url = [NSURL URLWithString:APILinkWithGameCenterURL];
+
+                NSDictionary *paramsDict = @{
+                    @"publicKeyUrl":[publicKeyUrl absoluteString],
+                    @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
+                    @"signature":[signature base64EncodedStringWithOptions:0],
+                    @"salt":[salt base64EncodedStringWithOptions:0],
+                    @"playerID":localPlayer.playerID,
+                    @"bundleID":[[NSBundle mainBundle] bundleIdentifier]
+                };
+                
+                NSError *error;
+                NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
+                                                                     options:0
+                                                                       error:&error];
+                if( !paramsData ) {
+                    NSLog(@"ERROR: %@", error);
+                    _connectionHandler( @{
+                        @"success": @"false",
+                        @"errors": @[error]
+                    });
+                    _connectionHandler = nil;
+                } else {
+                    NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+                    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
+                                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                                       timeoutInterval:60.0];
+                    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+                    [request setHTTPMethod:@"POST"];
+                    [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+                    
+                    [NSURLConnection connectionWithRequest:request delegate:self];
+                }
+            }
+        }];
+    }
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
@@ -288,8 +315,14 @@ constructingBodyWithBlock:nil
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     NSLog(@"aa: connectionDidFinishLoading");
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:nil];
-    NSLog(@"%@", dict);
+    NSError* error = nil;
+    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:&error];
+    if( error ) {
+        NSLog( @"Error: %@", error );
+        dict = @{@"success": @"false", @"errors":@[@"received null response from connection"]};
+    } else {
+        NSLog( @"%@", dict );
+    }
     _connectionHandler(dict);
     _connectionHandler = nil;
 }
@@ -297,7 +330,7 @@ constructingBodyWithBlock:nil
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
     NSLog(@"aa: connection didFailWithError");
     NSLog(@"%@", error);
-    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:error, @"error", nil];
+    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:@[[error localizedDescription]], @"errors", @"false", @"success", nil];
     _connectionHandler(dict);
     _connectionHandler = nil;
 }

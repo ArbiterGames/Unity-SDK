@@ -234,29 +234,6 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     
                     [NSURLConnection connectionWithRequest:request delegate:self];
                 }
-                
-                
-                
-                /* ttt was working. keep for now until it REALLY works!
-                NSString *params = [@"{\"publicKeyUrl\":\"" stringByAppendingString: [publicKeyUrl absoluteString]];
-                params = [params stringByAppendingString: [@"\", \"timestamp\":\"" stringByAppendingString: [NSString stringWithFormat:@"%llu", timestamp]]];
-                params = [params stringByAppendingString: [@"\", \"signature\":\"" stringByAppendingString: [signature base64EncodedStringWithOptions:0]]]; // ttt does this need to be a multiple of 4??
-                params = [params stringByAppendingString: [@"\", \"salt\":\"" stringByAppendingString: [salt base64EncodedStringWithOptions:0]]];
-                params = [params stringByAppendingString: [@"\", \"playerID\":\"" stringByAppendingString: localPlayer.playerID]];
-                params = [params stringByAppendingString: [@"\", \"bundleID\":\"" stringByAppendingString: [[NSBundle mainBundle] bundleIdentifier]]];
-                params = [params stringByAppendingString: @"\"}"];
-                NSLog(@"Whole thing=\n%@", params);
-                NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:url
-                                                                       cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                                   timeoutInterval:60.0];
-                [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-                [request setHTTPMethod:@"POST"];
-                [request setHTTPBody:[params dataUsingEncoding:NSUTF8StringEncoding]];
-
-                [NSURLConnection connectionWithRequest:request delegate:self];
-                 */
-                
-                
             }
         }];
     }

@@ -1,4 +1,4 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System;
 using System.Linq;
 using System.Collections;
@@ -123,7 +123,7 @@ namespace ArbiterInternal {
             if( wasSuccess( json )) {
                 User user = parseUser( json["user"] );
                 bool verified = isVerified( json["user"] );
-                loginWithGameCenterCallback( user, false, null );
+                loginWithGameCenterCallback( user, verified, null );
             } else {
                 loginWithGameCenterErrorHandler( getErrors( json ));
             }
@@ -138,6 +138,7 @@ namespace ArbiterInternal {
                 verifyUserErrorHandler( getErrors( json ));
             }
     	}
+
 
     	public void GetWalletHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );

@@ -23,15 +23,15 @@ namespace ArbiterInternal {
         public static void Init( LoginCallback callback, ErrorHandler errorHandler ) {
             initCallback = callback;
             initErrorHandler = errorHandler;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             ReportIgnore( "Initialize" );
             User user = new User();
             user.Id = "0";
             user.Name = "McMockison";
             initCallback( user, false, null );
-    #elif UNITY_IOS
+#elif UNITY_IOS
     		_init();
-    #endif
+#endif
     	}
 
 
@@ -43,15 +43,15 @@ namespace ArbiterInternal {
         public static void LoginWithGameCenter( LoginCallback callback, ErrorHandler errorHandler ) {
             loginWithGameCenterCallback = callback;
             loginWithGameCenterErrorHandler = errorHandler;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             ReportIgnore( "Login:GameCenter" );
             User user = new User();
             user.Id = "0";
             user.Name = "McMockison";
             loginWithGameCenterCallback( user, false, null );
-    #elif UNITY_IOS
+#elif UNITY_IOS
             _loginWithGameCenterPlayer();
-    #endif
+#endif
         }
 
 
@@ -63,12 +63,12 @@ namespace ArbiterInternal {
     	public static void VerifyUser( VerifyUserCallback callback, ErrorHandler errorHandler ) {
             verifyUserCallback = callback;
             verifyUserErrorHandler = errorHandler;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             ReportIgnore( "VerifyUser" );
             verifyUserCallback( true );
-    #elif UNITY_IOS
+#elif UNITY_IOS
     		_verifyUser();
-    #endif
+#endif
     	}
 
 
@@ -80,23 +80,23 @@ namespace ArbiterInternal {
     	public static void GetWallet( GetWalletCallback callback, ErrorHandler errorHandler ) {
             getWalletCallback = callback;
             getWalletErrorHandler = errorHandler;
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             ReportIgnore( "GetWallet" );
-            getWalletCallback( new Wallet() );
-    #elif UNITY_IOS
+            getWalletCallback( Wallet.CreateMockWallet() );
+#elif UNITY_IOS
     		_getWallet();
-    #endif
+#endif
     	}
 
 
     	[DllImport ("__Internal")]
     	private static extern void _copyDepositAddressToClipboard();
     	public static void CopyDepositAddressToClipboard() {
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
             ReportIgnore( "CopyDepositAddressToClipboard" );
-    #elif UNITY_IOS
+#elif UNITY_IOS
             _copyDepositAddressToClipboard();
-    #endif
+#endif
     	}
 
 
@@ -149,11 +149,11 @@ namespace ArbiterInternal {
             }
     	}
 
-    #if UNITY_EDITOR
+#if UNITY_EDITOR
         private static void ReportIgnore( string functionName ) {
             Debug.Log( "Ignoring call to Arbiter::"+functionName+" since this is running in editor. Will return default params to callbacks instead." );
         }
-    #endif
+#endif
 
 
         private bool wasSuccess( JSONNode json ) {

@@ -18,13 +18,16 @@ public class Entrypoint : MonoBehaviour {
     void LogInToGameCenter() {
 #if UNITY_EDITOR
         // Skip logging in since we're in editor
-        ArbiterStep2();
+        VerificationStep();
 #elif UNITY_IOS
         Action<bool> processAuth = ( success ) => {
-            if( success )
-                Arbiter.LoginWithGameCenter( ArbiterStep2 );
-            else
+            if( success ) {
+                Arbiter.LoginWithGameCenter( VerificationStep );
+            } else {
                 Debug.LogError( "Could not authenticate to Game Center!" );
+                // Can continue, but logged in as the anonymous user created/fetched from the initialize call
+                VerificationStep();
+            }
         };
         Social.localUser.Authenticate( processAuth );
 #endif
@@ -45,25 +48,42 @@ public class Entrypoint : MonoBehaviour {
 #if UNITY_IOS
         Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
 #endif
+
+        // Verification is less critical, but they'll still need to do it to actually compete!
+        Arbiter.VerifyUserErrorHandler = ( errors ) => {
+            Debug.LogError( "Problem with verification. Not all features will be available!" );
+            errors.ForEach( e => Debug.LogError( e ));
+            SetupListenersIfYouWant();
+        };
+
     }
 
 
-    void ArbiterStep2() {
+    void VerificationStep() {
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
 
+        // You can choose to verify later if you prefer. But most of the Arbiter features won't let this user do anything until s/he is verified
         if( Arbiter.Verified )
-            ArbiterStep3();
+            SetupListenersIfYouWant();
         else
-            Arbiter.VerifyUser( ArbiterStep3 );
+            Arbiter.VerifyUser( SetupListenersIfYouWant );
     }
 
     
-    void ArbiterStep3() {
+    void SetupListenersIfYouWant() {
         Arbiter.AddWalletListener( UpdateWalletElements );
         Arbiter.AddWalletListener( SomeOtherHandler );
-
         ArbiterDoTheseAsOftenAsYouWant();
+
+        LoadAnotherScene();
+    }
+
+    void LoadAnotherScene() {
+        // Since the 2 listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
+        // (if you setup listeners on persistent objects you should be fine)
+        Arbiter.RemoveWalletListener( UpdateWalletElements );
+        Arbiter.RemoveWalletListener( SomeOtherHandler );
 
         Application.LoadLevel( "SecondScene" );
     }
@@ -77,12 +97,14 @@ public class Entrypoint : MonoBehaviour {
 
 
     void UpdateWalletElements() {
+        bool verified = Arbiter.Verified;
         string balance = Arbiter.Balance;
         string depositAddress = Arbiter.DepositAddress;
         string depositQrCode = Arbiter.DepositQrCode;
         string withdrawAddress = Arbiter.WithdrawAddress;
 
         Debug.Log( "Update elements if needed.\n"+
+            "verified="+verified+"\n"+
             "balance="+balance+"\n"+
             "deposit="+depositAddress+"\n"+
             "depositQr="+depositQrCode+"\n"+

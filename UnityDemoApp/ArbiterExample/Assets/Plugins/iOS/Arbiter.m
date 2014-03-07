@@ -167,13 +167,13 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     //
     // Note/TODO: This function assumes the player used Unity to authenticate. Would be better to handle this all native...
     //
-    
+
     _connectionHandler = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
-    
+
     NSDictionary *response;
-    
+
     if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
         response = @{
             @"success": @"false",
@@ -211,7 +211,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     @"playerID":localPlayer.playerID,
                     @"bundleID":[[NSBundle mainBundle] bundleIdentifier]
                 };
-                
+
                 NSError *error;
                 NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
                                                                      options:0
@@ -231,7 +231,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
                     [request setHTTPMethod:@"POST"];
                     [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-                    
+
                     [NSURLConnection connectionWithRequest:request delegate:self];
                 }
             }
@@ -319,7 +319,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData options:NSJSONReadingMutableLeaves error:&error];
     if( error ) {
         NSLog( @"Error: %@", error );
-        dict = @{@"success": @"false", @"errors":@[@"received null response from connection"]};
+        dict = @{@"success": @"false", @"errors":@[@"Received null response from connection."]};
     } else {
         NSLog( @"%@", dict );
     }
@@ -338,18 +338,21 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    if (buttonIndex == 0) {
-        NSLog(@"User has hit the cancel button. TODO: Implement handling this!");
-    } else if (buttonIndex == 1) {
-        _connectionHandler = [^(NSDictionary *responseDict) {
-            if ([[responseDict objectForKey:@"success"] boolValue] == true) {
-                NSLog(@"saving wallet");
-                self.wallet = [responseDict objectForKey:@"wallet"];
-            }
-            _completionHandler(responseDict);
-            _completionHandler = nil;
-        } copy];
+    _connectionHandler = [^(NSDictionary *responseDict) {
+        if ([[responseDict objectForKey:@"success"] boolValue] == true) {
+            NSLog(@"saving wallet");
+            self.wallet = [responseDict objectForKey:@"wallet"];
+        }
+        _completionHandler(responseDict);
+        _completionHandler = nil;
+    } copy];
 
+    if (buttonIndex == 0) {
+        NSLog(@"User has hit the cancel button.");
+        NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
+        _connectionHandler(dict);
+        _connectionHandler = nil;
+    } else if (buttonIndex == 1) {
         NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
                                                                               @"true", @"confirmed_age", nil];
         NSError *error;

@@ -30,9 +30,9 @@ public class Arbiter : MonoBehaviour
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-        ArbiterBinding.Init( parse, initErrorHandler );
+        ArbiterBinding.Init( parse, initializeErrorHandler );
 	}
-    public static Action<List<string>> InitializeErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
+    public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
 
 
 #if UNITY_IOS
@@ -54,12 +54,12 @@ public class Arbiter : MonoBehaviour
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {
             if( response == true )
                 verified = VerificationStatus.Verified;
-            else
-                verified = VerificationStatus.Unverified;
             done();
         };
-        ArbiterBinding.VerifyUser( parse, verifyErrorHandler );
+        verified = VerificationStatus.Unverified;
+        ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
     }
+    public static Action<List<string>> VerifyUserErrorHandler { set { verifyUserErrorHandler = ( errors ) => value( errors ); } }
     
     
     public static void AddWalletListener( Action listener ) {
@@ -80,23 +80,22 @@ public class Arbiter : MonoBehaviour
         queryWalletIfAble( null );
     }
     private static void queryWalletIfAble( Action callback ) {
+        walletSuccessCallback = callback;
+
         if( user == null || verified != VerificationStatus.Verified ) {
-            callback();
+            if( walletSuccessCallback != null )
+                walletSuccessCallback();
             return;
         }
 
-        Action done = () => {
-            walletQueryListeners.ForEach( listener => listener() );
-            if( callback != null )
-                callback();
-        };
-        ArbiterBinding.GetWalletCallback parse = ( responseWallet ) => {
-            wallet = responseWallet;
-            done();
-        };
-        ArbiterBinding.GetWallet( parse, walletErrorHandler );
+        ArbiterBinding.GetWallet( walletSuccessHandler, walletErrorHandler );
     }
-
+    private static void walletSuccessHandler( Wallet responseWallet ) {
+        wallet = responseWallet;
+        walletQueryListeners.ForEach( listener => listener() );
+        if( walletSuccessCallback != null )
+            walletSuccessCallback();
+    }
 
 
     private static void defaultErrorHandler( List<string> errors ) {
@@ -132,10 +131,11 @@ public class Arbiter : MonoBehaviour
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
+    private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
-    private static ArbiterBinding.ErrorHandler initErrorHandler = defaultErrorHandler;
+    private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
-    private static ArbiterBinding.ErrorHandler verifyErrorHandler = defaultErrorHandler;
+    private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

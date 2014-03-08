@@ -286,6 +286,14 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
+- (void)showWalletPanel:(void(^)(void))handler
+{
+    _connectionHandler = [^(void) {
+        NSLog(@"ttt showWalletPanel native");
+        handler();
+    } copy];
+}
+
 - (void)copyDepositAddressToClipboard
 {
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];

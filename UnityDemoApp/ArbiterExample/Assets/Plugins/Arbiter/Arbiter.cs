@@ -98,10 +98,8 @@ public class Arbiter : MonoBehaviour
     }
 
 
-    public static void ShowWalletPanel( Action done ) {
-        Debug.Log("ttt made it.");
-        if( done != null )
-            done();
+    public static void ShowWalletPanel( Action callback ) {
+        ArbiterBinding.ShowWalletPanel( callback );
     }
 
 

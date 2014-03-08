@@ -91,9 +91,8 @@ namespace ArbiterInternal {
 
         [DllImport ("__Internal")]
         private static extern void _showWalletPanel();
-        public delegate void ShowWalletCallback();
-        private static ShowWalletCallback showWalletCallback;
-        public static void ShowWalletPanel( ShowWalletCallback callback ) {
+        private static Action showWalletCallback;
+        public static void ShowWalletPanel( Action callback ) {
             showWalletCallback = callback;
 #if UNITY_EDITOR
             ReportIgnore( "ShowWallet" );

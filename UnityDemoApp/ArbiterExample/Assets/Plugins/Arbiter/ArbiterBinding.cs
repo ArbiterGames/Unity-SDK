@@ -89,6 +89,21 @@ namespace ArbiterInternal {
     	}
 
 
+        [DllImport ("__Internal")]
+        private static extern void _showWalletPanel();
+        public delegate void ShowWalletCallback();
+        private static ShowWalletCallback showWalletCallback;
+        public static void ShowWalletPanel( ShowWalletCallback callback ) {
+            showWalletCallback = callback;
+#if UNITY_EDITOR
+            ReportIgnore( "ShowWallet" );
+            showWalletCallback();
+#elif UNITY_IOS
+            _showWalletPanel();
+#endif
+        }
+
+
     	[DllImport ("__Internal")]
     	private static extern void _copyDepositAddressToClipboard();
     	public static void CopyDepositAddressToClipboard() {
@@ -148,6 +163,12 @@ namespace ArbiterInternal {
                 getWalletErrorHandler( getErrors( json ));
             }
     	}
+
+
+        public void ShowWalletPanelHandler() {
+            showWalletCallback();
+        }
+
 
 #if UNITY_EDITOR
         private static void ReportIgnore( string functionName ) {

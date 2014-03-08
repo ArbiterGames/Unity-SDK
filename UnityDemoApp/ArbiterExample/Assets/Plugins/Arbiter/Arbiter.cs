@@ -98,6 +98,13 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public static void ShowWalletPanel( Action done ) {
+        Debug.Log("ttt made it.");
+        if( done != null )
+            done();
+    }
+
+
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );

@@ -74,6 +74,14 @@ void _getWallet()
     }];
 }
 
+void _showWalletPanel()
+{
+    [arbiter showWalletPanel:^(NSDictionary *jsonDict) {
+        NSLog(@"--- _showWalletPanel.response");
+        UnitySendMessage("ArbiterBinding", "ShowWalletPanelHandler" );
+    }];
+}
+
 void _copyDepositAddressToClipboard()
 {
     [arbiter copyDepositAddressToClipboard];

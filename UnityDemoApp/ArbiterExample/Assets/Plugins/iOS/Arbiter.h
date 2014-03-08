@@ -8,14 +8,18 @@
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
 {
+    // TODO: the top 3 can be removed once this works
     void (^_connectionHandler)(NSDictionary *params);
     void (^_completionHandler)(NSDictionary *params);
     NSMutableData *_responseData;
+    NSMutableDictionary *_connectionHandlerRegistry;
+    NSMutableDictionary *_responseDataRegistry;
 }
 
-@property (nonatomic, copy) NSString *userId;
-@property (nonatomic, copy) NSDictionary *wallet;
-@property (nonatomic, copy) NSString *verificationUrl;
+@property (copy) NSString *userId;
+@property (copy) NSDictionary *wallet;
+@property (copy) NSString *verificationUrl;
+
 
 - (id)init:(void(^)(NSDictionary *))handler;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;

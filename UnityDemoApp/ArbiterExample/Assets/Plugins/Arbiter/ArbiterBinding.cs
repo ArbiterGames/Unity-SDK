@@ -96,7 +96,8 @@ namespace ArbiterInternal {
             showWalletCallback = callback;
 #if UNITY_EDITOR
             ReportIgnore( "ShowWallet" );
-            showWalletCallback();
+            if( showWalletCallback != null )
+                showWalletCallback();
 #elif UNITY_IOS
             _showWalletPanel();
 #endif

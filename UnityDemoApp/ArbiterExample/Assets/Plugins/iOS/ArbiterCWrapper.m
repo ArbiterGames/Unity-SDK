@@ -76,9 +76,9 @@ void _getWallet()
 
 void _showWalletPanel()
 {
-    [arbiter showWalletPanel:^(NSDictionary *jsonDict) {
+    [arbiter showWalletPanel:^(void) {
         NSLog(@"--- _showWalletPanel.response");
-        UnitySendMessage("ArbiterBinding", "ShowWalletPanelHandler" );
+        UnitySendMessage("ArbiterBinding", "ShowWalletPanelHandler", nil );
     }];
 }
 

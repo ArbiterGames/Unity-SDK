@@ -148,10 +148,10 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 {
     self = [super init];
     if ( self ) {
-        
+
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
-        
+
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 NSDictionary *userDict = [responseDict objectForKey:@"user"];
                 self.userId = [userDict objectForKey:@"id"];
@@ -159,7 +159,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                 handler(responseDict);
             } copy];
         [_connectionHandlerRegistry setObject:connectionHandler forKey:APIUserInitializeURL];
-        
+
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:APIUserInitializeURL]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
@@ -178,7 +178,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     } copy];
 
     NSDictionary *response;
-    
+
     [_connectionHandlerRegistry setObject:connectionHandler forKey:APILinkWithGameCenterURL];
 
     if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
@@ -275,7 +275,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", self.userId];
     NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
     [_connectionHandlerRegistry setObject:connectionHandler forKey:verifyUrl];
-    
+
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
@@ -291,17 +291,18 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
     NSString *walletUrl = [APIWalletURL stringByAppendingString:self.userId];
     [_connectionHandlerRegistry setObject:connectionHandler forKey:walletUrl];
-    
+
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:walletUrl]];
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    _connectionHandler = [^(void) {
-        NSLog(@"ttt showWalletPanel native");
+    void (^connectionHandler)(void) = [^(void) {
         handler();
     } copy];
+
+    /* TODO: show an alert */
 }
 
 - (void)copyDepositAddressToClipboard
@@ -337,14 +338,14 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     NSError *error = nil;
     NSData *responseData = [_responseDataRegistry objectForKey:[[connection currentRequest] URL]];
     NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableLeaves error:&error];
-    
+
     if( error ) {
         NSLog( @"Error: %@", error );
         dict = @{@"success": @"false", @"errors":@[@"Received null response from connection."]};
     } else {
         NSLog( @"%@", dict );
     }
-    
+
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:connectionURL];
     handler(dict);
 }
@@ -385,7 +386,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         [verificationUrl appendString: self.userId];
         [verificationUrl appendString: @"/verify"];
         [_connectionHandlerRegistry setObject:connectionHandler forKey:verificationUrl];
-        
+
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
         [request setHTTPMethod:@"POST"];
         [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];

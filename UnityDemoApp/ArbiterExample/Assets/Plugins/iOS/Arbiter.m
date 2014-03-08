@@ -15,6 +15,7 @@ NSString * const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
 NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";
 NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
+NSString * const APIRequestCompetitionURL = @"https://www.arbiter.me/api/v1/competition/";
 
 // Local URLS
 /*
@@ -311,6 +312,19 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     pasteboard.string = [self.wallet objectForKey:@"deposit_address"];
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Successfully Copied Address" message:@"Now use your preferred Bitcoin wallet to send some Bitcoin to that address. We suggest using Coinbase.com." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [alert show];
+}
+
+- (void)requestCompetition:(void(^)(NSDictionary *))handler
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy];
+
+    NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
+    [_connectionHandlerRegistry setObject:connectionHandler forKey:requestUrl];
+
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:requestUrl]];
+    [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 

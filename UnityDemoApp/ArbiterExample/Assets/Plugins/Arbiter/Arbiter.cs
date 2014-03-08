@@ -27,7 +27,7 @@ public class Arbiter : MonoBehaviour
 
 
 	public static void Initialize( Action done ) {
-        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    // TODO: These anon functions will call the first "done" callback for every call--need to provide proper function closures!
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
         ArbiterBinding.Init( parse, initializeErrorHandler );
@@ -100,6 +100,27 @@ public class Arbiter : MonoBehaviour
 
     public static void ShowWalletPanel( Action callback ) {
         ArbiterBinding.ShowWalletPanel( callback );
+    }
+
+
+    public static void RequestCompetition( Dictionary<string,string> filters, Action callback ) {
+        if( filters == null )
+            filters = new Dictionary<string,string>();
+
+        ArbiterBinding.RequestCompetition( filters, callback );
+    }
+    public static void RequestCompetition( string betSize, Dictionary<string,string> otherFilters, Action callback ) {
+        const string BUY_IN = "buy_in";
+        if( otherFilters == null )
+            otherFilters = new Dictionary<string,string>();
+        if( otherFilters.ContainsKey( BUY_IN )) {
+            if( otherFilters[ BUY_IN ] != betSize ) {
+                Debug.LogError( "It appears you have added the 'buy_in' filter manually but it does not match the betSize parameter!" );
+            }
+        } else {
+            otherFilters.Add( BUY_IN, betSize );
+        }
+        RequestCompetition( otherFilters, callback );
     }
 
 

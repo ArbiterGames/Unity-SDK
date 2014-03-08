@@ -115,6 +115,23 @@ namespace ArbiterInternal {
     	}
 
 
+        [DllImport ("__Internal")]
+        private static extern void _requestCompetition();
+        public delegate void RequestCompetitionCallback();
+        private static RequestCompetitionCallback requestCompetitionCallback;
+        private static ErrorHandler requestCompetitionErrorHandler;
+        public static void RequestCompetition( RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
+            requestCompetitionCallback = callback;
+            requestCompetitionErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "RequestCompetition" );
+            requestCompetitionCallback();
+#elif UNITY_IOS
+            _requestCompetition();
+#endif
+        }
+
+
     	// Response handlers for APIs
     	//////////////////////////////
 
@@ -167,6 +184,16 @@ namespace ArbiterInternal {
 
         public void ShowWalletPanelHandler() {
             showWalletCallback();
+        }
+
+
+        public void RequestCompetitionHandler( string jsonString ) {
+            JSONNode json = JSON.Parse( jsonString );
+            if( wasSuccess( json )) {
+                requestCompetitionCallback();
+            } else {
+                requetsCompetitionErrorHandler( getErrors( json ));
+            }
         }
 
 

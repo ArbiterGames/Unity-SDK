@@ -8,10 +8,7 @@
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
 {
-    // TODO: the top 3 can be removed once this works
-    void (^_connectionHandler)(NSDictionary *params);
     void (^_completionHandler)(NSDictionary *params);
-    NSMutableData *_responseData;
     NSMutableDictionary *_connectionHandlerRegistry;
     NSMutableDictionary *_responseDataRegistry;
 }

@@ -160,14 +160,6 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             } copy];
         [_connectionHandlerRegistry setObject:connectionHandler forKey:APIUserInitializeURL];
         
-//       TODO - delete
-//        _connectionHandler = [^(NSDictionary *responseDict) {
-//            NSDictionary *userDict = [responseDict objectForKey:@"user"];
-//            self.userId = [userDict objectForKey:@"id"];
-//            self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
-//            handler(responseDict);
-//        } copy];
-        
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:APIUserInitializeURL]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
@@ -347,9 +339,6 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:connectionURL];
     handler(dict);
-    
-//    [_responseDataRegistry removeObjectForKey:connectionURL];
-//    [_connectionHandlerRegistry removeObjectForKey:connectionURL];
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
@@ -360,15 +349,12 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:connectionURL];
     handler(dict);
-    
-    [_responseDataRegistry removeObjectForKey:connectionURL];
-    [_connectionHandlerRegistry removeObjectForKey:connectionURL];
 }
 
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    _connectionHandler = [^(NSDictionary *responseDict) {
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([[responseDict objectForKey:@"success"] boolValue] == true) {
             NSLog(@"saving wallet");
             self.wallet = [responseDict objectForKey:@"wallet"];
@@ -380,8 +366,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     if (buttonIndex == 0) {
         NSLog(@"User has hit the cancel button.");
         NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-        _connectionHandler(dict);
-        _connectionHandler = nil;
+        connectionHandler(dict);
     } else if (buttonIndex == 1) {
         NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
                                                                               @"true", @"confirmed_age", nil];
@@ -391,7 +376,8 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
         [verificationUrl appendString: self.userId];
         [verificationUrl appendString: @"/verify"];
-
+        [_connectionHandlerRegistry setObject:connectionHandler forKey:verificationUrl];
+        
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
         [request setHTTPMethod:@"POST"];
         [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];

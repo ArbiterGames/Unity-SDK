@@ -119,7 +119,7 @@ public class Arbiter : MonoBehaviour
                 Debug.LogError( "It appears you have added the 'buy_in' filter manually but it does not match the buyIn parameter!" );
             }
         } else {
-            otherFilters.Add( BUY_IN, buyIn );
+            otherFilters.Add( BUY_IN, buyIn );  // ttt TODO don't pass this in to the filters dict
         }
         RequestCompetition( otherFilters, callback );
     }

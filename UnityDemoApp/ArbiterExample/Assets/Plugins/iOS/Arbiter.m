@@ -316,15 +316,42 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
 - (void)requestCompetition:(void(^)(NSDictionary *))handler
 {
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy];
 
-    NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:requestUrl];
+    NSDictionary *paramsDict = @{
+        @"game_api_key": ttt,
+        @"filters":ttt,
+        @"buy_in":ttt
+    };
 
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:requestUrl]];
-    [NSURLConnection connectionWithRequest:request delegate:self];
+    NSError *error;
+    NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
+                                                         options:0
+                                                           error:&error];
+    if( !paramsData ) {
+        NSLog(@"ERROR: %@", error);
+        connectionHandler( @{
+            @"success": @"false",
+            @"errors": @[error]
+        });
+    } else {
+        NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APILinkWithGameCenterURL]
+                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                           timeoutInterval:60.0];
+        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPMethod:@"POST"];
+        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+
+        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+            handler(responseDict);
+        } copy];
+
+        NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
+        [_connectionHandlerRegistry setObject:connectionHandler forKey:requestUrl];
+
+        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:requestUrl]];
+        [NSURLConnection connectionWithRequest:request delegate:self];
+    }
 }
 
 

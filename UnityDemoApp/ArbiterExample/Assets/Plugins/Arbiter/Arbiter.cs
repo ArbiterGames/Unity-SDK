@@ -103,22 +103,23 @@ public class Arbiter : MonoBehaviour
     }
 
 
-    public static void RequestCompetition( Dictionary<string,string> filters, Action callback ) {
+    public delegate void RequestCompetitionCallback();
+    public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
         if( filters == null )
             filters = new Dictionary<string,string>();
 
-        ArbiterBinding.RequestCompetition( filters, callback );
+        ArbiterBinding.RequestCompetition( filters, callback, defaultErrorHandler );
     }
-    public static void RequestCompetition( string betSize, Dictionary<string,string> otherFilters, Action callback ) {
+    public static void RequestCompetition( string buyIn, Dictionary<string,string> otherFilters, RequestCompetitionCallback callback ) {
         const string BUY_IN = "buy_in";
         if( otherFilters == null )
             otherFilters = new Dictionary<string,string>();
         if( otherFilters.ContainsKey( BUY_IN )) {
-            if( otherFilters[ BUY_IN ] != betSize ) {
-                Debug.LogError( "It appears you have added the 'buy_in' filter manually but it does not match the betSize parameter!" );
+            if( otherFilters[ BUY_IN ] != buyIn ) {
+                Debug.LogError( "It appears you have added the 'buy_in' filter manually but it does not match the buyIn parameter!" );
             }
         } else {
-            otherFilters.Add( BUY_IN, betSize );
+            otherFilters.Add( BUY_IN, buyIn );
         }
         RequestCompetition( otherFilters, callback );
     }

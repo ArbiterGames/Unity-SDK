@@ -116,18 +116,17 @@ namespace ArbiterInternal {
 
 
         [DllImport ("__Internal")]
-        private static extern void _requestCompetition();
-        public delegate void RequestCompetitionCallback();
-        private static RequestCompetitionCallback requestCompetitionCallback;
+        private static extern void _requestCompetition( string filters );
+        private static Arbiter.RequestCompetitionCallback requestCompetitionCallback;
         private static ErrorHandler requestCompetitionErrorHandler;
-        public static void RequestCompetition( RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
+        public static void RequestCompetition( Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
             requestCompetitionCallback = callback;
             requestCompetitionErrorHandler = errorHandler;
 #if UNITY_EDITOR
             ReportIgnore( "RequestCompetition" );
             requestCompetitionCallback();
 #elif UNITY_IOS
-            _requestCompetition();
+            _requestCompetition( SerializeDictionary(filters) );
 #endif
         }
 
@@ -192,7 +191,7 @@ namespace ArbiterInternal {
             if( wasSuccess( json )) {
                 requestCompetitionCallback();
             } else {
-                requetsCompetitionErrorHandler( getErrors( json ));
+                requestCompetitionErrorHandler( getErrors( json ));
             }
         }
 
@@ -224,6 +223,13 @@ namespace ArbiterInternal {
         }
 
 
+        private static string SerializeDictionary( Dictionary<string,string> dict )
+        {
+            var entries = dict.Select( kvp => 
+                string.Format( "\"{0}\": \"{1}\" ", kvp.Key, kvp.Value )
+            ).ToArray();
+            return "{" + string.Join( ",", entries ) + "}";
+        }
         private User parseUser( JSONNode userNode ) {
             User rv = new User();
             rv.Id = userNode["id"].Value;

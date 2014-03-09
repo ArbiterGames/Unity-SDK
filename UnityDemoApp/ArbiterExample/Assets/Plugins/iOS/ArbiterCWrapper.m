@@ -12,7 +12,7 @@
 // TODO: Since this wrapper isn't a full on class, think about how we should be storing the single arbiter instance here.
 Arbiter *arbiter = nil;
 
-char* AutonomousStringCopy (const char* string)
+char* AutonomousStringCopy(const char* string)
 {
     if (string == NULL)
         return NULL;
@@ -87,9 +87,10 @@ void _copyDepositAddressToClipboard()
     [arbiter copyDepositAddressToClipboard];
 }
 
-void _requestCompetition()
+void _requestCompetition( const char* filters )
 {
-    [arbiter requestCompetition:^(void) {
+    NSLog(@"ttt params:%s", filters);
+    [arbiter requestCompetition:^(NSDictionary *jsonDict) {
         NSLog(@"--- _requestCompetition.response");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];

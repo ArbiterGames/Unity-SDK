@@ -18,7 +18,15 @@ public class Game : MonoBehaviour {
 
 
     private void RequestCompetition() {
-        Arbiter.RequestCompetition();
+        string buyIn = "0.0001";
+        Dictionary<string,string> filters = new Dictionary<string,string>();
+        filters.Add( "arbitrary_key", "the_value" );
+        Arbiter.RequestCompetition( buyIn, filters, ResetPolling );
+    }
+
+
+    private void ResetPolling() {
+        // TODO: Start polling for the previous game states
     }
 
 

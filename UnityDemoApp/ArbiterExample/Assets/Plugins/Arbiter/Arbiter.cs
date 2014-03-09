@@ -105,12 +105,10 @@ public class Arbiter : MonoBehaviour
 
     public delegate void RequestCompetitionCallback();
     public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
-        if( filters == null )
-            filters = new Dictionary<string,string>();
-
-        ArbiterBinding.RequestCompetition( filters, callback, defaultErrorHandler );
+        RequestCompetition( null, filters, callback );
     }
-    public static void RequestCompetition( string buyIn, Dictionary<string,string> otherFilters, RequestCompetitionCallback callback ) {
+    public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
+        /* ttt
         const string BUY_IN = "buy_in";
         if( otherFilters == null )
             otherFilters = new Dictionary<string,string>();
@@ -121,7 +119,12 @@ public class Arbiter : MonoBehaviour
         } else {
             otherFilters.Add( BUY_IN, buyIn );  // ttt TODO don't pass this in to the filters dict
         }
-        RequestCompetition( otherFilters, callback );
+        */
+
+        if( filters == null )
+            filters = new Dictionary<string,string>();
+        
+        ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
     }
 
 

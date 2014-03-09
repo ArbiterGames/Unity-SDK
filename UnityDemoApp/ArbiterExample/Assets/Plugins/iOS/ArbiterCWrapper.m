@@ -87,9 +87,9 @@ void _copyDepositAddressToClipboard()
     [arbiter copyDepositAddressToClipboard];
 }
 
-void _requestCompetition( const char* filters )
+void _requestCompetition( const char* buyIn, const char* filters )
 {
-    NSLog(@"ttt params:%s", filters);
+    NSLog(@"ttt buyin:%s, params:%s", buyIn, filters);
     [arbiter requestCompetition:^(NSDictionary *jsonDict) {
         NSLog(@"--- _requestCompetition.response");
         NSError *error;

@@ -116,17 +116,17 @@ namespace ArbiterInternal {
 
 
         [DllImport ("__Internal")]
-        private static extern void _requestCompetition( string filters );
+        private static extern void _requestCompetition( string buyIn, string filters );
         private static Arbiter.RequestCompetitionCallback requestCompetitionCallback;
         private static ErrorHandler requestCompetitionErrorHandler;
-        public static void RequestCompetition( Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
+        public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
             requestCompetitionCallback = callback;
             requestCompetitionErrorHandler = errorHandler;
 #if UNITY_EDITOR
             ReportIgnore( "RequestCompetition" );
             requestCompetitionCallback();
 #elif UNITY_IOS
-            _requestCompetition( SerializeDictionary(filters) );
+            _requestCompetition( buyIn, SerializeDictionary(filters) );
 #endif
         }
 

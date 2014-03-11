@@ -27,7 +27,7 @@ public class Arbiter : MonoBehaviour
 
 
 	public static void Initialize( Action done ) {
-        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    // TODO: These anon functions will call the first "done" callback for every call--need to provide proper function closures!
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
         ArbiterBinding.Init( parse, initializeErrorHandler );
@@ -98,6 +98,41 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public static void ShowWalletPanel( Action callback ) {
+        ArbiterBinding.ShowWalletPanel( callback );
+    }
+
+
+    public static void SetGameName( string gameNameFromDashboard ) {
+        gameName = gameNameFromDashboard;
+    }
+
+
+    public delegate void RequestCompetitionCallback();
+    public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
+        RequestCompetition( null, filters, callback );
+    }
+    public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
+        if( gameName == null ) {
+            Debug.LogError( "Game Name not set. Did you call SetGameName(...)?" );
+            return;
+        }
+        if( filters == null ) {
+            filters = new Dictionary<string,string>();
+        }
+        
+        ArbiterBinding.RequestCompetition( gameName, buyIn, filters, callback, defaultErrorHandler );
+    }
+
+
+    public delegate void ViewPreviousCompetitionsCallback();
+    public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
+        if( callback == null )
+            callback = () => {};
+        ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
+    }
+
+
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );
@@ -131,6 +166,8 @@ public class Arbiter : MonoBehaviour
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
+    private static string gameName = null;
+
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;

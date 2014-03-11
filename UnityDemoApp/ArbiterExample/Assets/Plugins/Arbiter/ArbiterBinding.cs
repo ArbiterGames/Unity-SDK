@@ -89,6 +89,21 @@ namespace ArbiterInternal {
     	}
 
 
+        [DllImport ("__Internal")]
+        private static extern void _showWalletPanel();
+        private static Action showWalletCallback;
+        public static void ShowWalletPanel( Action callback ) {
+            showWalletCallback = callback;
+#if UNITY_EDITOR
+            ReportIgnore( "ShowWallet" );
+            if( showWalletCallback != null )
+                showWalletCallback();
+#elif UNITY_IOS
+            _showWalletPanel();
+#endif
+        }
+
+
     	[DllImport ("__Internal")]
     	private static extern void _copyDepositAddressToClipboard();
     	public static void CopyDepositAddressToClipboard() {
@@ -98,6 +113,39 @@ namespace ArbiterInternal {
             _copyDepositAddressToClipboard();
 #endif
     	}
+
+
+        [DllImport ("__Internal")]
+        private static extern void _requestCompetition( string gameName, string buyIn, string filters );
+        private static Arbiter.RequestCompetitionCallback requestCompetitionCallback;
+        private static ErrorHandler requestCompetitionErrorHandler;
+        public static void RequestCompetition( string gameName, string buyIn, Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
+            requestCompetitionCallback = callback;
+            requestCompetitionErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "RequestCompetition" );
+            requestCompetitionCallback();
+#elif UNITY_IOS
+            _requestCompetition( gameName, buyIn, SerializeDictionary(filters) );
+#endif
+        }
+
+
+        [DllImport ("__Internal")]
+        private static extern void _viewPreviousCompetitions();
+        private static Arbiter.ViewPreviousCompetitionsCallback viewPreviousCompetitionsCallback;
+        private static ErrorHandler viewPreviousCompetitionsErrorHandler;
+        public static void ViewPreviousCompetitions( Arbiter.ViewPreviousCompetitionsCallback callback, ErrorHandler errorHandler ) {
+            viewPreviousCompetitionsCallback = callback;
+            viewPreviousCompetitionsErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "ViewPreviousCompetitions" );
+            viewPreviousCompetitionsCallback();
+#elif UNITY_IOS
+            _viewPreviousCompetitions();
+#endif
+        }
+
 
 
     	// Response handlers for APIs
@@ -149,6 +197,26 @@ namespace ArbiterInternal {
             }
     	}
 
+
+        public void ShowWalletPanelHandler() {
+            showWalletCallback();
+        }
+
+
+        public void RequestCompetitionHandler( string jsonString ) {
+            JSONNode json = JSON.Parse( jsonString );
+            if( wasSuccess( json )) {
+                requestCompetitionCallback();
+            } else {
+                requestCompetitionErrorHandler( getErrors( json ));
+            }
+        }
+
+        public void ViewPreviousCompetitionsHandler( string emptyString ) {
+            viewPreviousCompetitionsCallback();
+        }
+
+
 #if UNITY_EDITOR
         private static void ReportIgnore( string functionName ) {
             Debug.Log( "Ignoring call to Arbiter::"+functionName+" since this is running in editor. Will return default params to callbacks instead." );
@@ -176,6 +244,13 @@ namespace ArbiterInternal {
         }
 
 
+        private static string SerializeDictionary( Dictionary<string,string> dict )
+        {
+            var entries = dict.Select( kvp => 
+                string.Format( "\"{0}\": \"{1}\" ", kvp.Key, kvp.Value )
+            ).ToArray();
+            return "{" + string.Join( ",", entries ) + "}";
+        }
         private User parseUser( JSONNode userNode ) {
             User rv = new User();
             rv.Id = userNode["id"].Value;

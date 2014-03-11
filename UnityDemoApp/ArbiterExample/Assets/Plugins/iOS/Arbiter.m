@@ -149,6 +149,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     self = [super init];
     if ( self ) {
 
+        _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
 
@@ -255,6 +256,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     delegate: self
                     cancelButtonTitle:@"Cancel"
                     otherButtonTitles:@"Agree", nil];
+                [alert setTag:2];
                 [alert show];
 
                 _completionHandler = [handler copy];
@@ -296,20 +298,37 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
+
+#pragma mark Wallet Display Methods
+
 - (void)showWalletPanel:(void(^)(void))handler
 {
     void (^connectionHandler)(void) = [^(void) {
         handler();
     } copy];
+    
+    [_alertViewHandlerRegistry setObject:connectionHandler forKey:@"closeWalletHandler"];
 
-    /* TODO: show an alert */
+    NSString *message = [NSString stringWithFormat: @"Balance: %@ BTC", [self.wallet objectForKey:@"balance"]];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wallet" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+    [alert setTag:1];
+    [alert show];
+}
+
+- (void)showDepositPanel
+{
+    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
+    [alert setTag:4];
+    [alert show];
 }
 
 - (void)copyDepositAddressToClipboard
 {
     UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
     pasteboard.string = [self.wallet objectForKey:@"deposit_address"];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Successfully Copied Address" message:@"Now use your preferred Bitcoin wallet to send some Bitcoin to that address. We suggest using Coinbase.com." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Successfully Copied Address" message:@"Now use your preferred Bitcoin wallet to send some Bitcoin to that address. We suggest using Coinbase.com." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
+    [alert setTag:3];
     [alert show];
 }
 
@@ -363,36 +382,72 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        if ([[responseDict objectForKey:@"success"] boolValue] == true) {
-            NSLog(@"saving wallet");
-            self.wallet = [responseDict objectForKey:@"wallet"];
+    
+    NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
+    
+    // Wallet alertView
+    if ( alertView.tag == 1 ) {
+        if ( [buttonTitle isEqualToString:@"Refresh"] ) {
+            NSLog(@"TODO: Call getWallet and update the balance");
+        } else if ( [buttonTitle isEqualToString:@"Deposit"] ) {
+            [self showDepositPanel];
+        } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {
+            NSLog(@"TODO: Setup withdraw window");
+        } else {
+            void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
+            handler();
         }
-        _completionHandler(responseDict);
-        _completionHandler = nil;
-    } copy];
+        
+    // Verification alertView
+    } else if ( alertView.tag == 2 ) {
+        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+            if ([[responseDict objectForKey:@"success"] boolValue] == true) {
+                self.wallet = [responseDict objectForKey:@"wallet"];
+            }
+            _completionHandler(responseDict);
+            _completionHandler = nil;
+        } copy];
+        
+        if (buttonIndex == 0) {
+            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
+            connectionHandler(dict);
+        } else if (buttonIndex == 1) {
+            NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
+                                      @"true", @"confirmed_age", nil];
+            NSError *error;
+            NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
+            
+            NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+            [verificationUrl appendString: self.userId];
+            [verificationUrl appendString: @"/verify"];
+            [_connectionHandlerRegistry setObject:connectionHandler forKey:verificationUrl];
+            
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
+            [request setHTTPMethod:@"POST"];
+            [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
+            [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
+            [request setHTTPBody:postData];
+            [NSURLConnection connectionWithRequest:request delegate:self];
+        }
 
-    if (buttonIndex == 0) {
-        NSLog(@"User has hit the cancel button.");
-        NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-        connectionHandler(dict);
-    } else if (buttonIndex == 1) {
-        NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
-                                                                              @"true", @"confirmed_age", nil];
-        NSError *error;
-        NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
+    // Copy to clipboard alert
+    } else if ( alertView.tag == 3 ) {
+        [self showDepositPanel];
 
-        NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-        [verificationUrl appendString: self.userId];
-        [verificationUrl appendString: @"/verify"];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:verificationUrl];
+    // Deposit
+    } else if ( alertView.tag == 4 ) {
+        if ( [buttonTitle isEqualToString:@"Copy Address"] ) {
+            [self copyDepositAddressToClipboard];
+        } else if ( [buttonTitle isEqualToString:@"Back"] ) {
 
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
-        [request setHTTPMethod:@"POST"];
-        [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-        [request setHTTPBody:postData];
-        [NSURLConnection connectionWithRequest:request delegate:self];
+            [self showWalletPanel:^(void) {
+                // TODO:
+                // pull out the handler from the _alertViewHandlerRegistry
+                // pass it in instead of creating a new block
+                // Then setup the withdraw and the refresh click handlers
+                NSLog(@"TODO: this should be the original handler");
+            }];
+        }
     }
 }
 

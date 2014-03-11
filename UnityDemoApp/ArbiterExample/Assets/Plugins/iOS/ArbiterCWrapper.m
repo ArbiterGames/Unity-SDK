@@ -77,8 +77,8 @@ void _getWallet()
 void _showWalletPanel()
 {
     [arbiter showWalletPanel:^(void) {
-        NSLog(@"--- _showWalletPanel.response");
-        UnitySendMessage("ArbiterBinding", "ShowWalletPanelHandler", nil );
+        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", emptyString );
     }];
 }
 

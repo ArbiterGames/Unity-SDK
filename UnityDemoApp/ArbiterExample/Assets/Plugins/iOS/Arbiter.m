@@ -355,6 +355,16 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
  */
 }
 
+- (void)viewPreviousCompetitions:(void(^)(void))handler
+{
+    void (^connectionHandler)(void) = [^(void) {
+        handler();
+    } copy];
+
+    /* TODO: show an alert */
+    handler();
+}
+
 
 #pragma mark NSURLConnection Delegate Methods
 

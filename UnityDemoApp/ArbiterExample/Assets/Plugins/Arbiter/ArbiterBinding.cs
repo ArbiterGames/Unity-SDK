@@ -131,6 +131,23 @@ namespace ArbiterInternal {
         }
 
 
+        [DllImport ("__Internal")]
+        private static extern void _viewPreviousCompetitions();
+        private static Arbiter.ViewPreviousCompetitionsCallback viewPreviousCompetitionsCallback;
+        private static ErrorHandler viewPreviousCompetitionsErrorHandler;
+        public static void ViewPreviousCompetitions( Arbiter.ViewPreviousCompetitionsCallback callback, ErrorHandler errorHandler ) {
+            viewPreviousCompetitionsCallback = callback;
+            viewPreviousCompetitionsErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "ViewPreviousCompetitions" );
+            viewPreviousCompetitionsCallback();
+#elif UNITY_IOS
+            _viewPreviousCompetitions();
+#endif
+        }
+
+
+
     	// Response handlers for APIs
     	//////////////////////////////
 
@@ -193,6 +210,10 @@ namespace ArbiterInternal {
             } else {
                 requestCompetitionErrorHandler( getErrors( json ));
             }
+        }
+
+        public void ViewPreviousCompetitionsHandler( string emptyString ) {
+            viewPreviousCompetitionsCallback();
         }
 
 

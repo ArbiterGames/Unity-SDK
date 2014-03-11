@@ -100,3 +100,11 @@ void _requestCompetition( const char* buyIn, const char* filters )
         UnitySendMessage("ArbiterBinding", "RequestCompetitionHandler", jsonChar );
     }];
 }
+
+void _viewPreviousCompetitions()
+{
+    [arbiter viewPreviousCompetitions:^(void) {
+        NSLog(@"--- _viewPreviousCompteitions.response");
+        UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
+    }];
+}

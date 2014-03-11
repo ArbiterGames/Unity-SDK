@@ -128,6 +128,14 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public delegate void ViewPreviousCompetitionsCallback();
+    public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
+        if( callback == null )
+            callback = () => {};
+        ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
+    }
+
+
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );

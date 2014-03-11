@@ -8,7 +8,10 @@
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
 {
+    // TODO: Replace the completionHandler with a 'alertViewHandlerRegistry'
     void (^_completionHandler)(NSDictionary *params);
+    NSMutableDictionary *_alertViewHandlerRegistry;
+    
     NSMutableDictionary *_connectionHandlerRegistry;
     NSMutableDictionary *_responseDataRegistry;
 }
@@ -22,6 +25,7 @@
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 - (void)getWallet:(void(^)(NSDictionary *))handler;
+- (void)showWalletPanel:(void(^)(void))handler;
 - (void)copyDepositAddressToClipboard;
 
 @end

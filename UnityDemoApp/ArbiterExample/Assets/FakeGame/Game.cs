@@ -13,6 +13,7 @@ public class Game : MonoBehaviour {
 
 
 	void Start() {
+        Arbiter.SetGameName( "iOS SDK Example App" );
         RequestCompetition();
     }
 
@@ -26,13 +27,13 @@ public class Game : MonoBehaviour {
 
 
     private void ResetPolling() {
+        Debug.LogWarning("ttt successful request! Start polling for results??");
         // TODO: Start polling for the previous game states
     }
 
 
     private void PlayGame() {
         Score = (int)UnityEngine.Random.Range( 0f, 100f );
-
     }
 
 

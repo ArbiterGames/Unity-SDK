@@ -103,28 +103,25 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public static void SetGameName( string gameNameFromDashboard ) {
+        gameName = gameNameFromDashboard;
+    }
+
+
     public delegate void RequestCompetitionCallback();
     public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
         RequestCompetition( null, filters, callback );
     }
     public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
-        /* ttt
-        const string BUY_IN = "buy_in";
-        if( otherFilters == null )
-            otherFilters = new Dictionary<string,string>();
-        if( otherFilters.ContainsKey( BUY_IN )) {
-            if( otherFilters[ BUY_IN ] != buyIn ) {
-                Debug.LogError( "It appears you have added the 'buy_in' filter manually but it does not match the buyIn parameter!" );
-            }
-        } else {
-            otherFilters.Add( BUY_IN, buyIn );  // ttt TODO don't pass this in to the filters dict
+        if( gameName == null ) {
+            Debug.LogError( "Game Name not set. Did you call SetGameName(...)?" );
+            return;
         }
-        */
-
-        if( filters == null )
+        if( filters == null ) {
             filters = new Dictionary<string,string>();
+        }
         
-        ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
+        ArbiterBinding.RequestCompetition( gameName, buyIn, filters, callback, defaultErrorHandler );
     }
 
 
@@ -169,6 +166,8 @@ public class Arbiter : MonoBehaviour
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
+    private static string gameName = null;
+
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;

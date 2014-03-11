@@ -376,7 +376,8 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         });
     } else {
         NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:requestUrl];
+        NSString *key = [NSString stringWithFormat:@"%@:POST", requestUrl];
+        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 
         NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]

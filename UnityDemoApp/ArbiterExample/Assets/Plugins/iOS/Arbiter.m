@@ -316,7 +316,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
 - (void)requestCompetition:(void(^)(NSDictionary *))handler
 {
-
+/* ttt
     NSDictionary *paramsDict = @{
         @"game_api_key": ttt,
         @"filters":ttt,
@@ -352,6 +352,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:requestUrl]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
+ */
 }
 
 

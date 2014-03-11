@@ -350,7 +350,15 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
+}
 
+- (void)getCompetitions:(void(^)(NSDictionary*))handler
+{
+    // TODO: Get the competitions!
+    handler(@{
+              @"success": @"true",
+              @"competitions": @[]
+              });
 }
 
 - (void)viewPreviousCompetitions:(void(^)(void))handler

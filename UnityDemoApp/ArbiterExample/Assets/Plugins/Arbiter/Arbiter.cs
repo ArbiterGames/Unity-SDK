@@ -1,14 +1,15 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ArbiterInternal;
 
 
-public class Arbiter : MonoBehaviour
+public partial class Arbiter : MonoBehaviour
 {
 	static Arbiter() {
 		// Add a GO to the scene for iOS to send responses back to
-		GameObject go = new GameObject("ArbiterBinding");
+		GameObject go = new GameObject("Arbiter");
 		go.AddComponent<ArbiterBinding>();
         poller = go.AddComponent<Poller>();
         wallet = new Wallet();
@@ -125,6 +126,36 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public static void QueryCompetitions( Action callback ) {
+        getCompetitionsCallback = callback;
+        ArbiterBinding.GetCompetitions( GetCompetitionsSuccessHandler, getCompetitionsErrorHandler );
+    }
+    public delegate void GetCompetitionsCallback( List<Competition> competitions );
+    public static void GetCompetitionsSuccessHandler( List<Competition> competitions ) {
+        openCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Open ).ToList();
+        inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
+        completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
+        getCompetitionsCallback();
+    }
+
+
+    public static List<Competition> OpenCompetitions {
+        get {
+            return openCompetitions;
+        }
+    }
+    public static List<Competition> InProgressCompetitions {
+        get {
+            return inProgressCompetitions;
+        }
+    }
+    public static List<Competition> CompleteCompetitions {
+        get {
+            return completeCompetitions;
+        }
+    }
+
+
     public delegate void ViewPreviousCompetitionsCallback();
     public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
         if( callback == null )
@@ -167,12 +198,17 @@ public class Arbiter : MonoBehaviour
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static string gameName = null;
+    private static List<Competition> openCompetitions;
+    private static List<Competition> inProgressCompetitions;
+    private static List<Competition> completeCompetitions;
 
+    private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
-    private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
+    private static Action getCompetitionsCallback;
+    private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

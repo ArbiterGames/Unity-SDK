@@ -12,6 +12,8 @@
 // TODO: Since this wrapper isn't a full on class, think about how we should be storing the single arbiter instance here.
 Arbiter *arbiter = nil;
 
+// TODO: Replace boilerplate with macros
+
 char* AutonomousStringCopy(const char* string)
 {
     if (string == NULL)
@@ -102,6 +104,19 @@ void _requestCompetition( const char* gameName, const char* buyIn, const char* f
         buyIn:[[NSString alloc] initWithUTF8String:buyIn]
         filters:[[NSString alloc] initWithUTF8String:filters]
      ];
+}
+
+void _getCompetitions()
+{
+    [arbiter getCompetitions:^(NSDictionary *jsonDict) {
+        NSLog(@"--- _getCompetitions.response");
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", jsonString);
+        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
+    }];
 }
 
 void _viewPreviousCompetitions()

@@ -9,7 +9,7 @@ public partial class Arbiter : MonoBehaviour
 {
 	static Arbiter() {
 		// Add a GO to the scene for iOS to send responses back to
-		GameObject go = new GameObject("Arbiter");
+		GameObject go = new GameObject("ArbiterBinding");
 		go.AddComponent<ArbiterBinding>();
         poller = go.AddComponent<Poller>();
         wallet = new Wallet();

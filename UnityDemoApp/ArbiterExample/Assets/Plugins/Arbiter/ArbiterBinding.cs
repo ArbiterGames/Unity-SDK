@@ -198,8 +198,10 @@ namespace ArbiterInternal {
     	}
 
 
-        public void ShowWalletPanelHandler() {
-            showWalletCallback();
+		public void ShowWalletPanelHandler( string emptyString ) {
+			if ( showWalletCallback != null ) {
+				showWalletCallback();
+			}
         }
 
 

@@ -18,6 +18,7 @@ public partial class Arbiter : MonoBehaviour
 	}
 
 
+    public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
@@ -161,6 +162,14 @@ public partial class Arbiter : MonoBehaviour
         if( callback == null )
             callback = () => {};
         ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
+    }
+
+
+    public delegate void ReportScoreCallback( Competition competition );
+    public static void ReportScore( string competitionId, int score, ReportScoreCallback callback ) {
+        if( callback == null )
+            Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
+        ArbiterBinding.ReportScore( competitionId, score, callback, defaultErrorHandler );
     }
 
 

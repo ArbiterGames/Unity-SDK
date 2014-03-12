@@ -10,6 +10,8 @@ public class Game : MonoBehaviour {
 	
 
     public int Score;
+    public string CompetitionId = "???";
+    public string ResultsDescription = "???";
 
 
 	void Start() {
@@ -42,30 +44,46 @@ public class Game : MonoBehaviour {
         Arbiter.Competition openCompetition = null;
         foreach( var competition in competitions ) {
             openCompetition = competition;
+            CompetitionId = openCompetition.Id;
             break;
         }
         if( openCompetition != null ) {
             Debug.LogError("ttt found an open competition!");
-            PlayGame( openCompetition.Id );
+            PlayGame();
         }
     }
 
 
-    private void PlayGame( string competitionId ) {
+    private void PlayGame() {
         Score = (int)UnityEngine.Random.Range( 0f, 100f );
-        ReportScore( competitionId );
+        ReportScore();
     }
 
 
-    private void ReportScore( string competitionId ) {
-        // TODO: Call to report score!
-        // ... and set this as the callback: ResetPolling();
+    private void ReportScore() {
+        Arbiter.ReportScore( CompetitionId, Score, DisplayResults );
+    }
+
+
+    private void DisplayResults( Arbiter.Competition competition ) {
+        if( competition.Status == Arbiter.Competition.StatusType.Complete ) {
+            if( competition.Winner.User.Id == Arbiter.UserId ) {
+                ResultsDescription = "You Won!";
+            } else {
+                ResultsDescription = "You lost to player "+competition.Winner.User.Id;
+            }
+        } else if( competition.Status == Arbiter.Competition.StatusType.InProgress ) {
+            ResultsDescription = "Waiting for opponent";
+            ResetPolling();
+        } else {
+            Debug.LogError( "Found unexpected game status code ("+competition.Status+")!" );
+        }
+
     }
 
     
     private void ResetPolling() {
-        Debug.LogWarning("ttt Start polling for results??");
-        // TODO: Start polling for the previous game states
+        openGamePoller.Reset();
     }
 
 

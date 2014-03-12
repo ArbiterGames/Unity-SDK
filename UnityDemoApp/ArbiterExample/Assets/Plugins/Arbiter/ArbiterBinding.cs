@@ -165,6 +165,22 @@ namespace ArbiterInternal {
         }
 
 
+        [DllImport ("__Internal")]
+        private static extern void _reportScore( string competitionId, string score );
+        private static Arbiter.ReportScoreCallback reportScoreCallback;
+        private static ErrorHandler reportScoreErrorHandler;
+        public static void ReportScore( string competitionId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
+            reportScoreCallback = callback;
+            reportScoreErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "ReportScore" );
+            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Open, new List<Arbiter.Player>() ));
+#elif UNITY_IOS
+            _reportScore( competitionId, score.ToString() );
+#endif
+        }
+
+
 
     	// Response handlers for APIs
     	//////////////////////////////
@@ -250,6 +266,16 @@ namespace ArbiterInternal {
         }
 
 
+        public void ReportScoreHandler( string jsonString ) {
+            JSONNode json = JSON.Parse( jsonString );
+            if( wasSuccess( json )) {
+                reportScoreCallback( parseCompetition( json["competition"] ));
+            } else {
+                reportScoreErrorHandler( getErrors( json ));
+            }
+        }
+
+
 #if UNITY_EDITOR
         private static void ReportIgnore( string functionName ) {
             Debug.Log( "Ignoring call to Arbiter::"+functionName+" since this is running in editor. Will return default params to callbacks instead." );
@@ -307,28 +333,31 @@ namespace ArbiterInternal {
             JSONArray rawCompetitions = competitionsNode.AsArray;
             IEnumerator enumerator = rawCompetitions.GetEnumerator();
             while( enumerator.MoveNext() ) {
-                JSONNode c = ((JSONData)(enumerator.Current)).Value;
-                Debug.LogWarning("ttt c=");
-                Debug.LogWarning(c);
-                Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
-                switch( c["status"] ) {
-                    case "open":
-                        status = Arbiter.Competition.StatusType.Open;
-                        break;
-                    case "in_progress":
-                        status = Arbiter.Competition.StatusType.InProgress;
-                        break;
-                    case "complete":
-                        status = Arbiter.Competition.StatusType.Complete;
-                        break;
-                    default:
-                        Debug.LogError( "Unknown status encountered: " + c["status"] );
-                        break;
-                }
-                List<Arbiter.Player> players = new List<Arbiter.Player>();
-                rv.Add( new Arbiter.Competition( c["id"], status, players ));
+                JSONNode competitionNode = ((JSONData)(enumerator.Current)).Value;
+                rv.Add( parseCompetition( competitionNode ));
             }
             return rv;
+        }
+        private Arbiter.Competition parseCompetition( JSONNode competitionNode ) {
+            Debug.LogWarning("ttt node=");
+            Debug.LogWarning(competitionNode);
+            Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
+            switch( competitionNode["status"] ) {
+                case "open":
+                    status = Arbiter.Competition.StatusType.Open;
+                    break;
+                case "in_progress":
+                    status = Arbiter.Competition.StatusType.InProgress;
+                    break;
+                case "complete":
+                    status = Arbiter.Competition.StatusType.Complete;
+                    break;
+                default:
+                    Debug.LogError( "Unknown status encountered: " + competitionNode["status"] );
+                    break;
+            }
+            List<Arbiter.Player> players = new List<Arbiter.Player>();
+            return new Arbiter.Competition( competitionNode["id"], status, players );
         }
 
     }

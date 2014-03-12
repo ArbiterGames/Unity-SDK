@@ -126,3 +126,19 @@ void _viewPreviousCompetitions()
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
     }];
 }
+
+void _reportScore( const char* competitionId, const char* score )
+{
+    [arbiter reportScore:^(NSDictionary *jsonDict) {
+            NSLog(@"--- _requestCompetition.response");
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            NSLog(@"%@", jsonString);
+            const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+            UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
+        }
+        gameId:[[NSString alloc] initWithUTF8String:competitionId]
+        score:[[NSString alloc] initWithUTF8String:score]
+     ];
+}

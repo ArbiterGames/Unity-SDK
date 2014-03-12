@@ -278,10 +278,11 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
     NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", self.userId];
     NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
-    NSString *key = [NSString stringWithFormat:@"%@:GET", verifyUrl];
+    NSString *key = [NSString stringWithFormat:@"%@:POST", verifyUrl];
     [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
+    [request setHTTPMethod:@"POST"];
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
@@ -308,7 +309,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     void (^connectionHandler)(void) = [^(void) {
         handler();
     } copy];
-    
+
     [_alertViewHandlerRegistry setObject:connectionHandler forKey:@"closeWalletHandler"];
 
     NSString *message = [NSString stringWithFormat: @"Balance: %@ BTC", [self.wallet objectForKey:@"balance"]];
@@ -330,10 +331,10 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     NSString *message = @"Where should we transfer your balance?";
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Withdraw" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Withdraw", nil];
     [alert setAlertViewStyle:UIAlertViewStylePlainTextInput];
-    
+
     UITextField *textField = [alert textFieldAtIndex:0];
     textField.placeholder = @"Enter a Bitcoin address";
-    
+
     [alert setTag:5];
     [alert show];
 }
@@ -454,16 +455,16 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    
+
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
-    
+
     // Wallet alertView
     if ( alertView.tag == 1 ) {
         if ( [buttonTitle isEqualToString:@"Refresh"] ) {
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
             } copy];
-            
+
             [self getWallet:connectionHandler];
         } else if ( [buttonTitle isEqualToString:@"Deposit"] ) {
             [self showDepositPanel];
@@ -473,7 +474,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
             handler();
         }
-        
+
     // Verification alertView
     } else if ( alertView.tag == 2 ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -483,7 +484,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             _completionHandler(responseDict);
             _completionHandler = nil;
         } copy];
-        
+
         if (buttonIndex == 0) {
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
@@ -491,15 +492,15 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms", @"true", @"confirmed_age", nil];
             NSError *error;
             NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
-            
+
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: self.userId];
             [verificationUrl appendString: @"/verify"];
-            
+
             NSString *key = [NSString stringWithFormat:@"%@:POST", verificationUrl];
-            
+
             [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-            
+
             NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
             [request setHTTPMethod:@"POST"];
             [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
@@ -514,17 +515,17 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         } else if ( [buttonTitle isEqualToString:@"Back"] ) {
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
-    
+
     // Withdraw
     } else if ( alertView.tag == 5 ) {
         if ( [buttonTitle isEqualToString:@"Withdraw"]) {
-            
+
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 BOOL success = [[responseDict objectForKey:@"success"] boolValue];
                 if ( success ) {
                     self.wallet = [responseDict objectForKey:@"wallet"];
                     [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-                    
+
                 } else {
                     NSMutableString *error = [NSMutableString string];
                     for (NSString *element in [responseDict objectForKey:@"errors"]) {
@@ -533,30 +534,30 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     [self showWithdrawError:error];
                 }
             } copy];
-            
+
             UITextField *address = [alertView textFieldAtIndex:0];
             NSString *walletUrl = [NSString stringWithFormat:@"%@%@", APIWalletURL, self.userId];
             NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:address.text, @"address", [self.wallet objectForKey:@"balance"], @"amount", nil];
             NSError *error;
             NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
             NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:walletUrl]];
-            
+
             [request setHTTPMethod:@"POST"];
             [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
             [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
             [request setHTTPBody:postData];
             [_connectionHandlerRegistry setObject:connectionHandler forKey:[NSString stringWithFormat:@"%@:POST", walletUrl]];
             [NSURLConnection connectionWithRequest:request delegate:self];
-            
+
         } else if ( [buttonTitle isEqualToString:@"Back"] ) {
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
-        
+
     // Default to the main wallet screen
     } else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
     }
-    
+
 }
 
 @end

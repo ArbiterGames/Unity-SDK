@@ -408,13 +408,25 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 - (void)viewPreviousCompetitions:(void(^)(void))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSLog(@"viewPreviousCompetitions connectionHandler");
-        NSLog(@"%@", responseDict);
-        /* TODO: show an alert with all the competition in responseDict 
-            Add a close button that fires the handler
-         */
+        NSArray *competitions = [responseDict objectForKey:@"competitions"];
+        NSMutableString *message = [NSMutableString string];
+        if ( [competitions count] > 0 ) {
+            for (int i = 0; i < [competitions count]; i++) {
+                NSLog(@"competition: %@", [competitions objectAtIndex:i]);
+                NSString *competitionString = [NSString stringWithFormat:@"Created on: %@ \nStatus: %@\n\n",
+                                    [[competitions objectAtIndex:i] objectForKey:@"created_on"],
+                                    [[competitions objectAtIndex:i] objectForKey:@"status"] ];
+                [message appendString:competitionString];
+            }
+        } else {
+            [message appendString:@"No previous games"];
+        }
 
-        handler();
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Previous Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
+        
+        [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
+        [alert setTag:10];
+        [alert show];
     } copy];
 
     [self getCompetitions:connectionHandler];
@@ -569,6 +581,12 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         } else if ( [buttonTitle isEqualToString:@"Back"] ) {
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
+        
+    // Previous competitions
+    } else if ( alertView.tag == 10 ) {
+        // TODO: Setup pagination and play next unplayed game
+        void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
+        handler();
         
     // Default to the main wallet screen
     } else {

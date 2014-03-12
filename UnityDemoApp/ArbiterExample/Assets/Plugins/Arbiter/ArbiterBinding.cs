@@ -252,10 +252,19 @@ namespace ArbiterInternal {
 
 
         public void GetCompetitionsHandler( string jsonString ) {
+            Debug.Log("ttt back in C#. GetCompetitionsHandler");
             JSONNode json = JSON.Parse( jsonString );
+            Debug.Log("ttt parsed json");
+            Debug.Log(json);
             if( wasSuccess( json )) {
-                getCompetitionsCallback( parseCompetitions( json["competitions"] ));
+                JSONNode competitionsNode = json["competitions"];
+                Debug.Log("ttt success");
+                int competitionsThisPage = competitionsNode["count"].AsInt;
+                Debug.Log("ttt count="+competitionsThisPage);
+                // TODO: Support pagination!
+                getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
             } else {
+                Debug.Log("ttt failure");
                 getCompetitionsErrorHandler( getErrors( json ));
             }
         }
@@ -329,13 +338,18 @@ namespace ArbiterInternal {
 
 
         private List<Arbiter.Competition> parseCompetitions( JSONNode competitionsNode ) {
+            Debug.Log("ttt parsing competitions. Node=");
+            Debug.Log(competitionsNode);
             List<Arbiter.Competition> rv = new List<Arbiter.Competition>();
             JSONArray rawCompetitions = competitionsNode.AsArray;
             IEnumerator enumerator = rawCompetitions.GetEnumerator();
             while( enumerator.MoveNext() ) {
                 JSONNode competitionNode = ((JSONData)(enumerator.Current)).Value;
+                Debug.Log("ttt single node=");
+                Debug.Log(competitionNode);
                 rv.Add( parseCompetition( competitionNode ));
             }
+            Debug.Log("ttt returning from parseCompetitions");
             return rv;
         }
         private Arbiter.Competition parseCompetition( JSONNode competitionNode ) {

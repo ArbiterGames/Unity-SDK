@@ -115,6 +115,7 @@ void _getCompetitions()
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        NSLog(@"ttt calling back to C#");
         UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
     }];
 }

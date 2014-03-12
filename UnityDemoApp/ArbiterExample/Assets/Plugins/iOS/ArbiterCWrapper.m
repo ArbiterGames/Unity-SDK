@@ -116,7 +116,7 @@ void _getCompetitions()
         NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
-    }];
+    } page:nil];
 }
 
 void _viewPreviousCompetitions()
@@ -124,5 +124,5 @@ void _viewPreviousCompetitions()
     [arbiter viewPreviousCompetitions:^(void) {
         NSLog(@"--- _viewPreviousCompteitions.response");
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
-    }];
+    } page:nil];
 }

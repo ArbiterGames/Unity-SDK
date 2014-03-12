@@ -391,13 +391,24 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     }
 }
 
-- (void)getCompetitions:(void(^)(NSDictionary*))handler
+- (void)getCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSDictionary *paginationInfo = [responseDict objectForKey:@"competitions"];
+        self.previousPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
+        self.nextPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
     
-    NSString *competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+    NSString *competitionsUrl;
+    
+    if ( [page isEqualToString:@"next"] ) {
+        competitionsUrl = self.nextPageCompetitionsUrl;
+    } else if ( [page isEqualToString:@"previous"]) {
+        competitionsUrl = self.previousPageCompetitionsUrl;
+    } else {
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+    }
     NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
 
@@ -405,14 +416,15 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
-- (void)viewPreviousCompetitions:(void(^)(void))handler
+- (void)viewPreviousCompetitions:(void(^)(void))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSArray *competitions = [responseDict objectForKey:@"competitions"];
+        NSDictionary *competitionSerializer = [responseDict objectForKey:@"competitions"];
+        NSArray *competitions = [competitionSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
+        
         if ( [competitions count] > 0 ) {
             for (int i = 0; i < [competitions count]; i++) {
-                NSLog(@"competition: %@", [competitions objectAtIndex:i]);
                 NSString *competitionString = [NSString stringWithFormat:@"Created on: %@ \nStatus: %@\n\n",
                                     [[competitions objectAtIndex:i] objectForKey:@"created_on"],
                                     [[competitions objectAtIndex:i] objectForKey:@"status"] ];
@@ -424,12 +436,19 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Previous Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
         
+        if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Prev"];
+        }
+        if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Next"];
+        }
+        
         [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
         [alert setTag:10];
         [alert show];
     } copy];
 
-    [self getCompetitions:connectionHandler];
+    [self getCompetitions:connectionHandler page:page];
 }
 
 
@@ -584,9 +603,15 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         
     // Previous competitions
     } else if ( alertView.tag == 10 ) {
-        // TODO: Setup pagination and play next unplayed game
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
-        handler();
+        
+        if ( [buttonTitle isEqualToString:@"Next"] ) {
+            [self viewPreviousCompetitions:handler page:@"next"];
+        } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
+            [self viewPreviousCompetitions:handler page:@"previous"];
+        } else {
+            handler();
+        }
         
     // Default to the main wallet screen
     } else {
@@ -599,7 +624,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
 /* 
  Makes slugifies strings into safe urls.
- Modified from: Borrowed from https://gist.github.com/AzizLight/5926772
+ Modified from https://gist.github.com/AzizLight/5926772
  */
 - (NSString *)slugify:(NSString *)originalString
 {

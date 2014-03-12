@@ -16,9 +16,7 @@ public class BalancePoller : MonoBehaviour {
 
 
 	void OnGUI () {
-        /* TODO: Fix why this crashes on iOS
         textField.text = Arbiter.Balance;
-        */
     }
 
 

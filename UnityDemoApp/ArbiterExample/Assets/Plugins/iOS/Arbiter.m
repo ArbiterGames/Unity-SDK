@@ -425,8 +425,14 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         
         if ( [competitions count] > 0 ) {
             for (int i = 0; i < [competitions count]; i++) {
+                NSString *createdOn = [[competitions objectAtIndex:i] objectForKey:@"created_on"];
+                NSTimeInterval seconds = [createdOn doubleValue] / 1000;
+                NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
+                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+                [dateFormatter setDateFormat:@"EEE, MMM d, h:mm a"];
+
                 NSString *competitionString = [NSString stringWithFormat:@"Created on: %@ \nStatus: %@\n\n",
-                                    [[competitions objectAtIndex:i] objectForKey:@"created_on"],
+                                    [dateFormatter stringFromDate:unFormattedDate],
                                     [[competitions objectAtIndex:i] objectForKey:@"status"] ];
                 [message appendString:competitionString];
             }

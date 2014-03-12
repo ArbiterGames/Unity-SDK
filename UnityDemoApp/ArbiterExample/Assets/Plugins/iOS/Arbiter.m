@@ -393,22 +393,31 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
 - (void)getCompetitions:(void(^)(NSDictionary*))handler
 {
-    // TODO: Get the competitions!
-    handler(@{
-              @"success": @"true",
-              @"competitions": @[
-                @"{id:1234, status:open, players:[]}"]
-              });
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy];
+    
+    NSString *competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+    NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
+
+    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
+    [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 - (void)viewPreviousCompetitions:(void(^)(void))handler
 {
-    void (^connectionHandler)(void) = [^(void) {
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
+        NSLog(@"viewPreviousCompetitions connectionHandler");
+        NSLog(@"%@", responseDict);
+        /* TODO: show an alert with all the competition in responseDict 
+            Add a close button that fires the handler
+         */
+
         handler();
     } copy];
 
-    /* TODO: show an alert */
-    handler();
+    [self getCompetitions:connectionHandler];
 }
 
 
@@ -566,6 +575,45 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
     }
 
+}
+
+# pragma mark Utility Helpers
+
+/* 
+ Makes slugifies strings into safe urls.
+ Modified from: Borrowed from https://gist.github.com/AzizLight/5926772
+ */
+- (NSString *)slugify:(NSString *)originalString
+{
+    NSString *separator = @"-";
+    NSMutableString *slugalizedString = [NSMutableString string];
+    NSRange replaceRange = NSMakeRange(0, originalString.length);
+    
+    // Remove all non ASCII characters
+    NSError *nonASCIICharsRegexError = nil;
+    NSRegularExpression *nonASCIICharsRegex = [NSRegularExpression regularExpressionWithPattern:@"[^\\x00-\\x7F]+"
+                                                                                        options:nil
+                                                                                          error:&nonASCIICharsRegexError];
+    
+    slugalizedString = [[nonASCIICharsRegex stringByReplacingMatchesInString:originalString
+                                                                     options:0
+                                                                       range:replaceRange
+                                                                withTemplate:@""] mutableCopy];
+    
+    // Turn non-slug characters into separators
+    NSError *nonSlugCharactersError = nil;
+    NSRegularExpression *nonSlugCharactersRegex = [NSRegularExpression regularExpressionWithPattern:@"[^a-z0-9\\-_\\+]+"
+                                                                                            options:NSRegularExpressionCaseInsensitive
+                                                                                              error:&nonSlugCharactersError];
+    slugalizedString = [[nonSlugCharactersRegex stringByReplacingMatchesInString:slugalizedString
+                                                                         options:0
+                                                                           range:replaceRange
+                                                                    withTemplate:separator] mutableCopy];
+    
+    // Remove leading/trailing separator
+    slugalizedString = [[slugalizedString stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-"]] mutableCopy];
+    
+    return slugalizedString;
 }
 
 @end

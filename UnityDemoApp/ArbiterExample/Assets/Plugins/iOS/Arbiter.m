@@ -280,10 +280,11 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
     NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", self.userId];
     NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
-    NSString *key = [NSString stringWithFormat:@"%@:GET", verifyUrl];
+    NSString *key = [NSString stringWithFormat:@"%@:POST", verifyUrl];
     [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
+    [request setHTTPMethod:@"POST"];
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
@@ -443,7 +444,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             @"errors": @[error]
         });
     } else {
-        NSString *requestUrl = [APIReportScoreURLPart1: stringByAppendingString: [competitionId stringByAppendingString [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
+        NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [competitionId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
         NSString *key = [NSString stringWithFormat:@"%@:POST", requestUrl];
         [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 

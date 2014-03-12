@@ -183,7 +183,7 @@ public partial class Arbiter : MonoBehaviour
     private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
         user = responseUser;
         verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
-        wallet = responseWallet == null? responseWallet : new Wallet();
+        wallet = responseWallet != null? responseWallet : new Wallet();
         
         poller.SetAction( queryWalletIfAble );
         resetWalletPolling();

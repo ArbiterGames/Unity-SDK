@@ -430,9 +430,9 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-
-                NSString *competitionString = [NSString stringWithFormat:@"%@ \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@BTC \nYour Score: %@ \nOpponent Score: %@\n\n",
                     [dateFormatter stringFromDate:unFormattedDate],
+                    [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
                     [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
                     [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
                 [message appendString:competitionString];

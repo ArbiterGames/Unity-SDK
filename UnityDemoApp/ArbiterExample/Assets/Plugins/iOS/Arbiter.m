@@ -429,11 +429,12 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                 NSTimeInterval seconds = [createdOn doubleValue] / 1000;
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-                [dateFormatter setDateFormat:@"EEE, MMM d, h:mm a"];
+                [dateFormatter setDateFormat:@"EEE, MMM d"];
 
-                NSString *competitionString = [NSString stringWithFormat:@"Created on: %@ \nStatus: %@\n\n",
-                                    [dateFormatter stringFromDate:unFormattedDate],
-                                    [[competitions objectAtIndex:i] objectForKey:@"status"] ];
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nYour Score: %@ \nOpponent Score: %@\n\n",
+                    [dateFormatter stringFromDate:unFormattedDate],
+                    [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
+                    [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
                 [message appendString:competitionString];
             }
         } else {
@@ -627,6 +628,34 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 }
 
 # pragma mark Utility Helpers
+
+- (NSString *)getPlayerScoreFromCompetition: (NSDictionary *)competition
+{
+    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+        NSDictionary *playerUser = [player objectForKey:@"user"];
+        if ( [[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"n/a";
+            } else {
+                return [player objectForKey:@"score"];
+            }
+        }
+    }
+}
+
+- (NSString *)getOpponentScoreFromCompetition: (NSDictionary *)competition
+{
+    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+        NSDictionary *playerUser = [player objectForKey:@"user"];
+        if ( ![[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"n/a";
+            } else {
+                return [player objectForKey:@"score"];
+            }
+        }
+        return @"n/a";
+    }}
 
 /* 
  Makes slugifies strings into safe urls.

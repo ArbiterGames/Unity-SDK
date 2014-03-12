@@ -206,7 +206,7 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                 NSLog(@"ERROR: %@", error);
                 connectionHandler( @{
                     @"success": @"false",
-                    @"errors": @[error]
+                    @"errors": @[[error localizedDescription]]
                 });
 //                connectionHandler = nil;
             }

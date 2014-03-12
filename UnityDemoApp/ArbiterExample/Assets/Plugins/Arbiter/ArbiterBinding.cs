@@ -315,6 +315,12 @@ namespace ArbiterInternal {
                     case "open":
                         status = Arbiter.Competition.StatusType.Open;
                         break;
+                    case "in_progress":
+                        status = Arbiter.Competition.StatusType.InProgress;
+                        break;
+                    case "complete":
+                        status = Arbiter.Competition.StatusType.Complete;
+                        break;
                     default:
                         Debug.LogError( "Unknown status encountered: " + c["status"] );
                         break;

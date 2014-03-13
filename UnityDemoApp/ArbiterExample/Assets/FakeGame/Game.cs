@@ -17,7 +17,7 @@ public class Game : MonoBehaviour {
 	void Start() {
         GameObject go = new GameObject();
         go.name = "Fake Game Competition Poller";
-        openGamePoller = go.AddComponent<Poller>();
+        openGamePoller = go.AddComponent<Poller>(); // ttt Move this to be under the hood!
 
         Arbiter.SetGameName( "iOS SDK Example App" );
         RequestCompetition();

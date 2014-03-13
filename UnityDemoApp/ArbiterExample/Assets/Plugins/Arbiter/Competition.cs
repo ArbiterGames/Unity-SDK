@@ -15,13 +15,16 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
         public string Id                { get { return this.id; } }
         public StatusType Status        { get { return this.status; } }
         public List<Player> Players     { get { return this.players; } }
-        public Player Winner            { get { return this.winner; } }
+
+        public Player Winner;
+
 
         public Competition( string id, StatusType status, List<Player> players ) {
             this.id = id;
             this.status = status;
             this.players = players;
 
+            /* ttt kill
             this.winner = null;
             int bestScore = int.MinValue;
             if( status == StatusType.Complete ) {
@@ -32,12 +35,12 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
                     }
                 }
             }
+            */
         }
 
         private string id;
         private StatusType status;
         private List<Player> players;
-        private Player winner;
 
     }
 

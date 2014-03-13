@@ -252,19 +252,13 @@ namespace ArbiterInternal {
 
 
         public void GetCompetitionsHandler( string jsonString ) {
-            Debug.Log("ttt back in C#. GetCompetitionsHandler");
             JSONNode json = JSON.Parse( jsonString );
-            Debug.Log("ttt parsed json");
-            Debug.Log(json);
             if( wasSuccess( json )) {
                 JSONNode competitionsNode = json["competitions"];
-                Debug.Log("ttt success");
                 int competitionsThisPage = competitionsNode["count"].AsInt;
-                Debug.Log("ttt count="+competitionsThisPage);
-                // TODO: Support pagination!
+                // TODO: Need to handle pagination!?
                 getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
             } else {
-                Debug.Log("ttt failure");
                 getCompetitionsErrorHandler( getErrors( json ));
             }
         }
@@ -278,7 +272,7 @@ namespace ArbiterInternal {
         public void ReportScoreHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                reportScoreCallback( parseCompetition( json["competition"] ));
+//ttt something like this                reportScoreCallback( parseCompetition( json["competition"] ));
             } else {
                 reportScoreErrorHandler( getErrors( json ));
             }
@@ -338,41 +332,54 @@ namespace ArbiterInternal {
 
 
         private List<Arbiter.Competition> parseCompetitions( JSONNode competitionsNode ) {
-            Debug.Log("ttt parsing competitions. Node=");
-            Debug.Log(competitionsNode);
             List<Arbiter.Competition> rv = new List<Arbiter.Competition>();
             JSONArray rawCompetitions = competitionsNode.AsArray;
             IEnumerator enumerator = rawCompetitions.GetEnumerator();
             while( enumerator.MoveNext() ) {
-                JSONNode competitionNode = ((JSONData)(enumerator.Current)).Value;
-                Debug.Log("ttt single node=");
-                Debug.Log(competitionNode);
-                rv.Add( parseCompetition( competitionNode ));
+                JSONClass competition = enumerator.Current as JSONClass;
+                rv.Add( parseCompetition( competition ));
             }
-            Debug.Log("ttt returning from parseCompetitions");
             return rv;
         }
-        private Arbiter.Competition parseCompetition( JSONNode competitionNode ) {
-            Debug.LogWarning("ttt node=");
-            Debug.LogWarning(competitionNode);
+        private Arbiter.Competition parseCompetition( JSONClass competitionNode ) {
             Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
             switch( competitionNode["status"] ) {
-                case "open":
-                    status = Arbiter.Competition.StatusType.Open;
-                    break;
-                case "in_progress":
-                    status = Arbiter.Competition.StatusType.InProgress;
-                    break;
-                case "complete":
-                    status = Arbiter.Competition.StatusType.Complete;
-                    break;
-                default:
-                    Debug.LogError( "Unknown status encountered: " + competitionNode["status"] );
-                    break;
+            case "open":
+                status = Arbiter.Competition.StatusType.Open;
+                break;
+            case "inprogress":
+                status = Arbiter.Competition.StatusType.InProgress;
+                break;
+            case "complete":
+                status = Arbiter.Competition.StatusType.Complete;
+                break;
+            default:
+                Debug.LogError( "Unknown status encountered: " + competitionNode["status"] );
+                break;
             }
-            List<Arbiter.Player> players = new List<Arbiter.Player>();
-            return new Arbiter.Competition( competitionNode["id"], status, players );
+            List<Arbiter.Player> players = parsePlayers( competitionNode["players"] );
+            Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players );
+//ttt keep, but do it right            if( competitionNode["winner"] != null )
+//ttt                rv.Winner = competitionNode["winner"].Value;
+            return rv;
         }
+
+        private List<Arbiter.Player> parsePlayers( JSONNode playersNode ) {
+            List<Arbiter.Player> rv = new List<Arbiter.Player>();
+            JSONArray rawPlayers = playersNode.AsArray;
+            IEnumerator enumerator = rawPlayers.GetEnumerator();
+            while( enumerator.MoveNext() ) {
+                JSONClass playerNode = enumerator.Current as JSONClass;
+                User user = parseUser( playerNode["user"] );
+                string score = playerNode["score"];
+                Arbiter.Player player = new Arbiter.Player( user );
+                if( score != "null" )
+                    player.SetScore( int.Parse( score ));
+                rv.Add( player );
+            }
+            return rv;
+        }
+
 
     }
 

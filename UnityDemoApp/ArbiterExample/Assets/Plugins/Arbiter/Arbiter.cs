@@ -136,6 +136,10 @@ public partial class Arbiter : MonoBehaviour
         openCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Open ).ToList();
         inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
         completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
+        Debug.Log("ttt openCompetitions="+openCompetitions.Count);
+        Debug.Log("ttt inProgressCompetitions="+inProgressCompetitions.Count);
+        Debug.Log("ttt closedCompetitions="+completeCompetitions.Count);
+        // TODO: Get an in progress game that you belong to.
         getCompetitionsCallback();
     }
 

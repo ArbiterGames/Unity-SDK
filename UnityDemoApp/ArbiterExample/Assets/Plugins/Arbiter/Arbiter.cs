@@ -11,7 +11,8 @@ public partial class Arbiter : MonoBehaviour
 		// Add a GO to the scene for iOS to send responses back to
 		GameObject go = new GameObject("ArbiterBinding");
 		go.AddComponent<ArbiterBinding>();
-        poller = go.AddComponent<Poller>();
+        walletPoller = go.AddComponent<Poller>();
+        competitionPoller = go.AddComponent<Poller>();
         wallet = new Wallet();
         user = new User();
 		GameObject.DontDestroyOnLoad( go );
@@ -110,6 +111,15 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
+    public delegate void JoinAvailableCompetitionCallback( Competition competition );
+    public static void JoinAvailableCompetition( string buyIn, Dictionary<string,string> filters, JoinAvailableCompetitionCallback callback ) {
+        joinAvailableCompetitionCallback = callback;
+        // TODO: Only request a new Competition if needed. For now just request it and then start polling.
+        RequestCompetition( buyIn, filters, null );
+        pollUntilAvailableCompetitionFound();
+    }
+
+
     public delegate void RequestCompetitionCallback();
     public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
         RequestCompetition( null, filters, callback );
@@ -136,10 +146,6 @@ public partial class Arbiter : MonoBehaviour
         openCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Open ).ToList();
         inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
         completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
-        Debug.Log("ttt openCompetitions="+openCompetitions.Count);
-        Debug.Log("ttt inProgressCompetitions="+inProgressCompetitions.Count);
-        Debug.Log("ttt closedCompetitions="+completeCompetitions.Count);
-        // TODO: Get an in progress game that you belong to.
         getCompetitionsCallback();
     }
 
@@ -177,6 +183,33 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
+    private static void pollUntilAvailableCompetitionFound() {
+        competitionPoller.SetAction( () => {
+            Arbiter.QueryCompetitions( lookForAvailableCompetition );
+        });
+    }
+    private static void lookForAvailableCompetition() {
+        IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
+        Competition found = null;
+        while( e.MoveNext() ) {
+            Competition c = e.Current;
+            if( c.ContainsUser( user )) {
+                competitionPoller.Stop();
+                found = c;
+                break;
+            }
+        }
+        if( found != null ) {
+            Debug.LogWarning( "TODO: Join this competition! comp="+found);
+            // TODO: Call to Arbiter to actually join this competition!
+            // then do this... 
+            // if( joinAvailableCompetitionCallback != null )
+            //    joinAvailableCompetitionCallback( found );
+            // joinAvailableCompetitionCallback = null;
+        }
+    }
+
+
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );
@@ -189,23 +222,14 @@ public partial class Arbiter : MonoBehaviour
         verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
         wallet = responseWallet != null? responseWallet : new Wallet();
         
-        poller.SetAction( queryWalletIfAble );
-        resetWalletPolling();
+        walletPoller.SetAction( queryWalletIfAble );
         done();
     }
 
 
-    
-    private static void resetWalletPolling() {
-        poller.Reset();
-    }
-    
-    
-    void Update() {
-    }
 
-
-    private static Poller poller;
+    private static Poller walletPoller;
+    private static Poller competitionPoller;
     private static User user;
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
@@ -220,6 +244,7 @@ public partial class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
+    private static JoinAvailableCompetitionCallback joinAvailableCompetitionCallback;
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 #if UNITY_IOS

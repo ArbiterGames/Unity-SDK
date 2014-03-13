@@ -9,53 +9,37 @@ using System.Collections.Generic;
 public class Game : MonoBehaviour {
 	
 
+    public const string BET_SIZE = "0";//ttt"0.0001";
     public int Score;
+    public string Problems = "---";
     public string CompetitionId = "???";
     public string ResultsDescription = "???";
 
 
 	void Start() {
-        GameObject go = new GameObject();
-        go.name = "Fake Game Competition Poller";
-        openGamePoller = go.AddComponent<Poller>(); // ttt Move this to be under the hood!
-
         Arbiter.SetGameName( "iOS SDK Example App" );
-        RequestCompetition();
+        if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
+            Problems = "You need to deposit more bitcoin first.";
+        } else {
+           JoinCompetition();
+        }
     }
 
 
-    private void RequestCompetition() {
-        string buyIn = "0.0001";
+    private void JoinCompetition() {
         Dictionary<string,string> filters = new Dictionary<string,string>();
         filters.Add( "arbitrary_key", "the_value" );
-        Arbiter.RequestCompetition( buyIn, filters, PollForOpenGames );
+        Arbiter.JoinAvailableCompetition( BET_SIZE, filters, OnCompetitionJoined );
     }
 
 
-    private void PollForOpenGames() {
-        openGamePoller.SetAction( ( callback ) => {
-            Arbiter.QueryCompetitions( UpdateCompetitionInfo );
-        });
-    }
-
-    private void UpdateCompetitionInfo() {
-        // Keep polling until an open competition is found
-        List<Arbiter.Competition> competitions = Arbiter.OpenCompetitions;
-        Arbiter.Competition openCompetition = null;
-        foreach( var competition in competitions ) {
-            openCompetition = competition;
-            CompetitionId = openCompetition.Id;
-            break;
-        }
-        if( openCompetition != null ) {
-            Debug.LogError("ttt found an open competition!");
-            PlayGame();
-        }
+    private void OnCompetitionJoined( Arbiter.Competition competition ) {
+        Debug.Log( "ttt joined a comp! comp="+competition );
     }
 
 
     private void PlayGame() {
-        Score = (int)UnityEngine.Random.Range( 0f, 100f );
+        Score = (int)UnityEngine.Random.Range( 1f, 100f );
         ReportScore();
     }
 
@@ -74,18 +58,9 @@ public class Game : MonoBehaviour {
             }
         } else if( competition.Status == Arbiter.Competition.StatusType.InProgress ) {
             ResultsDescription = "Waiting for opponent";
-            ResetPolling();
         } else {
             Debug.LogError( "Found unexpected game status code ("+competition.Status+")!" );
         }
 
     }
-
-    
-    private void ResetPolling() {
-        openGamePoller.Reset();
-    }
-
-
-    private Poller openGamePoller;
 }

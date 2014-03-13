@@ -244,7 +244,8 @@ namespace ArbiterInternal {
         public void RequestCompetitionHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                requestCompetitionCallback();
+                if( requestCompetitionCallback != null )
+                    requestCompetitionCallback();
             } else {
                 requestCompetitionErrorHandler( getErrors( json ));
             }
@@ -272,7 +273,7 @@ namespace ArbiterInternal {
         public void ReportScoreHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-//ttt something like this                reportScoreCallback( parseCompetition( json["competition"] ));
+//TODO: something like this                reportScoreCallback( parseCompetition( json["competition"] ));
             } else {
                 reportScoreErrorHandler( getErrors( json ));
             }

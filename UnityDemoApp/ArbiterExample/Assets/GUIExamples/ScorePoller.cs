@@ -18,7 +18,8 @@ public class ScorePoller : MonoBehaviour {
 
 
 	void OnGUI() {
-        textField.text = game.Score.ToString();
+        if( game.Score > 0 )
+            textField.text = game.Score.ToString();
     }
 
 

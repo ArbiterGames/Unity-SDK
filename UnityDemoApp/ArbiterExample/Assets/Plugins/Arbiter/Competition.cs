@@ -23,20 +23,32 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
             this.id = id;
             this.status = status;
             this.players = players;
-
-            /* ttt kill
-            this.winner = null;
-            int bestScore = int.MinValue;
-            if( status == StatusType.Complete ) {
-                foreach( var player in players ) {
-                    if( player.Score > bestScore ) {
-                        bestScore = player.Score;
-                        this.winner = player;
-                    }
-                }
-            }
-            */
         }
+
+
+        public bool ContainsUser( User user ) {
+            UnityEngine.Debug.Log("ttt this comp contain user: "+user+"?");
+            bool rv = false;
+            this.players.ForEach( player => {
+                if( player.User == user )
+                    rv = true;
+            });
+            return rv;
+        }
+
+
+        public override string ToString() {
+            string rv = "[Competition "+
+                "id:"+this.id+", "+
+                "status:"+this.status+", "+
+                "players:[";
+            this.players.ForEach( player => {
+                rv += player +", ";
+            });
+            rv += "]]";
+            return rv;
+        }
+
 
         private string id;
         private StatusType status;
@@ -58,6 +70,12 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
         public Player( User user ) {
             this.user = user;
         }
+
+
+        public override string ToString() {
+            return "[Player user:"+User+", score:"+Score+"]";
+        }
+
 
         private int score;
         private User user;

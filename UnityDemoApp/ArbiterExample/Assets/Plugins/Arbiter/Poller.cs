@@ -16,7 +16,13 @@ public class Poller : MonoBehaviour {
     }
     
 
+    public void Stop() {
+        this.enabled = false;
+    }
+
+
     public void Reset() {
+        this.enabled = true;
         this.currentPollTime = 1.0f;
         this.nextPollPeriod = 2.0f;
         this.waitingForResponse = false; 

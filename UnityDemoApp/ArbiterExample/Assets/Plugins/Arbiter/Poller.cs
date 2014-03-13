@@ -7,7 +7,7 @@ public class Poller : MonoBehaviour {
     public bool Verbose = true;
         
     public void SetAction( Action poll ) {
-        this.poll = ( ignoringCallback ) => { poll(); };
+        this.poll = ( ignoringCallback ) => { poll(); };    // ttt just noticed this will probably cause a bug since the anon function will be created once..?
         Reset();
     }
     public void SetAction( Action<Action> poll ) {

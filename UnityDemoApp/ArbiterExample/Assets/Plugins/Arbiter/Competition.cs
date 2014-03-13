@@ -27,7 +27,6 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 
 
         public bool ContainsUser( User user ) {
-            UnityEngine.Debug.Log("ttt this comp contain user: "+user+"?");
             bool rv = false;
             this.players.ForEach( player => {
                 if( player.User == user )

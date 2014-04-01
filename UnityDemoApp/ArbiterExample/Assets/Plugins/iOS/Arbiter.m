@@ -9,7 +9,6 @@
 #import <GameKit/GameKit.h>
 #import "Arbiter.h"
 
-// Production URLS
 NSString * const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";
 NSString * const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
 NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
@@ -18,15 +17,6 @@ NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 NSString * const APIRequestCompetitionURL = @"https://www.arbiter.me/api/v1/competition/";
 NSString * const APIReportScoreURLPart1 = @"https://www.arbiter.me/api/v1/compteition/";
 NSString * const APIReportScoreURLPart2 = @"/report-score/";
-
-// Local URLS
-/*
-NSString * const APIUserInitializeURL = @"http://10.1.60.1:5000/api/v1/user/initialize";
-NSString * const APIWalletURL = @"http://10.1.60.1:5000/api/v1/wallet/";
-NSString * const APIUserLoginURL = @"http://10.1.60.1:5000/api/v1/user/login";
-NSString * const APILinkWithGameCenterURL = @"http://10.1.60.1:5000/api/v1/user/link-with-game-center";
-NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
-*/
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -210,7 +200,6 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                     @"success": @"false",
                     @"errors": @[[error localizedDescription]]
                 });
-//                connectionHandler = nil;
             }
             else {
                 NSDictionary *paramsDict = @{
@@ -232,7 +221,6 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
                         @"success": @"false",
                         @"errors": @[error]
                     });
-//                    connectionHandler = nil;
                 } else {
                     NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
                     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APILinkWithGameCenterURL]
@@ -394,13 +382,25 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     }
 }
 
-- (void)getCompetitions:(void(^)(NSDictionary*))handler
+- (void)getCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSDictionary *paginationInfo = [responseDict objectForKey:@"competitions"];
+        self.previousPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
+        self.nextPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
 
-    NSString *competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+
+    NSString *competitionsUrl;
+    if ( [page isEqualToString:@"next"] ) {
+        competitionsUrl = self.nextPageCompetitionsUrl;
+    } else if ( [page isEqualToString:@"previous"]) {
+        competitionsUrl = self.previousPageCompetitionsUrl;
+    } else {
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+    }
+
     NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
 
@@ -408,19 +408,46 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
-- (void)viewPreviousCompetitions:(void(^)(void))handler
+- (void)viewPreviousCompetitions:(void(^)(void))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSLog(@"viewPreviousCompetitions connectionHandler");
-        NSLog(@"%@", responseDict);
-        /* TODO: show an alert with all the competition in responseDict
-            Add a close button that fires the handler
-         */
+        NSDictionary *competitionSerializer = [responseDict objectForKey:@"competitions"];
+        NSArray *competitions = [competitionSerializer objectForKey:@"results"];
+        NSMutableString *message = [NSMutableString string];
 
-        handler();
+        if ( [competitions count] > 0 ) {
+            for (int i = 0; i < [competitions count]; i++) {
+                NSString *createdOn = [[competitions objectAtIndex:i] objectForKey:@"created_on"];
+                NSTimeInterval seconds = [createdOn doubleValue] / 1000;
+                NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
+                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+                [dateFormatter setDateFormat:@"EEE, MMM d"];
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@BTC \nYour Score: %@ \nOpponent Score: %@\n\n",
+                    [dateFormatter stringFromDate:unFormattedDate],
+                    [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                    [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
+                    [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
+                [message appendString:competitionString];
+            }
+        } else {
+            [message appendString:@"No previous games"];
+        }
+
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Previous Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
+
+        if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Prev"];
+        }
+        if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Next"];
+        }
+
+        [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
+        [alert setTag:10];
+        [alert show];
     } copy];
 
-    [self getCompetitions:connectionHandler];
+    [self getCompetitions:connectionHandler page:page];
 }
 
 - (void)reportScore:(void(^)(NSDictionary *))handler competitionId:(NSString*)competitionId score:(NSString*)score
@@ -610,6 +637,18 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
 
+    // Previous competitions
+    } else if ( alertView.tag == 10 ) {
+        void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
+
+        if ( [buttonTitle isEqualToString:@"Next"] ) {
+            [self viewPreviousCompetitions:handler page:@"next"];
+        } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
+            [self viewPreviousCompetitions:handler page:@"previous"];
+        } else {
+            handler();
+        }
+
     // Default to the main wallet screen
     } else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
@@ -619,9 +658,37 @@ NSString * const APIUserDetailsURL = @"http://10.1.60.1:5000/api/v1/user/";
 
 # pragma mark Utility Helpers
 
+- (NSString *)getPlayerScoreFromCompetition: (NSDictionary *)competition
+{
+    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+        NSDictionary *playerUser = [player objectForKey:@"user"];
+        if ( [[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"n/a";
+            } else {
+                return [player objectForKey:@"score"];
+            }
+        }
+    }
+}
+
+- (NSString *)getOpponentScoreFromCompetition: (NSDictionary *)competition
+{
+    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+        NSDictionary *playerUser = [player objectForKey:@"user"];
+        if ( ![[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"n/a";
+            } else {
+                return [player objectForKey:@"score"];
+            }
+        }
+        return @"n/a";
+    }}
+
 /*
  Makes slugifies strings into safe urls.
- Modified from: Borrowed from https://gist.github.com/AzizLight/5926772
+ Modified from https://gist.github.com/AzizLight/5926772
  */
 - (NSString *)slugify:(NSString *)originalString
 {

@@ -19,6 +19,8 @@
 @property (copy) NSString *userId;
 @property (copy) NSDictionary *wallet;
 @property (copy) NSString *verificationUrl;
+@property (copy) NSString *nextPageCompetitionsUrl;
+@property (copy) NSString *previousPageCompetitionsUrl;
 
 
 - (id)init:(void(^)(NSDictionary *))handler;

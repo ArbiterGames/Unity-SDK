@@ -118,7 +118,7 @@ void _getCompetitions()
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         NSLog(@"ttt calling back to C#");
         UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
-    }];
+    } page:nil];
 }
 
 void _viewPreviousCompetitions()
@@ -126,7 +126,7 @@ void _viewPreviousCompetitions()
     [arbiter viewPreviousCompetitions:^(void) {
         NSLog(@"--- _viewPreviousCompteitions.response");
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
-    }];
+    } page:nil];
 }
 
 void _reportScore( const char* competitionId, const char* score )
@@ -142,5 +142,5 @@ void _reportScore( const char* competitionId, const char* score )
         }
         gameId:[[NSString alloc] initWithUTF8String:competitionId]
         score:[[NSString alloc] initWithUTF8String:score]
-     ];
+    ];
 }

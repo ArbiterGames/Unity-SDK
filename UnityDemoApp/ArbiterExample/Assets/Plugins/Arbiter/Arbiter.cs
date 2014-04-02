@@ -185,15 +185,15 @@ public partial class Arbiter : MonoBehaviour
 
     private static void pollUntilAvailableCompetitionFound() {
         competitionPoller.SetAction( () => {
-            Arbiter.QueryCompetitions( lookForAvailableCompetition );
+			Arbiter.QueryCompetitions( joinAvailableCompetition );
         });
     }
-    private static void lookForAvailableCompetition() {
+    private static void joinAvailableCompetition() {
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
         while( e.MoveNext() ) {
             Competition c = e.Current;
-            if( c.ContainsUser( user )) {
+			if( c.UserHasNotReportedScore( user )) {
                 competitionPoller.Stop();
                 found = c;
                 break;
@@ -204,7 +204,7 @@ public partial class Arbiter : MonoBehaviour
         	e = initializingCompetitions.GetEnumerator();
 			while( e.MoveNext() ) {
 				Competition c = e.Current;
-				if( c.ContainsUser( user )) {
+				if( c.UserHasNotReportedScore( user )) {
 					competitionPoller.Stop();
 					found = c;
 					break;

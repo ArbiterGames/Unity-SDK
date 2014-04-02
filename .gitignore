@@ -25,3 +25,5 @@ Pods
 *.sln
 *.userprefs
 *.csproj
+
+/UnityDemoApp/ArbiterExample/Library/EditorUserBuildSettings.asset

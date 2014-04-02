@@ -6,9 +6,10 @@ using System.Collections.Generic;
 using System.Runtime.InteropServices;
 using SimpleJSON;
 
+
 namespace ArbiterInternal {
 
-
+// TODO: Replace all the boilerplate with some helpers
 
     /// <summary>
     /// Bridge to the objective c functions for the Arbiter SDK
@@ -132,6 +133,23 @@ namespace ArbiterInternal {
 
 
         [DllImport ("__Internal")]
+        private static extern void _getCompetitions();
+        private static Arbiter.GetCompetitionsCallback getCompetitionsCallback;
+        private static ErrorHandler getCompetitionsErrorHandler;
+        public static void GetCompetitions( Arbiter.GetCompetitionsCallback callback, ErrorHandler errorHandler ) {
+            getCompetitionsCallback = callback;
+            getCompetitionsErrorHandler = errorHandler;
+#if UNITY_EDITOR
+            ReportIgnore( "GetCompetitions" );
+            List<Arbiter.Competition> fakeCompetitions = new List<Arbiter.Competition>();
+            getCompetitionsCallback( fakeCompetitions );
+#elif UNITY_IOS
+            _getCompetitions();
+#endif
+        }
+
+
+        [DllImport ("__Internal")]
         private static extern void _viewPreviousCompetitions();
         private static Arbiter.ViewPreviousCompetitionsCallback viewPreviousCompetitionsCallback;
         private static ErrorHandler viewPreviousCompetitionsErrorHandler;
@@ -143,6 +161,23 @@ namespace ArbiterInternal {
             viewPreviousCompetitionsCallback();
 #elif UNITY_IOS
             _viewPreviousCompetitions();
+#endif
+        }
+
+
+        [DllImport ("__Internal")]
+        private static extern void _reportScore( string competitionId, string score );
+        private static Arbiter.ReportScoreCallback reportScoreCallback;
+        private static ErrorHandler reportScoreErrorHandler;
+        public static void ReportScore( string competitionId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
+            reportScoreCallback = callback;
+            reportScoreErrorHandler = errorHandler;
+			
+#if UNITY_EDITOR
+            ReportIgnore( "ReportScore" );
+            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Initializing, new List<Arbiter.Player>() ));
+#elif UNITY_IOS
+            _reportScore( competitionId, score.ToString() );
 #endif
         }
 
@@ -166,6 +201,7 @@ namespace ArbiterInternal {
             }
     	}
 
+
         public void LoginWithGameCenterHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
@@ -176,6 +212,7 @@ namespace ArbiterInternal {
                 loginWithGameCenterErrorHandler( getErrors( json ));
             }
         }
+
 
     	public void VerifyUserHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
@@ -208,14 +245,40 @@ namespace ArbiterInternal {
         public void RequestCompetitionHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                requestCompetitionCallback();
+                if( requestCompetitionCallback != null )
+                    requestCompetitionCallback();
             } else {
                 requestCompetitionErrorHandler( getErrors( json ));
             }
         }
 
+
+        public void GetCompetitionsHandler( string jsonString ) {
+            JSONNode json = JSON.Parse( jsonString );
+            if( wasSuccess( json )) {
+                JSONNode competitionsNode = json["competitions"];
+                int competitionsThisPage = competitionsNode["count"].AsInt;
+                // TODO: Need to handle pagination!?
+                getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
+            } else {
+                getCompetitionsErrorHandler( getErrors( json ));
+            }
+        }
+
+
         public void ViewPreviousCompetitionsHandler( string emptyString ) {
             viewPreviousCompetitionsCallback();
+        }
+
+
+        public void ReportScoreHandler( string jsonString ) {
+            JSONNode json = JSON.Parse( jsonString );
+            if( wasSuccess( json )) {
+				JSONClass competitionNode = json["competition"] as JSONClass;
+				reportScoreCallback( parseCompetition( competitionNode ));
+            } else {
+                reportScoreErrorHandler( getErrors( json ));
+            }
         }
 
 
@@ -269,6 +332,58 @@ namespace ArbiterInternal {
             rv.WithdrawAddress = walletNode["withdraw_address"].Value;
             return rv;
         }
+
+
+        private List<Arbiter.Competition> parseCompetitions( JSONNode competitionsNode ) {
+            List<Arbiter.Competition> rv = new List<Arbiter.Competition>();
+            JSONArray rawCompetitions = competitionsNode.AsArray;
+            IEnumerator enumerator = rawCompetitions.GetEnumerator();
+            while( enumerator.MoveNext() ) {
+                JSONClass competition = enumerator.Current as JSONClass;
+                rv.Add( parseCompetition( competition ));
+            }
+            return rv;
+        }
+        private Arbiter.Competition parseCompetition( JSONClass competitionNode ) {
+            Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
+            switch( competitionNode["status"] ) {
+            case "initializing":
+                status = Arbiter.Competition.StatusType.Initializing;
+                break;
+            case "inprogress":
+                status = Arbiter.Competition.StatusType.InProgress;
+                break;
+            case "complete":
+                status = Arbiter.Competition.StatusType.Complete;
+                break;
+            default:
+                Debug.LogError( "Unknown status encountered: " + competitionNode["status"] );
+                break;
+            }
+            List<Arbiter.Player> players = parsePlayers( competitionNode["players"] );
+            Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players );
+//ttt keep, but do it right            if( competitionNode["winner"] != null )
+//ttt                rv.Winner = competitionNode["winner"].Value;
+            return rv;
+        }
+
+        private List<Arbiter.Player> parsePlayers( JSONNode playersNode ) {
+            List<Arbiter.Player> rv = new List<Arbiter.Player>();
+            JSONArray rawPlayers = playersNode.AsArray;
+            IEnumerator enumerator = rawPlayers.GetEnumerator();
+            while( enumerator.MoveNext() ) {
+                JSONClass playerNode = enumerator.Current as JSONClass;
+                User user = parseUser( playerNode["user"] );
+                string score = playerNode["score"];
+                Arbiter.Player player = new Arbiter.Player( user );
+                if( score != "null" )
+                    player.SetScore( int.Parse( score ));
+                rv.Add( player );
+            }
+            return rv;
+        }
+
+
     }
 
 

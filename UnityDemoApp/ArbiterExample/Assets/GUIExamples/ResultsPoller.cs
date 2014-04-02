@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 
 [RequireComponent (typeof (GUIText))]
-public class ScorePoller : MonoBehaviour {
+public class ResultsPoller : MonoBehaviour {
 	
 
     void Awake() {
@@ -18,8 +18,7 @@ public class ScorePoller : MonoBehaviour {
 
 
 	void OnGUI() {
-        if( game.Score > 0 )
-            textField.text = game.Score.ToString();
+        textField.text = game.ResultsDescription;
     }
 
 

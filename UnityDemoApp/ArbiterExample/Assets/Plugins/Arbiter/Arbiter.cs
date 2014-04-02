@@ -1,22 +1,25 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using ArbiterInternal;
 
 
-public class Arbiter : MonoBehaviour
+public partial class Arbiter : MonoBehaviour
 {
 	static Arbiter() {
 		// Add a GO to the scene for iOS to send responses back to
 		GameObject go = new GameObject("ArbiterBinding");
 		go.AddComponent<ArbiterBinding>();
-        poller = go.AddComponent<Poller>();
+        walletPoller = go.AddComponent<Poller>();
+        competitionPoller = go.AddComponent<Poller>();
         wallet = new Wallet();
         user = new User();
 		GameObject.DontDestroyOnLoad( go );
 	}
 
 
+    public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
@@ -108,6 +111,15 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public delegate void JoinAvailableCompetitionCallback( Competition competition );
+    public static void JoinAvailableCompetition( string buyIn, Dictionary<string,string> filters, JoinAvailableCompetitionCallback callback ) {
+        joinAvailableCompetitionCallback = callback;
+        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request it and then start polling.
+        RequestCompetition( buyIn, filters, null );
+        pollUntilAvailableCompetitionFound();
+    }
+
+
     public delegate void RequestCompetitionCallback();
     public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
         RequestCompetition( null, filters, callback );
@@ -125,11 +137,86 @@ public class Arbiter : MonoBehaviour
     }
 
 
+    public static void QueryCompetitions( Action callback ) {
+        getCompetitionsCallback = callback;
+        ArbiterBinding.GetCompetitions( GetCompetitionsSuccessHandler, getCompetitionsErrorHandler );
+    }
+    public delegate void GetCompetitionsCallback( List<Competition> competitions );
+    public static void GetCompetitionsSuccessHandler( List<Competition> competitions ) {
+        initializingCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Initializing ).ToList();
+        inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
+        completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
+        getCompetitionsCallback();
+    }
+
+
+	public static List<Competition> InitializingCompetitions {
+        get {
+			return initializingCompetitions;
+        }
+    }
+    public static List<Competition> InProgressCompetitions {
+        get {
+            return inProgressCompetitions;
+        }
+    }
+    public static List<Competition> CompleteCompetitions {
+        get {
+            return completeCompetitions;
+        }
+    }
+
+
     public delegate void ViewPreviousCompetitionsCallback();
     public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
         if( callback == null )
             callback = () => {};
         ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
+    }
+
+
+    public delegate void ReportScoreCallback( Competition competition );
+    public static void ReportScore( string competitionId, int score, ReportScoreCallback callback ) {
+        if( callback == null )
+            Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
+        ArbiterBinding.ReportScore( competitionId, score, callback, defaultErrorHandler );
+    }
+
+
+    private static void pollUntilAvailableCompetitionFound() {
+        competitionPoller.SetAction( () => {
+			Arbiter.QueryCompetitions( joinAvailableCompetition );
+        });
+    }
+    private static void joinAvailableCompetition() {
+        IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
+        Competition found = null;
+        while( e.MoveNext() ) {
+            Competition c = e.Current;
+			if( c.UserHasNotReportedScore( user )) {
+                competitionPoller.Stop();
+                found = c;
+                break;
+            }
+        }
+        
+        if ( found == null ) {
+        	e = initializingCompetitions.GetEnumerator();
+			while( e.MoveNext() ) {
+				Competition c = e.Current;
+				if( c.UserHasNotReportedScore( user )) {
+					competitionPoller.Stop();
+					found = c;
+					break;
+				}
+			}
+        }
+		
+        if( found != null ) {
+             if( joinAvailableCompetitionCallback != null )
+                joinAvailableCompetitionCallback( found );
+             joinAvailableCompetitionCallback = null;
+        }
     }
 
 
@@ -145,34 +232,31 @@ public class Arbiter : MonoBehaviour
         verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
         wallet = responseWallet != null? responseWallet : new Wallet();
         
-        poller.SetAction( queryWalletIfAble );
-        resetWalletPolling();
+        walletPoller.SetAction( queryWalletIfAble );
         done();
     }
 
 
-    
-    private static void resetWalletPolling() {
-        poller.Reset();
-    }
-    
-    
-    void Update() {
-    }
 
-
-    private static Poller poller;
+    private static Poller walletPoller;
+    private static Poller competitionPoller;
     private static User user;
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static string gameName = null;
+	private static List<Competition> initializingCompetitions;
+    private static List<Competition> inProgressCompetitions;
+    private static List<Competition> completeCompetitions;
 
+    private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
-    private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
+    private static JoinAvailableCompetitionCallback joinAvailableCompetitionCallback;
+    private static Action getCompetitionsCallback;
+    private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

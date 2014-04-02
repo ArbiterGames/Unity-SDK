@@ -12,6 +12,8 @@
 // TODO: Since this wrapper isn't a full on class, think about how we should be storing the single arbiter instance here.
 Arbiter *arbiter = nil;
 
+// TODO: Replace boilerplate with macros
+
 char* AutonomousStringCopy(const char* string)
 {
     if (string == NULL)
@@ -30,6 +32,7 @@ void _init()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "InitHandler", jsonChar);
     }];
@@ -104,10 +107,40 @@ void _requestCompetition( const char* gameName, const char* buyIn, const char* f
      ];
 }
 
+void _getCompetitions()
+{
+    [arbiter getCompetitions:^(NSDictionary *jsonDict) {
+        NSLog(@"--- _getCompetitions.response");
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        NSLog(@"%@", jsonString);
+        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        NSLog(@"ttt calling back to C#");
+        UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
+    } page:nil];
+}
+
 void _viewPreviousCompetitions()
 {
     [arbiter viewPreviousCompetitions:^(void) {
-        NSLog(@"--- _viewPreviousCompteitions.response");
+        NSLog(@"--- _viewPreviousCompetitions.response");
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
-    }];
+    } page:nil];
+}
+
+void _reportScore( const char* competitionId, const char* score )
+{
+    [arbiter reportScore:^(NSDictionary *jsonDict) {
+            NSLog(@"--- _requestCompetition.response");
+            NSError *error;
+            NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+            NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+            NSLog(@"%@", jsonString);
+            const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+            UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
+        }
+        competitionId:[[NSString alloc] initWithUTF8String:competitionId]
+        score:[[NSString alloc] initWithUTF8String:score]
+    ];
 }

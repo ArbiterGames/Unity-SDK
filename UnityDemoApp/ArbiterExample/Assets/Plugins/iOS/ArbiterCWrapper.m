@@ -124,7 +124,7 @@ void _getCompetitions()
 void _viewPreviousCompetitions()
 {
     [arbiter viewPreviousCompetitions:^(void) {
-        NSLog(@"--- _viewPreviousCompteitions.response");
+        NSLog(@"--- _viewPreviousCompetitions.response");
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
     } page:nil];
 }
@@ -140,7 +140,7 @@ void _reportScore( const char* competitionId, const char* score )
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
         }
-        gameId:[[NSString alloc] initWithUTF8String:competitionId]
+        competitionId:[[NSString alloc] initWithUTF8String:competitionId]
         score:[[NSString alloc] initWithUTF8String:score]
     ];
 }

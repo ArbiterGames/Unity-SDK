@@ -172,9 +172,10 @@ namespace ArbiterInternal {
         public static void ReportScore( string competitionId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
             reportScoreCallback = callback;
             reportScoreErrorHandler = errorHandler;
+			
 #if UNITY_EDITOR
             ReportIgnore( "ReportScore" );
-            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Open, new List<Arbiter.Player>() ));
+            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Initializing, new List<Arbiter.Player>() ));
 #elif UNITY_IOS
             _reportScore( competitionId, score.ToString() );
 #endif
@@ -273,7 +274,8 @@ namespace ArbiterInternal {
         public void ReportScoreHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-//TODO: something like this                reportScoreCallback( parseCompetition( json["competition"] ));
+				JSONClass competitionNode = json["competition"] as JSONClass;
+				reportScoreCallback( parseCompetition( competitionNode ));
             } else {
                 reportScoreErrorHandler( getErrors( json ));
             }
@@ -345,8 +347,8 @@ namespace ArbiterInternal {
         private Arbiter.Competition parseCompetition( JSONClass competitionNode ) {
             Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
             switch( competitionNode["status"] ) {
-            case "open":
-                status = Arbiter.Competition.StatusType.Open;
+            case "initializing":
+                status = Arbiter.Competition.StatusType.Initializing;
                 break;
             case "inprogress":
                 status = Arbiter.Competition.StatusType.InProgress;

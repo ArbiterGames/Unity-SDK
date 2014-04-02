@@ -114,7 +114,7 @@ public partial class Arbiter : MonoBehaviour
     public delegate void JoinAvailableCompetitionCallback( Competition competition );
     public static void JoinAvailableCompetition( string buyIn, Dictionary<string,string> filters, JoinAvailableCompetitionCallback callback ) {
         joinAvailableCompetitionCallback = callback;
-        // TODO: Only request a new Competition if needed. For now just request it and then start polling.
+        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request it and then start polling.
         RequestCompetition( buyIn, filters, null );
         pollUntilAvailableCompetitionFound();
     }
@@ -143,16 +143,16 @@ public partial class Arbiter : MonoBehaviour
     }
     public delegate void GetCompetitionsCallback( List<Competition> competitions );
     public static void GetCompetitionsSuccessHandler( List<Competition> competitions ) {
-        openCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Open ).ToList();
+        initializingCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Initializing ).ToList();
         inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
         completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
         getCompetitionsCallback();
     }
 
 
-    public static List<Competition> OpenCompetitions {
+	public static List<Competition> InitializingCompetitions {
         get {
-            return openCompetitions;
+			return initializingCompetitions;
         }
     }
     public static List<Competition> InProgressCompetitions {
@@ -185,27 +185,37 @@ public partial class Arbiter : MonoBehaviour
 
     private static void pollUntilAvailableCompetitionFound() {
         competitionPoller.SetAction( () => {
-            Arbiter.QueryCompetitions( lookForAvailableCompetition );
+			Arbiter.QueryCompetitions( joinAvailableCompetition );
         });
     }
-    private static void lookForAvailableCompetition() {
+    private static void joinAvailableCompetition() {
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
         while( e.MoveNext() ) {
             Competition c = e.Current;
-            if( c.ContainsUser( user )) {
+			if( c.UserHasNotReportedScore( user )) {
                 competitionPoller.Stop();
                 found = c;
                 break;
             }
         }
+        
+        if ( found == null ) {
+        	e = initializingCompetitions.GetEnumerator();
+			while( e.MoveNext() ) {
+				Competition c = e.Current;
+				if( c.UserHasNotReportedScore( user )) {
+					competitionPoller.Stop();
+					found = c;
+					break;
+				}
+			}
+        }
+		
         if( found != null ) {
-            Debug.LogWarning( "TODO: Join this competition! comp="+found);
-            // TODO: Call to Arbiter to actually join this competition!
-            // then do this... 
-            // if( joinAvailableCompetitionCallback != null )
-            //    joinAvailableCompetitionCallback( found );
-            // joinAvailableCompetitionCallback = null;
+             if( joinAvailableCompetitionCallback != null )
+                joinAvailableCompetitionCallback( found );
+             joinAvailableCompetitionCallback = null;
         }
     }
 
@@ -235,7 +245,7 @@ public partial class Arbiter : MonoBehaviour
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
     private static string gameName = null;
-    private static List<Competition> openCompetitions;
+	private static List<Competition> initializingCompetitions;
     private static List<Competition> inProgressCompetitions;
     private static List<Competition> completeCompetitions;
 

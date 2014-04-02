@@ -34,7 +34,8 @@ public class Game : MonoBehaviour {
 
 
     private void OnCompetitionJoined( Arbiter.Competition competition ) {
-        Debug.Log( "ttt joined a comp! comp="+competition );
+        CompetitionId = competition.Id;
+        PlayGame();
     }
 
 
@@ -56,11 +57,10 @@ public class Game : MonoBehaviour {
             } else {
                 ResultsDescription = "You lost to player "+competition.Winner.User.Id;
             }
-        } else if( competition.Status == Arbiter.Competition.StatusType.InProgress ) {
+		} else if( competition.Status == Arbiter.Competition.StatusType.InProgress || competition.Status == Arbiter.Competition.StatusType.Initializing ) {
             ResultsDescription = "Waiting for opponent";
         } else {
             Debug.LogError( "Found unexpected game status code ("+competition.Status+")!" );
         }
-
     }
 }

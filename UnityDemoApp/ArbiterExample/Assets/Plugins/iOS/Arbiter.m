@@ -15,7 +15,7 @@ NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";
 NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 NSString * const APIRequestCompetitionURL = @"https://www.arbiter.me/api/v1/competition/";
-NSString * const APIReportScoreURLPart1 = @"https://www.arbiter.me/api/v1/compteition/";
+NSString * const APIReportScoreURLPart1 = @"https://www.arbiter.me/api/v1/competition/";
 NSString * const APIReportScoreURLPart2 = @"/report-score/";
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)

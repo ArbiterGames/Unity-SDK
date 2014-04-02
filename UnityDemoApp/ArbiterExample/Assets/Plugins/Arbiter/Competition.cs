@@ -8,7 +8,7 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 
         public enum StatusType {
             Unknown,
-            Open,
+            Initializing,
             InProgress,
             Complete
         }
@@ -26,11 +26,11 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
         }
 
 
-        public bool ContainsUser( User user ) {
+        public bool UserHasNotReportedScore( User user ) {
             bool rv = false;
             this.players.ForEach( player => {
-                if( player.User == user )
-                    rv = true;
+                if( player.User == user && player.Score == 0 )
+					rv = true;
             });
             return rv;
         }

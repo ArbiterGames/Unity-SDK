@@ -343,6 +343,9 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
     [alert show];
 }
 
+
+#pragma mark Competition Methods
+
 - (void)requestCompetition:(void(^)(NSDictionary *))handler gameName:(NSString*)gameName buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
@@ -382,6 +385,10 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
     }
 }
 
+
+/**
+    Makes the request to Arbiter to a paginated set of competitions for this user
+ */
 - (void)getCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -408,6 +415,10 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
+
+/**
+    Calls getCompetitions, then parses the results and displays the competitions in an alertView
+ */
 - (void)viewPreviousCompetitions:(void(^)(void))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
@@ -448,6 +459,90 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
     } copy];
 
     [self getCompetitions:connectionHandler page:page];
+}
+
+
+/**
+    Gets the latest incomplete competitions from Arbiter. Paginated by 1 comp per page
+ */
+- (void)getIncompleteCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSDictionary *paginationInfo = [responseDict objectForKey:@"competitions"];
+
+        self.previousPageIncompleteCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
+        self.nextPageIncompleteCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
+        handler(responseDict);
+    } copy];
+    
+    
+    NSString *competitionsUrl;
+    if ( [page isEqualToString:@"next"] ) {
+        competitionsUrl = self.nextPageIncompleteCompetitionsUrl;
+    } else if ( [page isEqualToString:@"previous"]) {
+        competitionsUrl = self.previousPageIncompleteCompetitionsUrl;
+    } else {
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@&page_size=1&exclude=complete", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+    }
+    
+    NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
+    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
+    
+    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
+    [NSURLConnection connectionWithRequest:request delegate:self];
+
+}
+
+/**
+    Displays the current incomplete competition in an alertView with buttons to finish the competition
+ */
+- (void)viewIncompleteCompetitions:(void(^)(NSString *))handler page:(NSString *)page
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
+        NSDictionary *competitionSerializer = [responseDict objectForKey:@"competitions"];
+        NSArray *competitions = [competitionSerializer objectForKey:@"results"];
+        NSMutableString *message = [NSMutableString string];
+        NSMutableString *yourScore = [NSMutableString string];
+        
+        if ( [competitions count] > 0 ) {
+            for (int i = 0; i < [competitions count]; i++) {
+                self.currentIncompleteCompetitionId = [[competitions objectAtIndex:i] objectForKey:@"id"];
+                NSString *createdOn = [[competitions objectAtIndex:i] objectForKey:@"created_on"];
+                NSTimeInterval seconds = [createdOn doubleValue] / 1000;
+                NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
+                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+                [dateFormatter setDateFormat:@"EEE, MMM d"];
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@BTC \nYour Score: %@ \nOpponent Score: %@\n\n",
+                                               [dateFormatter stringFromDate:unFormattedDate],
+                                               [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                                               [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
+                                               [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
+                [message appendString:competitionString];
+                [yourScore appendString:[self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]]];
+            }
+        } else {
+            [message appendString:@"No incomplete games"];
+        }
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Incomplete Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
+        
+        if ( [yourScore isEqualToString:@"n/a"]) {
+            [alert addButtonWithTitle:@"Play"];
+        }
+        
+        if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Prev"];
+        }
+        if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
+            [alert addButtonWithTitle:@"Next"];
+        }
+        
+        [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
+        [alert setTag:11];
+        [alert show];
+    } copy];
+    
+    [self getIncompleteCompetitions:connectionHandler page:page];
 }
 
 - (void)reportScore:(void(^)(NSDictionary *))handler competitionId:(NSString*)competitionId score:(NSString*)score
@@ -647,6 +742,19 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
             [self viewPreviousCompetitions:handler page:@"previous"];
         } else {
             handler();
+        }
+        
+    // Incomplete competitions
+    } else if ( alertView.tag == 11 ) {
+        void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
+        if ( [buttonTitle isEqualToString:@"Next"] ) {
+            [self viewIncompleteCompetitions:handler page:@"next"];
+        } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
+            [self viewIncompleteCompetitions:handler page:@"previous"];
+        } else if ( [buttonTitle isEqualToString:@"Play"] ) {
+            handler(self.currentIncompleteCompetitionId);
+        }else {
+            handler(@"");
         }
 
     // Default to the main wallet screen

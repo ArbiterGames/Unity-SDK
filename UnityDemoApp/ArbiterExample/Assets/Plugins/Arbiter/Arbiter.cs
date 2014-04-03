@@ -173,6 +173,14 @@ public partial class Arbiter : MonoBehaviour
             callback = () => {};
         ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
     }
+    
+    
+	public delegate void ViewIncompleteCompetitionsCallback( string competitionId );
+	public static void ViewIncompleteCompetitions( ViewIncompleteCompetitionsCallback callback ) {
+		if( callback == null )
+			callback = ( String competitionId ) => {};
+		ArbiterBinding.ViewIncompleteCompetitions( callback, defaultErrorHandler );
+	}
 
 
     public delegate void ReportScoreCallback( Competition competition );
@@ -257,6 +265,8 @@ public partial class Arbiter : MonoBehaviour
     private static JoinAvailableCompetitionCallback joinAvailableCompetitionCallback;
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
+	private static Action viewIncompleteCompetitionsCallback;
+	private static ArbiterBinding.ErrorHandler viewIncompleteCompetitionsErrorHandler = defaultErrorHandler;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

@@ -163,6 +163,22 @@ namespace ArbiterInternal {
             _viewPreviousCompetitions();
 #endif
         }
+        
+        
+		[DllImport ("__Internal")]
+		private static extern void _viewIncompleteCompetitions();
+		private static Arbiter.ViewIncompleteCompetitionsCallback viewIncompleteCompetitionsCallback;
+		private static ErrorHandler viewIncompleteCompetitionsErrorHandler;
+		public static void ViewIncompleteCompetitions( Arbiter.ViewIncompleteCompetitionsCallback callback, ErrorHandler errorHandler ) {
+			viewIncompleteCompetitionsCallback = callback;
+			viewIncompleteCompetitionsErrorHandler = errorHandler;
+#if UNITY_EDITOR
+			ReportIgnore( "ViewIncompleteCompetitions" );
+			viewIncompleteCompetitionsCallback( "" );
+#elif UNITY_IOS
+			_viewIncompleteCompetitions();
+#endif
+		}
 
 
         [DllImport ("__Internal")]
@@ -258,7 +274,6 @@ namespace ArbiterInternal {
             if( wasSuccess( json )) {
                 JSONNode competitionsNode = json["competitions"];
                 int competitionsThisPage = competitionsNode["count"].AsInt;
-                // TODO: Need to handle pagination!?
                 getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
             } else {
                 getCompetitionsErrorHandler( getErrors( json ));
@@ -269,6 +284,11 @@ namespace ArbiterInternal {
         public void ViewPreviousCompetitionsHandler( string emptyString ) {
             viewPreviousCompetitionsCallback();
         }
+        
+        
+		public void ViewIncompleteCompetitionsHandler( string competitionId ) {
+			viewIncompleteCompetitionsCallback( competitionId );
+		}
 
 
         public void ReportScoreHandler( string jsonString ) {

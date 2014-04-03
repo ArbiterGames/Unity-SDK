@@ -14,14 +14,23 @@ public class Game : MonoBehaviour {
     public string Problems = "---";
     public string CompetitionId = "???";
     public string ResultsDescription = "???";
+    
+    private Globals globals;
 
 
 	void Start() {
+		GameObject globalsGO = GameObject.Find ("Globals");
+		globals = globalsGO.GetComponent<Globals>();
+		
         Arbiter.SetGameName( "iOS SDK Example App" );
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more bitcoin first.";
         } else {
-           JoinCompetition();
+			if ( globals.SelectedUnfinishedCompetitionId == null ) {
+				JoinCompetition();
+			} else {
+				PlayGame();
+			}
         }
     }
 
@@ -46,6 +55,8 @@ public class Game : MonoBehaviour {
 
 
     private void ReportScore() {
+		CompetitionId = globals.SelectedUnfinishedCompetitionId;
+		globals.SelectedUnfinishedCompetitionId = null;
         Arbiter.ReportScore( CompetitionId, Score, DisplayResults );
     }
 

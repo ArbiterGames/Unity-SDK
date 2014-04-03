@@ -129,6 +129,14 @@ void _viewPreviousCompetitions()
     } page:nil];
 }
 
+void _viewIncompleteCompetitions()
+{
+    [arbiter viewIncompleteCompetitions:^(NSString *competitionId) {
+        const char* jsonChar = AutonomousStringCopy([competitionId UTF8String]);
+        UnitySendMessage("ArbiterBinding", "ViewIncompleteCompetitionsHandler", jsonChar );
+    } page:nil];
+}
+
 void _reportScore( const char* competitionId, const char* score )
 {
     [arbiter reportScore:^(NSDictionary *jsonDict) {

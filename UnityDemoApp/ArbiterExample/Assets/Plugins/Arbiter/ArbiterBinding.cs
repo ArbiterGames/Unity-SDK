@@ -125,7 +125,8 @@ namespace ArbiterInternal {
             requestCompetitionErrorHandler = errorHandler;
 #if UNITY_EDITOR
             ReportIgnore( "RequestCompetition" );
-            requestCompetitionCallback();
+            if( requestCompetitionCallback != null )
+                requestCompetitionCallback();
 #elif UNITY_IOS
             _requestCompetition( gameName, buyIn, SerializeDictionary(filters) );
 #endif
@@ -295,7 +296,8 @@ namespace ArbiterInternal {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
 				JSONClass competitionNode = json["competition"] as JSONClass;
-				reportScoreCallback( parseCompetition( competitionNode ));
+                if( reportScoreCallback != null )
+				    reportScoreCallback( parseCompetition( competitionNode ));
             } else {
                 reportScoreErrorHandler( getErrors( json ));
             }
@@ -382,8 +384,15 @@ namespace ArbiterInternal {
             }
             List<Arbiter.Player> players = parsePlayers( competitionNode["players"] );
             Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players );
-//ttt keep, but do it right            if( competitionNode["winner"] != null )
-//ttt                rv.Winner = competitionNode["winner"].Value;
+            if( competitionNode["winner"] != null ) {
+                string winnerId = competitionNode["winner"];
+                foreach( var player in players ) {
+                    if( player.User.Id == winnerId ) {
+                        rv.Winner = player;
+                        break;
+                    }
+                }
+            }
             return rv;
         }
 

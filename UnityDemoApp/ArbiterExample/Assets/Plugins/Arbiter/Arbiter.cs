@@ -57,7 +57,8 @@ public partial class Arbiter : MonoBehaviour
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {
             if( response == true )
                 verified = VerificationStatus.Verified;
-            done();
+            if( done != null )
+                done();
         };
         verified = VerificationStatus.Unverified;
         ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );

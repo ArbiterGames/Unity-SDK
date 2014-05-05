@@ -21,12 +21,12 @@ public class Game : MonoBehaviour {
 	void Start() {
 		GameObject globalsGO = GameObject.Find ("Globals");
 		globals = globalsGO.GetComponent<Globals>();
-		
+
         Arbiter.SetGameName( "iOS SDK Example App" );
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more bitcoin first.";
         } else {
-			if ( globals.SelectedUnfinishedCompetitionId == null ) {
+            if ( globals.SelectedUnfinishedCompetitionId == null || globals.SelectedUnfinishedCompetitionId == "" ) {
 				JoinCompetition();
 			} else {
 				PlayGame();
@@ -43,7 +43,7 @@ public class Game : MonoBehaviour {
 
 
     private void OnCompetitionJoined( Arbiter.Competition competition ) {
-        CompetitionId = competition.Id;
+        globals.SelectedUnfinishedCompetitionId = CompetitionId = competition.Id;
         PlayGame();
     }
 
@@ -74,4 +74,6 @@ public class Game : MonoBehaviour {
             Debug.LogError( "Found unexpected game status code ("+competition.Status+")!" );
         }
     }
+
+
 }

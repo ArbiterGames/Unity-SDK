@@ -107,8 +107,8 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-    public static void SetGameName( string gameNameFromDashboard ) {
-        gameName = gameNameFromDashboard;
+    public static void SetGameApiKey( string gameApiKeyFromDashboard ) {
+        gameApiKey = gameApiKeyFromDashboard;
     }
 
 

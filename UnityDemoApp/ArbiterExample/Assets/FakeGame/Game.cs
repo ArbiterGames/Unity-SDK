@@ -22,7 +22,8 @@ public class Game : MonoBehaviour {
 		GameObject globalsGO = GameObject.Find ("Globals");
 		globals = globalsGO.GetComponent<Globals>();
 
-        Arbiter.SetGameName( "iOS SDK Example App" );
+        Arbiter.SetGameApiKey( "80637f8cfd534aa0931b4c54a36b299c" );        // This comes from the www.arbiter.me/dashboard/games
+
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more bitcoin first.";
         } else {

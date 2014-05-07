@@ -112,12 +112,12 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-    public delegate void JoinAvailableCompetitionCallback( Competition competition );
-    public static void JoinAvailableCompetition( string buyIn, Dictionary<string,string> filters, JoinAvailableCompetitionCallback callback ) {
-        joinAvailableCompetitionCallback = callback;
-        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request it and then start polling.
+    public delegate void GetScorableCompetitionCallback( Competition competition );
+    public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
+        getScorableCompetitionCallback = callback;
+        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
         RequestCompetition( buyIn, filters, null );
-        pollUntilAvailableCompetitionFound();
+        pollUntilScorableCompetitionFound();
     }
 
 
@@ -186,18 +186,19 @@ public partial class Arbiter : MonoBehaviour
 
     public delegate void ReportScoreCallback( Competition competition );
     public static void ReportScore( string competitionId, int score, ReportScoreCallback callback ) {
+        Debug.Log("ttt REPORTING SCORE");
         if( callback == null )
             Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
         ArbiterBinding.ReportScore( competitionId, score, callback, defaultErrorHandler );
     }
 
 
-    private static void pollUntilAvailableCompetitionFound() {
+    private static void pollUntilScorableCompetitionFound() {
         competitionPoller.SetAction( () => {
-			Arbiter.QueryCompetitions( joinAvailableCompetition );
+			Arbiter.QueryCompetitions( findScorableCompetition );
         });
     }
-    private static void joinAvailableCompetition() {
+    private static void findScorableCompetition() {
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
         while( e.MoveNext() ) {
@@ -222,9 +223,9 @@ public partial class Arbiter : MonoBehaviour
         }
 		
         if( found != null ) {
-             if( joinAvailableCompetitionCallback != null )
-                joinAvailableCompetitionCallback( found );
-             joinAvailableCompetitionCallback = null;
+             if( getScorableCompetitionCallback != null )
+                getScorableCompetitionCallback( found );
+             getScorableCompetitionCallback = null;
         }
     }
 
@@ -263,7 +264,7 @@ public partial class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
-    private static JoinAvailableCompetitionCallback joinAvailableCompetitionCallback;
+    private static GetScorableCompetitionCallback getScorableCompetitionCallback;
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 	private static Action viewIncompleteCompetitionsCallback;

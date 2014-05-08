@@ -578,11 +578,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         });
     } else {
         NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [competitionId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
-        NSLog(@"TTT CALLING REPORT SCORE. url=%@", requestUrl);
-        NSLog(APIReportScoreURLPart1);
-        NSLog(competitionId);
-        NSLog(APIReportScoreURLPart2);
-        NSLog(self.userId);
         NSString *key = [NSString stringWithFormat:@"%@:POST", requestUrl];
         [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 

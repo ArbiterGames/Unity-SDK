@@ -357,7 +357,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 - (void)requestCompetition:(void(^)(NSDictionary *))handler gameName:(NSString*)gameName buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
-        @"game_name": gameName,
+        @"game_api_key": @"8b9cdc0af3984f008e92c3e05b22de51",
         @"buy_in":buyIn,
         @"filters":filters
     };
@@ -385,7 +385,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
-        [request setValue:@"Authorization" forHTTPHeaderField:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"]];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
@@ -478,7 +478,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         }
 
         NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
+                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                           timeoutInterval:60.0];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
 
         [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
         [NSURLConnection connectionWithRequest:request delegate:self];

@@ -10,8 +10,8 @@
 #import "Arbiter.h"
 
 
-//#define PRE_URL @"https://www.arbiter.me/api/v1/"
-#define PRE_URL @"http://10.0.0.7:5000/api/v1/"
+#define PRE_URL @"https://www.arbiter.me/api/v1/"
+//#define PRE_URL @"http://10.0.0.7:5000/api/v1/"
 
 NSString *const APIUserInitializeURL = PRE_URL @"user/initialize";
 NSString *const APIWalletURL = PRE_URL @"wallet/";

@@ -17,6 +17,8 @@
 
 @property (copy) NSString *userId;
 @property (copy) NSDictionary *wallet;
+@property (copy) NSString *token;
+@property (copy) NSString *apiKey;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageCompetitionsUrl;
 @property (copy) NSString *previousPageCompetitionsUrl;
@@ -25,7 +27,7 @@
 @property (copy) NSString *currentIncompleteCompetitionId;
 
 
-- (id)init:(void(^)(NSDictionary *))handler;
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
@@ -33,7 +35,7 @@
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)copyDepositAddressToClipboard;
 
-- (void)requestCompetition:(void(^)(NSDictionary *))handler gameName:(NSString*)gameName buyIn:(NSString*)buyIn;
+- (void)requestCompetition:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn;
 - (void)getCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page;
 - (void)viewPreviousCompetitions:(void(^)(void))handler page:(NSString *)page;
 

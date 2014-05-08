@@ -22,12 +22,11 @@ public class Game : MonoBehaviour {
 		GameObject globalsGO = GameObject.Find ("Globals");
 		globals = globalsGO.GetComponent<Globals>();
 
-        Arbiter.SetGameName( "iOS SDK Example App" );
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more bitcoin first.";
         } else {
             if ( globals.SelectedUnfinishedCompetitionId == null || globals.SelectedUnfinishedCompetitionId == "" ) {
-				JoinCompetition();
+				GetCompetition();
 			} else {
 				PlayGame();
 			}
@@ -35,14 +34,14 @@ public class Game : MonoBehaviour {
     }
 
 
-    private void JoinCompetition() {
+    private void GetCompetition() {
         Dictionary<string,string> filters = new Dictionary<string,string>();
         filters.Add( "arbitrary_key", "the_value" );
-        Arbiter.JoinAvailableCompetition( BET_SIZE, filters, OnCompetitionJoined );
+        Arbiter.GetScorableCompetition( BET_SIZE, filters, OnCompetitionFound );
     }
 
 
-    private void OnCompetitionJoined( Arbiter.Competition competition ) {
+    private void OnCompetitionFound( Arbiter.Competition competition ) {
         globals.SelectedUnfinishedCompetitionId = CompetitionId = competition.Id;
         PlayGame();
     }

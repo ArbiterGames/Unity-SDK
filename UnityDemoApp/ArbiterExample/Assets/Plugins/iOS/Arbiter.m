@@ -9,14 +9,18 @@
 #import <GameKit/GameKit.h>
 #import "Arbiter.h"
 
-NSString * const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";
-NSString * const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
-NSString * const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
-NSString * const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";
-NSString * const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
-NSString * const APIRequestCompetitionURL = @"https://www.arbiter.me/api/v1/competition/";
-NSString * const APIReportScoreURLPart1 = @"https://www.arbiter.me/api/v1/competition/";
-NSString * const APIReportScoreURLPart2 = @"/report-score/";
+
+#define PRE_URL @"https://www.arbiter.me/api/v1/"
+//#define PRE_URL @"http://10.0.0.7:5000/api/v1/"
+
+NSString *const APIUserInitializeURL = PRE_URL @"user/initialize";
+NSString *const APIWalletURL = PRE_URL @"wallet/";
+NSString *const APIUserLoginURL = PRE_URL @"user/login";
+NSString *const APILinkWithGameCenterURL = PRE_URL @"user/link-with-game-center";
+NSString *const APIUserDetailsURL = PRE_URL @"user/";
+NSString *const APIRequestCompetitionURL = PRE_URL @"competition/";
+NSString *const APIReportScoreURLPart1 = PRE_URL @"competition/";
+NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -137,11 +141,11 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
 */
 
 
-- (id)init:(void(^)(NSDictionary *))handler
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey
 {
     self = [super init];
+    self.apiKey = apiKey;
     if ( self ) {
-
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
@@ -149,6 +153,10 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
 
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             NSDictionary *userDict = [responseDict objectForKey:@"user"];
+            self.token = [userDict objectForKey:@"token"];
+            // TODO: Now that we have the user's authentication token, we can construct the full Authorization header
+            //       Cache the value of Authorization header in the line below, then add the line below to all other calls
+            // [request setValue:@"Authorization" forHTTPHeaderField:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"]];
             self.userId = [userDict objectForKey:@"id"];
             self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
             handler(responseDict);
@@ -346,10 +354,10 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
 
 #pragma mark Competition Methods
 
-- (void)requestCompetition:(void(^)(NSDictionary *))handler gameName:(NSString*)gameName buyIn:(NSString*)buyIn filters:(NSString*)filters
+- (void)requestCompetition:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
-        @"game_name": gameName,
+        @"game_api_key": @"8b9cdc0af3984f008e92c3e05b22de51",
         @"buy_in":buyIn,
         @"filters":filters
     };
@@ -377,6 +385,7 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
@@ -398,18 +407,20 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-
     NSString *competitionsUrl;
     if ( [page isEqualToString:@"next"] ) {
         competitionsUrl = self.nextPageCompetitionsUrl;
     } else if ( [page isEqualToString:@"previous"]) {
         competitionsUrl = self.previousPageCompetitionsUrl;
     } else {
-        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, @"8b9cdc0af3984f008e92c3e05b22de51"];
     }
 
     NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:60.0];
+    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
 
     [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
     [NSURLConnection connectionWithRequest:request delegate:self];
@@ -474,8 +485,8 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         self.nextPageIncompleteCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
-    
-    
+
+
     NSString *competitionsUrl;
     if ( [page isEqualToString:@"next"] ) {
         competitionsUrl = self.nextPageIncompleteCompetitionsUrl;
@@ -484,10 +495,10 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
     } else {
         competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@&page_size=1&exclude=complete", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
     }
-    
+
     NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
     NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
-    
+
     [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
     [NSURLConnection connectionWithRequest:request delegate:self];
 
@@ -503,7 +514,7 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         NSArray *competitions = [competitionSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
         NSMutableString *yourScore = [NSMutableString string];
-        
+
         if ( [competitions count] > 0 ) {
             for (int i = 0; i < [competitions count]; i++) {
                 self.currentIncompleteCompetitionId = [[competitions objectAtIndex:i] objectForKey:@"id"];
@@ -523,25 +534,25 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         } else {
             [message appendString:@"No incomplete games"];
         }
-        
+
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Incomplete Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
-        
+
         if ( [yourScore isEqualToString:@"n/a"]) {
             [alert addButtonWithTitle:@"Play"];
         }
-        
+
         if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Prev"];
         }
         if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Next"];
         }
-        
+
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
         [alert setTag:11];
         [alert show];
     } copy];
-    
+
     [self getIncompleteCompetitions:connectionHandler page:page];
 }
 
@@ -743,7 +754,7 @@ NSString * const APIReportScoreURLPart2 = @"/report-score/";
         } else {
             handler();
         }
-        
+
     // Incomplete competitions
     } else if ( alertView.tag == 11 ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

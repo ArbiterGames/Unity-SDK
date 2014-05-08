@@ -29,11 +29,11 @@ public partial class Arbiter : MonoBehaviour
 
 
 
-	public static void Initialize( Action done ) {
+	public static void Initialize( string gameApiKeyFromDashboard, Action done ) {
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    // TODO: These anon functions will call the first "done" callback for every call--need to provide proper function closures!
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-        ArbiterBinding.Init( parse, initializeErrorHandler );
+        ArbiterBinding.Init( gameApiKeyFromDashboard, parse, initializeErrorHandler );
 	}
     public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
 
@@ -107,17 +107,12 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-    public static void SetGameName( string gameNameFromDashboard ) {
-        gameName = gameNameFromDashboard;
-    }
-
-
-    public delegate void JoinAvailableCompetitionCallback( Competition competition );
-    public static void JoinAvailableCompetition( string buyIn, Dictionary<string,string> filters, JoinAvailableCompetitionCallback callback ) {
-        joinAvailableCompetitionCallback = callback;
-        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request it and then start polling.
+    public delegate void GetScorableCompetitionCallback( Competition competition );
+    public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
+        getScorableCompetitionCallback = callback;
+        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
         RequestCompetition( buyIn, filters, null );
-        pollUntilAvailableCompetitionFound();
+        pollUntilScorableCompetitionFound();
     }
 
 
@@ -126,15 +121,11 @@ public partial class Arbiter : MonoBehaviour
         RequestCompetition( null, filters, callback );
     }
     public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
-        if( gameName == null ) {
-            Debug.LogError( "Game Name not set. Did you call SetGameName(...)?" );
-            return;
-        }
         if( filters == null ) {
             filters = new Dictionary<string,string>();
         }
         
-        ArbiterBinding.RequestCompetition( gameName, buyIn, filters, callback, defaultErrorHandler );
+        ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
     }
 
 
@@ -192,12 +183,12 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-    private static void pollUntilAvailableCompetitionFound() {
+    private static void pollUntilScorableCompetitionFound() {
         competitionPoller.SetAction( () => {
-			Arbiter.QueryCompetitions( joinAvailableCompetition );
+			Arbiter.QueryCompetitions( findScorableCompetition );
         });
     }
-    private static void joinAvailableCompetition() {
+    private static void findScorableCompetition() {
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
         while( e.MoveNext() ) {
@@ -222,9 +213,9 @@ public partial class Arbiter : MonoBehaviour
         }
 		
         if( found != null ) {
-             if( joinAvailableCompetitionCallback != null )
-                joinAvailableCompetitionCallback( found );
-             joinAvailableCompetitionCallback = null;
+             if( getScorableCompetitionCallback != null )
+                getScorableCompetitionCallback( found );
+             getScorableCompetitionCallback = null;
         }
     }
 
@@ -253,7 +244,6 @@ public partial class Arbiter : MonoBehaviour
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
-    private static string gameName = null;
 	private static List<Competition> initializingCompetitions;
     private static List<Competition> inProgressCompetitions;
     private static List<Competition> completeCompetitions;
@@ -263,7 +253,7 @@ public partial class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
-    private static JoinAvailableCompetitionCallback joinAvailableCompetitionCallback;
+    private static GetScorableCompetitionCallback getScorableCompetitionCallback;
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 	private static Action viewIncompleteCompetitionsCallback;

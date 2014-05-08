@@ -177,7 +177,6 @@ public partial class Arbiter : MonoBehaviour
 
     public delegate void ReportScoreCallback( Competition competition );
     public static void ReportScore( string competitionId, int score, ReportScoreCallback callback ) {
-        Debug.Log("ttt REPORTING SCORE");
         if( callback == null )
             Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
         ArbiterBinding.ReportScore( competitionId, score, callback, defaultErrorHandler );

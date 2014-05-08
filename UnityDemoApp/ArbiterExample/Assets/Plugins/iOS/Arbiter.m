@@ -407,85 +407,23 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    // tttd: Should make a helper function to make the post params data instead of copy-pasting it between each function
-    NSDictionary *paramsDict = @{
-                                 @"game_api_key": @"8b9cdc0af3984f008e92c3e05b22de51", // ttt Get this from a native SDK cached value!
-//ttt if page is nil, this crashes!                                 @"page":page,
-                                 };
-    NSError *error;
-    NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
-                                                         options:0
-                                                           error:&error];
-    if( !paramsData ) {
-        NSLog(@"ERROR: %@", error);
-        connectionHandler( @{
-            @"success": @"false",
-            @"errors": @[error]
-        });
+    NSString *competitionsUrl;
+    if ( [page isEqualToString:@"next"] ) {
+        competitionsUrl = self.nextPageCompetitionsUrl;
+    } else if ( [page isEqualToString:@"previous"]) {
+        competitionsUrl = self.previousPageCompetitionsUrl;
     } else {
-        ////// ttt ATTEMPTS AT PASSING IN THE GAME_API_KEY AS HTTP BODY...
-        /*
-        NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
-        NSString *key = [NSString stringWithFormat:@"%@:GET", requestUrl];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-
-        NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-        NSLog(@"ttt paramsStr=%@",paramsStr);
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
-
-        /* ttt attempt 1
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPMethod:@"GET"];
-        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-         */
-        /* ttt attempt 2
-        NSString *post = [NSString stringWithFormat:@"game_api_key=%@", @"asdf"];
-        NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request addValue:[NSString stringWithFormat:@"%d", 11] forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:postData];
-         */
-        /* ttt attempt 3
-        NSString *post = [NSString stringWithFormat:@"game_api_key=%@", @"asdf"];
-        NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
-        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:postData];
-        [request setHTTPMethod:@"PUT"];
-         */
-        /* ttt attemp 4
-        NSString *post = [NSString stringWithFormat:@"{'game_api_key':'%@'", @"asdf"];
-        NSData *postData = [post dataUsingEncoding:NSASCIIStringEncoding];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        NSString *postLength = [NSString stringWithFormat:@"%d",[postData length]];
-        [request setValue:postLength forHTTPHeaderField:@"Content-Length"];
-        [request setHTTPBody:postData];
-        [request setHTTPMethod:@"GET"];
-         */
-        ////// END OF BODY ATTEMPTS ////////////
-
-
-        NSString *competitionsUrl;
-        if ( [page isEqualToString:@"next"] ) {
-            competitionsUrl = self.nextPageCompetitionsUrl;
-        } else if ( [page isEqualToString:@"previous"]) {
-            competitionsUrl = self.previousPageCompetitionsUrl;
-        } else {
-            competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, @"8b9cdc0af3984f008e92c3e05b22de51"];
-        }
-
-        NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
-        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
-
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-        [NSURLConnection connectionWithRequest:request delegate:self];
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, @"8b9cdc0af3984f008e92c3e05b22de51"];
     }
+
+    NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
+    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
+                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                       timeoutInterval:60.0];
+    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
+
+    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
+    [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
 

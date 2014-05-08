@@ -17,6 +17,7 @@
 
 @property (copy) NSString *userId;
 @property (copy) NSDictionary *wallet;
+@property (copy) NSString *token;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageCompetitionsUrl;
 @property (copy) NSString *previousPageCompetitionsUrl;

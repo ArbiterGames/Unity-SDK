@@ -141,11 +141,11 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 */
 
 
-- (id)init:(void(^)(NSDictionary *))handler
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey
 {
     self = [super init];
+    self.apiKey = apiKey;
     if ( self ) {
-
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
@@ -354,7 +354,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 #pragma mark Competition Methods
 
-- (void)requestCompetition:(void(^)(NSDictionary *))handler gameName:(NSString*)gameName buyIn:(NSString*)buyIn filters:(NSString*)filters
+- (void)requestCompetition:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
         @"game_api_key": @"8b9cdc0af3984f008e92c3e05b22de51",
@@ -385,7 +385,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
-        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
@@ -420,7 +420,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
                                                            cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                        timeoutInterval:60.0];
-    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"] forHTTPHeaderField:@"Authorization"];
+    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
 
     [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
     [NSURLConnection connectionWithRequest:request delegate:self];

@@ -11,7 +11,8 @@ public class Entrypoint : MonoBehaviour {
 	void Start () {
         ArbiterOptionalStep();
 
-        Arbiter.Initialize( LogInToGameCenter );
+        const string GAME_API_KEY = "8b9cdc0af3984f008e92c3e05b22de51";     // This comes from the www.arbiter.me/dashboard/games
+        Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
     }
 
 

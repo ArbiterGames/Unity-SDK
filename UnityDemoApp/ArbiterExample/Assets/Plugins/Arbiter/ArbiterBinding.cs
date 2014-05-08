@@ -17,11 +17,11 @@ namespace ArbiterInternal {
     public class ArbiterBinding : MonoBehaviour
     {
     	[DllImport ("__Internal")]
-    	private static extern void _init();
+    	private static extern void _init( string gameApiKey );
         public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
         private static LoginCallback initCallback;
         private static ErrorHandler initErrorHandler;
-        public static void Init( LoginCallback callback, ErrorHandler errorHandler ) {
+        public static void Init( string gameApiKey, LoginCallback callback, ErrorHandler errorHandler ) {
             initCallback = callback;
             initErrorHandler = errorHandler;
 #if UNITY_EDITOR
@@ -31,7 +31,7 @@ namespace ArbiterInternal {
             user.Name = "McMockison";
             initCallback( user, false, null );
 #elif UNITY_IOS
-    		_init();
+            _init( gameApiKey );
 #endif
     	}
 
@@ -117,10 +117,10 @@ namespace ArbiterInternal {
 
 
         [DllImport ("__Internal")]
-        private static extern void _requestCompetition( string gameName, string buyIn, string filters );
+        private static extern void _requestCompetition( string buyIn, string filters );
         private static Arbiter.RequestCompetitionCallback requestCompetitionCallback;
         private static ErrorHandler requestCompetitionErrorHandler;
-        public static void RequestCompetition( string gameName, string buyIn, Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
+        public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
             requestCompetitionCallback = callback;
             requestCompetitionErrorHandler = errorHandler;
 #if UNITY_EDITOR
@@ -128,7 +128,7 @@ namespace ArbiterInternal {
             if( requestCompetitionCallback != null )
                 requestCompetitionCallback();
 #elif UNITY_IOS
-            _requestCompetition( gameName, buyIn, SerializeDictionary(filters) );
+            _requestCompetition( buyIn, SerializeDictionary(filters) );
 #endif
         }
 

@@ -11,7 +11,7 @@ public class PlayFakeGameBestSizeLabel : MonoBehaviour {
 	
 	void Start() {
 		GUIText textField = gameObject.GetComponent<GUIText>();
-		textField = "(Bet Size: " + Game.BET_SIZE + ")";
+		textField.text = "(Bet Size: " + Game.BET_SIZE + ")";
 	}
 
 	

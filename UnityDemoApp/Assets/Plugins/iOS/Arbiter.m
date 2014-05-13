@@ -391,6 +391,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 #pragma mark NSURLConnection Delegate Methods
 
 - (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler {
+    NSLog( @"ArbiterSDK GET %@", url );
     NSMutableURLRequest *request = [NSMutableURLRequest
         requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -403,6 +404,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler {
+    NSLog( @"ArbiterSDK POST %@", url );
     NSError *error;
     NSData *paramsData;
     if( params != nil ) {

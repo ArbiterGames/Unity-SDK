@@ -110,14 +110,14 @@ public partial class Arbiter : MonoBehaviour
     public delegate void GetScorableCompetitionCallback( Competition competition );
     public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
         getScorableCompetitionCallback = callback;
-        // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
+        // ttt TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
         RequestCompetition( buyIn, filters, null );
-        pollUntilScorableCompetitionFound();  // tttd This seems to stop polling before one is found!
+		pollUntilScorableCompetitionFound( buyIn, filters );
     }
 
 
     public delegate void RequestCompetitionCallback();
-    public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
+    public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) { // tttd rename to request new competition?
         RequestCompetition( null, filters, callback );
     }
     public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
@@ -183,18 +183,35 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-    private static void pollUntilScorableCompetitionFound() {
+	private static void pollUntilScorableCompetitionFound( string buyIn, Dictionary<string,string> filters ) {
         competitionPoller.SetAction( () => {
-			Arbiter.QueryCompetitions( findScorableCompetition );
+			Action findExistingFromCacheOrRequestNewCompetition = () => {
+				Competition found = findScorableCompetition();
+				Debug.Log("ttt found="+found);
+				if( found != null ) {
+					if( getScorableCompetitionCallback != null )
+						getScorableCompetitionCallback( found );
+					getScorableCompetitionCallback = null;
+					competitionPoller.Stop();
+				} else {
+					if( competitionRequestSemaphore <= 0 ) {
+						competitionRequestSemaphore += 1;
+						GetScorableCompetitionCallback decSemaphore = ( ignoredComp ) => competitionRequestSemaphore -= 1;
+						GetScorableCompetition( buyIn, filters, decSemaphore );
+					}
+					// else wait for the poller to catch the newly-requested competition!
+				}
+			};
+			Arbiter.QueryCompetitions( findExistingFromCacheOrRequestNewCompetition );
         });
     }
-    private static void findScorableCompetition() {
+    private static Competition findScorableCompetition() {
+		Debug.Log("ttt findScorableCompetition()");
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
         while( e.MoveNext() ) {
             Competition c = e.Current;
 			if( c.UserHasNotReportedScore( user )) {
-                competitionPoller.Stop();
                 found = c;
                 break;
             }
@@ -205,18 +222,13 @@ public partial class Arbiter : MonoBehaviour
 			while( e.MoveNext() ) {
 				Competition c = e.Current;
 				if( c.UserHasNotReportedScore( user )) {
-					competitionPoller.Stop();
 					found = c;
 					break;
 				}
 			}
         }
-		
-        if( found != null ) {
-             if( getScorableCompetitionCallback != null )
-                getScorableCompetitionCallback( found );
-             getScorableCompetitionCallback = null;
-        }
+
+		return found;
     }
 
 
@@ -247,6 +259,7 @@ public partial class Arbiter : MonoBehaviour
 	private static List<Competition> initializingCompetitions;
     private static List<Competition> inProgressCompetitions;
     private static List<Competition> completeCompetitions;
+	private static int competitionRequestSemaphore = 0;
 
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;

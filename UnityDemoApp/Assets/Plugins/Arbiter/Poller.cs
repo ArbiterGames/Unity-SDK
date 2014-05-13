@@ -6,10 +6,25 @@ public class Poller : MonoBehaviour {
 
     public bool Verbose = true;
         
+
+	public static Poller Create() {
+		return Create( "ArbiterSDK_Poller" );
+	}
+	public static Poller Create( string name ) {
+		GameObject go = new GameObject();
+		go.name = name;
+		return go.AddComponent<Poller>();
+	}
+	private Poller() {
+		// To insure users use the creation methods
+	}
+
+
     public void SetAction( Action poll ) {
-        this.poll = ( ignoringCallback ) => { poll(); };    // ttt just noticed this will probably cause a bug since the anon function will be created once..?
+        this.poll = ( ignoringCallback ) => { poll(); };
         Reset();
     }
+
     public void SetAction( Action<Action> poll ) {
         this.poll = poll;
         Reset();

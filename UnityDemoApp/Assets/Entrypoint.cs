@@ -13,7 +13,7 @@ public class Entrypoint : MonoBehaviour {
 
         const string GAME_API_KEY = "80637f8cfd534aa0931b4c54a36b299c";     // This comes from the www.arbiter.me/dashboard/games
         Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
-    }
+	}
 
 
     void LogInToGameCenter() {

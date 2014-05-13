@@ -9,7 +9,7 @@ public partial class Arbiter : MonoBehaviour
 {
 	static Arbiter() {
 		// Add a GO to the scene for iOS to send responses back to
-		GameObject go = new GameObject("ArbiterBinding");
+		GameObject go = new GameObject( "ArbiterBinding" );
 		go.AddComponent<ArbiterBinding>();
         walletPoller = go.AddComponent<Poller>();
         competitionPoller = go.AddComponent<Poller>();
@@ -163,7 +163,7 @@ public partial class Arbiter : MonoBehaviour
     public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
         if( callback == null )
             callback = () => {};
-        ArbiterBinding.ViewPreviousCompetitions( callback, defaultErrorHandler );
+        ArbiterBinding.ViewPreviousCompetitions( callback );
     }
     
     
@@ -171,7 +171,7 @@ public partial class Arbiter : MonoBehaviour
 	public static void ViewIncompleteCompetitions( ViewIncompleteCompetitionsCallback callback ) {
 		if( callback == null )
 			callback = ( String competitionId ) => {};
-		ArbiterBinding.ViewIncompleteCompetitions( callback, defaultErrorHandler );
+		ArbiterBinding.ViewIncompleteCompetitions( callback );
 	}
 
 
@@ -257,7 +257,6 @@ public partial class Arbiter : MonoBehaviour
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 	private static Action viewIncompleteCompetitionsCallback;
-	private static ArbiterBinding.ErrorHandler viewIncompleteCompetitionsErrorHandler = defaultErrorHandler;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

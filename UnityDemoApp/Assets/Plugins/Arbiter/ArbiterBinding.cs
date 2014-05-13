@@ -153,10 +153,8 @@ namespace ArbiterInternal {
         [DllImport ("__Internal")]
         private static extern void _viewPreviousCompetitions();
         private static Arbiter.ViewPreviousCompetitionsCallback viewPreviousCompetitionsCallback;
-        private static ErrorHandler viewPreviousCompetitionsErrorHandler;
-        public static void ViewPreviousCompetitions( Arbiter.ViewPreviousCompetitionsCallback callback, ErrorHandler errorHandler ) {
+        public static void ViewPreviousCompetitions( Arbiter.ViewPreviousCompetitionsCallback callback ) {
             viewPreviousCompetitionsCallback = callback;
-            viewPreviousCompetitionsErrorHandler = errorHandler;
 #if UNITY_EDITOR
             ReportIgnore( "ViewPreviousCompetitions" );
             viewPreviousCompetitionsCallback();
@@ -169,10 +167,8 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _viewIncompleteCompetitions();
 		private static Arbiter.ViewIncompleteCompetitionsCallback viewIncompleteCompetitionsCallback;
-		private static ErrorHandler viewIncompleteCompetitionsErrorHandler;
-		public static void ViewIncompleteCompetitions( Arbiter.ViewIncompleteCompetitionsCallback callback, ErrorHandler errorHandler ) {
+		public static void ViewIncompleteCompetitions( Arbiter.ViewIncompleteCompetitionsCallback callback ) {
 			viewIncompleteCompetitionsCallback = callback;
-			viewIncompleteCompetitionsErrorHandler = errorHandler;
 #if UNITY_EDITOR
 			ReportIgnore( "ViewIncompleteCompetitions" );
 			viewIncompleteCompetitionsCallback( "" );
@@ -274,7 +270,6 @@ namespace ArbiterInternal {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
                 JSONNode competitionsNode = json["competitions"];
-                int competitionsThisPage = competitionsNode["count"].AsInt;
                 getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
             } else {
                 getCompetitionsErrorHandler( getErrors( json ));

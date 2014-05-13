@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class Game : MonoBehaviour {
 	
 
-    public const string BET_SIZE = "0.0001";
+    public const string BET_SIZE = "1";
     public int Score;
     public string Problems = "---";
     public string CompetitionId = "???";

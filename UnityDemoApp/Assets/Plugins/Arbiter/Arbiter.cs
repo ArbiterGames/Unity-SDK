@@ -112,7 +112,7 @@ public partial class Arbiter : MonoBehaviour
         getScorableCompetitionCallback = callback;
         // TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
         RequestCompetition( buyIn, filters, null );
-        pollUntilScorableCompetitionFound();
+        pollUntilScorableCompetitionFound();  // tttd This seems to stop polling before one is found!
     }
 
 

@@ -39,22 +39,16 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
-        NSString *key = [NSString stringWithFormat:@"%@:GET", APIUserInitializeURL];
 
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             NSDictionary *userDict = [responseDict objectForKey:@"user"];
             self.token = [userDict objectForKey:@"token"];
-            // TODO: Now that we have the user's authentication token, we can construct the full Authorization header
-            //       Cache the value of Authorization header in the line below, then add the line below to all other calls
-            // [request setValue:@"Authorization" forHTTPHeaderField:[NSString stringWithFormat:@"Token %@::%@", self.token, @"8b9cdc0af3984f008e92c3e05b22de51"]];
             self.userId = [userDict objectForKey:@"id"];
             self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
             handler(responseDict);
         } copy];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 
-        NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:APIUserInitializeURL]];
-        [NSURLConnection connectionWithRequest:request delegate:self];
+        [self httpGet:APIUserInitializeURL handler:connectionHandler];
     }
     return self;
 }
@@ -63,16 +57,14 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
     //
-    // Note/TODO: This function assumes the player used Unity to authenticate. Would be better to handle this all native...
+    // NOTE: This function assumes the player used something else (like Unity) to authenticate.
     //
 
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
-    NSString *connectionKey = [NSString stringWithFormat:@"%@:POST", APILinkWithGameCenterURL];
-    NSDictionary *response;
 
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:connectionKey];
+    NSDictionary *response;
 
     if( !SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO( @"7.0" )) {
         response = @{
@@ -109,27 +101,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                     @"bundleID":[[NSBundle mainBundle] bundleIdentifier]
                 };
 
-                NSError *error;
-                NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
-                                                                     options:0
-                                                                       error:&error];
-                if( !paramsData ) {
-                    NSLog(@"ERROR: %@", error);
-                    connectionHandler( @{
-                        @"success": @"false",
-                        @"errors": @[error]
-                    });
-                } else {
-                    NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-                    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APILinkWithGameCenterURL]
-                                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                                       timeoutInterval:60.0];
-                    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-                    [request setHTTPMethod:@"POST"];
-                    [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-
-                    [NSURLConnection connectionWithRequest:request delegate:self];
-                }
+                [self httpPost:APILinkWithGameCenterURL params:paramsDict handler:connectionHandler];
             }
         }];
     }
@@ -148,8 +120,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                     otherButtonTitles:@"Agree", nil];
                 [alert setTag:2];
                 [alert show];
-
-                _completionHandler = [handler copy];
             } else {
                 // TODO: Pass in a zip code that fails
                 //       check what the error message is
@@ -166,12 +136,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
     NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", self.userId];
     NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
-    NSString *key = [NSString stringWithFormat:@"%@:POST", verifyUrl];
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
 
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verifyUrl]];
-    [request setHTTPMethod:@"POST"];
-    [NSURLConnection connectionWithRequest:request delegate:self];
+    [self httpPost:verifyUrl params:nil handler:connectionHandler];
 }
 
 - (void)getWallet:(void(^)(NSDictionary *))handler
@@ -182,11 +148,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     } copy];
 
     NSString *walletUrl = [APIWalletURL stringByAppendingString:self.userId];
-    NSString *key = [NSString stringWithFormat:@"%@:GET", walletUrl];
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:walletUrl]];
-    [NSURLConnection connectionWithRequest:request delegate:self];
+    [self httpGet:walletUrl handler:connectionHandler];
 }
 
 
@@ -200,7 +162,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
     [_alertViewHandlerRegistry setObject:connectionHandler forKey:@"closeWalletHandler"];
 
-    NSString *message = [NSString stringWithFormat: @"Balance: %@ BTC", [self.wallet objectForKey:@"balance"]];
+    NSString *message = [NSString stringWithFormat: @"Balance: %@ Credits", [self.wallet objectForKey:@"balance"]];
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wallet" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
     [alert setTag:1];
     [alert show];
@@ -247,7 +209,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 - (void)requestCompetition:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
-        @"game_api_key": @"8b9cdc0af3984f008e92c3e05b22de51",
+        @"game_api_key": self.apiKey,
         @"buy_in":buyIn,
         @"filters":filters
     };
@@ -256,32 +218,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    NSError *error;
-    NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
-                                                         options:0
-                                                           error:&error];
-    if( !paramsData ) {
-        NSLog(@"ERROR: %@", error);
-        connectionHandler( @{
-            @"success": @"false",
-            @"errors": @[error]
-        });
-    } else {
-        NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
-        NSString *key = [NSString stringWithFormat:@"%@:POST", requestUrl];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-
-        NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
-        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPMethod:@"POST"];
-        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-
-        [NSURLConnection connectionWithRequest:request delegate:self];
-    }
+    NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
+    [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
 }
 
 
@@ -303,17 +241,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     } else if ( [page isEqualToString:@"previous"]) {
         competitionsUrl = self.previousPageCompetitionsUrl;
     } else {
-        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, @"8b9cdc0af3984f008e92c3e05b22de51"];
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, self.apiKey];
     }
 
-    NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]
-                                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                       timeoutInterval:60.0];
-    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
-
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-    [NSURLConnection connectionWithRequest:request delegate:self];
+    [self httpGet:competitionsUrl handler:connectionHandler];
 }
 
 
@@ -334,7 +265,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@BTC \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                     [dateFormatter stringFromDate:unFormattedDate],
                     [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
                     [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
@@ -383,15 +314,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     } else if ( [page isEqualToString:@"previous"]) {
         competitionsUrl = self.previousPageIncompleteCompetitionsUrl;
     } else {
-        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_name=%@&page_size=1&exclude=complete", APIRequestCompetitionURL, self.userId, [self slugify:@"iOS SDK Example App"]];
+        competitionsUrl = [NSString stringWithFormat:@"%@%@?page_size=1&exclude=complete", APIRequestCompetitionURL, self.userId];
     }
 
-    NSString *key = [NSString stringWithFormat:@"%@:GET", competitionsUrl];
-    NSURLRequest *request = [NSURLRequest requestWithURL:[NSURL URLWithString:competitionsUrl]];
-
-    [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-    [NSURLConnection connectionWithRequest:request delegate:self];
-
+    [self httpGet:competitionsUrl handler:connectionHandler];
 }
 
 /**
@@ -413,7 +339,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@BTC \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                                                [dateFormatter stringFromDate:unFormattedDate],
                                                [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
                                                [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
@@ -456,56 +382,76 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    NSError *error;
-    NSData *paramsData = [NSJSONSerialization dataWithJSONObject:paramsDict
-                                                         options:0
-                                                           error:&error];
-    if( !paramsData ) {
-        NSLog(@"ERROR: %@", error);
-        connectionHandler( @{
-            @"success": @"false",
-            @"errors": @[error]
-        });
-    } else {
-        NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [competitionId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
-        NSString *key = [NSString stringWithFormat:@"%@:POST", requestUrl];
-        [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
+    NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [competitionId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
 
-        NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:requestUrl]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPMethod:@"POST"];
-        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-
-        [NSURLConnection connectionWithRequest:request delegate:self];
-    }
+    [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
 }
 
 
 #pragma mark NSURLConnection Delegate Methods
 
+- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler {
+    NSMutableURLRequest *request = [NSMutableURLRequest
+        requestWithURL:[NSURL URLWithString:url]
+        cachePolicy:NSURLRequestUseProtocolCachePolicy
+        timeoutInterval:60.0];
+    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
+
+    NSString *key = [url stringByAppendingString:@":GET"];
+    [_connectionHandlerRegistry setObject:handler forKey:key];
+    [NSURLConnection connectionWithRequest:request delegate:self];
+}
+
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler {
+    NSError *error;
+    NSData *paramsData;
+    if( params != nil ) {
+        paramsData = [NSJSONSerialization dataWithJSONObject:params
+                                                     options:0
+                                                       error:&error];
+        if( !paramsData ) {
+            NSLog(@"ERROR: %@", error);
+            handler( @{
+                @"success": @"false",
+                @"errors": @[error]
+            });
+        }
+    }
+    if( !error ) {
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
+                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                           timeoutInterval:60.0];
+        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
+        [request setHTTPMethod:@"POST"];
+        if( paramsData != nil ) {
+            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+        }
+
+        NSString *key = [url stringByAppendingString:@":POST"];
+        [_connectionHandlerRegistry setObject:handler forKey:key];
+        [NSURLConnection connectionWithRequest:request delegate:self];
+    }
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    NSLog(@"aa: connection didReceiveResponse");
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
     [_responseDataRegistry setObject:[[NSMutableData alloc] init] forKey:key];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    NSLog(@"aa: connection didReceiveData");
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
     [[_responseDataRegistry objectForKey:key] appendData:data];
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection
                   willCacheResponse:(NSCachedURLResponse*)cachedResponse {
-    NSLog(@"aa: connection cachedResponse");
     return nil;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    NSLog(@"aa: connectionDidFinishLoading: %@", [[connection currentRequest] URL]);
+    NSLog(@"Response from %@", [[connection currentRequest] URL]);
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
     NSError *error = nil;
     NSData *responseData = [_responseDataRegistry objectForKey:key];
@@ -523,7 +469,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    NSLog(@"aa: connection didFailWithError");
     NSLog(@"%@", error);
     NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:@[[error localizedDescription]], @"errors", @"false", @"success", nil];
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
@@ -561,8 +506,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 self.wallet = [responseDict objectForKey:@"wallet"];
             }
-            _completionHandler(responseDict);
-            _completionHandler = nil;
         } copy];
 
         if (buttonIndex == 0) {

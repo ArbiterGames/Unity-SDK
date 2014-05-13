@@ -2,14 +2,12 @@
 //  Arbiter.h
 //  Arbiter
 //
-//  Created by Andy Zinsser on 12/5/13.
-//  Copyright (c) 2013 Arbiter. All rights reserved.
+//  Copyright (c) 2014 Arbiter. All rights reserved.
 //
+
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
 {
-    // TODO: Replace the completionHandler with a 'alertViewHandlerRegistry'
-    void (^_completionHandler)(NSDictionary *params);
     NSMutableDictionary *_alertViewHandlerRegistry;
     NSMutableDictionary *_connectionHandlerRegistry;
     NSMutableDictionary *_responseDataRegistry;

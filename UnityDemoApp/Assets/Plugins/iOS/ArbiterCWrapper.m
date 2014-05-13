@@ -1,10 +1,10 @@
 //
-//  ArbiterCWrapper.m
+//  Arbiter.m
+//  Arbiter
 //
+//  Copyright (c) 2014 Arbiter. All rights reserved.
 //
-//  Created by Andy Zinsser on 1/8/14.
-//
-//
+
 
 #import "Arbiter.h"
 
@@ -28,11 +28,9 @@ void _init( const char* apiKey )
 {
     arbiter = [Arbiter alloc];
     [arbiter init:^(NSDictionary *jsonDict) {
-            NSLog(@"--- _init.response");
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            NSLog(@"%@", jsonString);
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "InitHandler", jsonChar);
         }
@@ -43,11 +41,9 @@ void _init( const char* apiKey )
 void _loginWithGameCenterPlayer()
 {
     [arbiter loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
-        NSLog(@"--- _loginWithGameCenterPlayer.response");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "LoginWithGameCenterHandler", jsonChar);
     }];
@@ -56,11 +52,9 @@ void _loginWithGameCenterPlayer()
 void _verifyUser()
 {
     [arbiter verifyUser:^(NSDictionary *jsonDict) {
-        NSLog(@"--- _verifyUser.response");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "VerifyUserHandler", jsonChar);
     }];
@@ -69,11 +63,9 @@ void _verifyUser()
 void _getWallet()
 {
     [arbiter getWallet:^(NSDictionary *jsonDict) {
-        NSLog(@"--- _getWallet.response");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetWalletHandler", jsonChar);
     }];
@@ -95,11 +87,9 @@ void _copyDepositAddressToClipboard()
 void _requestCompetition( const char* buyIn, const char* filters )
 {
     [arbiter requestCompetition:^(NSDictionary *jsonDict) {
-            NSLog(@"--- _requestCompetition.response");
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            NSLog(@"%@", jsonString);
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "RequestCompetitionHandler", jsonChar );
         }
@@ -111,11 +101,9 @@ void _requestCompetition( const char* buyIn, const char* filters )
 void _getCompetitions()
 {
     [arbiter getCompetitions:^(NSDictionary *jsonDict) {
-        NSLog(@"--- _getCompetitions.response");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        NSLog(@"%@", jsonString);
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
     } page:nil];
@@ -124,7 +112,6 @@ void _getCompetitions()
 void _viewPreviousCompetitions()
 {
     [arbiter viewPreviousCompetitions:^(void) {
-        NSLog(@"--- _viewPreviousCompetitions.response");
         UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
     } page:nil];
 }
@@ -140,11 +127,9 @@ void _viewIncompleteCompetitions()
 void _reportScore( const char* competitionId, const char* score )
 {
     [arbiter reportScore:^(NSDictionary *jsonDict) {
-            NSLog(@"--- _requestCompetition.response");
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-            NSLog(@"%@", jsonString);
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
         }

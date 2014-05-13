@@ -2,9 +2,9 @@
 //  Arbiter.m
 //  Arbiter
 //
-//  Created by Andy Zinsser on 12/5/13.
-//  Copyright (c) 2013 Arbiter. All rights reserved.
+//  Copyright (c) 2014 Arbiter. All rights reserved.
 //
+
 
 #import <GameKit/GameKit.h>
 #import "Arbiter.h"
@@ -31,34 +31,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 #pragma mark Arbiter Methods
 
 /** ttt from other repo... integrate or delete each one of these!
-
-
-- (void)withdrawWithSettings:(NSDictionary *)settings callback:(void (^)(NSString *))handler
-{
-    AFHTTPRequestOperationManager *manager = [AFHTTPRequestOperationManager manager];
-    [manager POST:[NSString stringWithFormat:@"%@%@", APIWalletURL, self.session.userId]
-       parameters:settings
-          success:^(AFHTTPRequestOperation *operation, id responseObject)
-     {
-         NSDictionary *jsonDict = (NSDictionary *) responseObject;
-         BOOL success = [[jsonDict objectForKey:@"success"] boolValue];
-
-         if (success) {
-             self.wallet = [[ArbiterWallet alloc] initWithDetails:[jsonDict objectForKey:@"wallet"]];
-             _completionHandler = [handler copy];
-             _completionHandler(@"true");
-             _completionHandler = nil;
-         } else {
-             NSString *verificationURL = [jsonDict objectForKey:@"verification_url"];
-             ArbiterVerificationWebView *view = [[ArbiterVerificationWebView alloc] initWithVerificationURL:verificationURL callback:handler];
-             view = nil;
-         }
-     }
-          failure:^(AFHTTPRequestOperation *operation, NSError *error)
-     {
-         NSLog(@"Withdraw error: %@", error);
-     }];
-}
 
 - (void)claimAccountWithCredentials:(NSDictionary *)credentials callback:(void (^)(NSString *))handler
 {

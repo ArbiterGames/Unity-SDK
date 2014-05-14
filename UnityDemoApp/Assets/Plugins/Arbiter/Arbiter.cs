@@ -117,28 +117,21 @@ public partial class Arbiter : MonoBehaviour
 	/// Finds an existing competition that you could join. If no available competitions are found, requests a new one and returns that.
 	/// </summary>
     public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
-        getScorableCompetitionCallback = callback; // ttt kill the class member?
-
 		Func<Competition,bool> isScorableByCurrentUser = ( competition ) => {
 			return (competition.Status == Competition.StatusType.Initializing || competition.Status == Competition.StatusType.InProgress) &&
 				competition.UserCanReportScore( user );
 		};
 
 		GetCompetitionsCallback gotCompetitionsPollHelper = ( competitions ) => {
-			Debug.Log("ttt competitions poll helper....");
 			List<Competition> joinableCompetitions = competitions.Where( iComp => isScorableByCurrentUser( iComp )).ToList();
 			if( joinableCompetitions.Count > 0 ) {
-				Debug.Log("ttt found one!");
 				competitionPoller.Stop();
 				callback( joinableCompetitions[0] );
-			} else {
-				Debug.Log("ttt not found. Waiting for poller to ask again. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
-				Debug.Log("***************************************************************************");
 			}
+			// Else wait for the poller to call this anon func again...
 		};
 
 		Action askAgain = () => {
-			Debug.Log("ttt ask again....");
 			ArbiterBinding.GetCompetitions( gotCompetitionsPollHelper, getCompetitionsErrorHandler );
 		};
 		
@@ -148,9 +141,6 @@ public partial class Arbiter : MonoBehaviour
 
 		GetCompetitionsCallback gotCompetitionsFirstTimeHelper = ( competitions ) => {
 			List<Competition> joinableCompetitions = competitions.Where( iComp => isScorableByCurrentUser( iComp )).ToList();
-			Debug.Log("ttt gotCompetitionsFirstTime. Found scorable count="+joinableCompetitions.Count);
-			joinableCompetitions.ForEach( comp => Debug.Log( "ttt comp="+comp.Id ));
-			
 			if( joinableCompetitions.Count > 0 ) {
 				callback( joinableCompetitions[0] );
 			} else {
@@ -158,37 +148,8 @@ public partial class Arbiter : MonoBehaviour
 			}
 		};
 
-
-
-
-
 		ArbiterBinding.GetCompetitions( gotCompetitionsFirstTimeHelper, getCompetitionsErrorHandler );
-
-
-		// ttt OLD....
-		// Assume that the poll function called here will request a new competition if it doesn't find any acceptable ones on the first try.
-		//pollUntilScorableCompetitionFound( buyIn, filters );
     }
-	/* ttt
-	private GetCompetitionsCallback GotCompetitionsFirstTimeHelper( List<Competition> competitions ) {
-		List<Competition> joinableCompetitions = competitions.Where( c => isJoinable( c ));
-		joinableCompetitions.ForEach( comp => Debug.Log( "ttt comp="+comp.Id ));
-		
-		if( joinableCompetitions.Count > 0 ) {
-			return joinableCompetitions[0];
-		} else {
-			RequestCompetition( buyIn, filters, GotCompetitionsSecondTimeHelper );
-		}
-	}
-	private bool IsJoinable( Competition competition ) {
-		return true;
-	}
-	private GetCompetitionsCallback GotCompetitionsSecondTimeHelper( List<Competition> competitions ) {
-		Debug.Log("ttt got competitions 2nd time helper....");
-		List<Competition> joinableCompetitions = competitions.Where( c => isJoinable( c ));
-		if( 
-	}
-	*/
 
 
     public delegate void RequestCompetitionCallback();
@@ -202,8 +163,6 @@ public partial class Arbiter : MonoBehaviour
         if( filters == null ) {
             filters = new Dictionary<string,string>();
         }
-        
-		Debug.Log("ttt reqeusting competition from the binding...");
         ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
     }
 
@@ -265,65 +224,6 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
-	/* tttk
-	private static void pollUntilScorableCompetitionFound( string buyIn, Dictionary<string,string> filters ) {
-        competitionPoller.SetAction( () => {
-			Action findExistingFromCacheOrRequestNewCompetition = () => {
-				Competition found = findScorableCompetition();
-				Debug.Log("ttt found="+found);
-				Debug.Log("ttt getScorableCompetitionCallback="+getScorableCompetitionCallback);
-				if( found != null ) {
-					if( getScorableCompetitionCallback != null )
-						getScorableCompetitionCallback( found );
-					getScorableCompetitionCallback = null;
-					competitionRequestSemaphore = 0;
-					competitionPoller.Stop();
-				} else {
-					requestNewCompetitionOrWait( buyIn, filters );
-				}
-			};
-			Arbiter.QueryCompetitions( findExistingFromCacheOrRequestNewCompetition );
-        });
-    }
-	private static Competition findScorableCompetition() {
-		Debug.Log("ttt findScorableCompetition()");
-        IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
-        Competition found = null;
-        while( e.MoveNext() ) {
-            Competition c = e.Current;
-			if( c.UserHasNotReportedScore( user )) {
-                found = c;
-                break;
-            }
-        }
-        
-        if ( found == null ) {
-        	e = initializingCompetitions.GetEnumerator();
-			while( e.MoveNext() ) {
-				Competition c = e.Current;
-				if( c.UserHasNotReportedScore( user )) {
-					found = c;
-					break;
-				}
-			}
-        }
-
-		return found;
-    }
-	private static void requestNewCompetitionOrWait( string buyIn, Dictionary<string,string> filters ) {
-		Debug.Log("ttt semaphore="+competitionRequestSemaphore);
-		if( competitionRequestSemaphore <= 0 ) {
-			competitionRequestSemaphore += 1;
-			RequestCompetitionCallback tryAgain = () => {
-				competitionPoller.Reset();
-			};
-			RequestCompetition( buyIn, filters, tryAgain );
-		}
-		// else wait for the poller to catch the recently-requested competition!
-	}
-	*/
-
-
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );
@@ -358,7 +258,6 @@ public partial class Arbiter : MonoBehaviour
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
-    private static GetScorableCompetitionCallback getScorableCompetitionCallback;
     private static Action getCompetitionsCallback;
     private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
 	private static Action viewIncompleteCompetitionsCallback;

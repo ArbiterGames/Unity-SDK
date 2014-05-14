@@ -405,21 +405,21 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler {
     NSLog( @"ArbiterSDK POST %@", url );
-    NSError *error;
+    NSError *error = nil;
     NSData *paramsData;
-    if( params != nil ) {
-        paramsData = [NSJSONSerialization dataWithJSONObject:params
-                                                     options:0
-                                                       error:&error];
-        if( !paramsData ) {
-            NSLog(@"ERROR: %@", error);
-            handler( @{
-                @"success": @"false",
-                @"errors": @[error]
-            });
-        }
+    if( params == nil ) {
+        params = @{};
     }
-    if( !error ) {
+    paramsData = [NSJSONSerialization dataWithJSONObject:params
+                                                 options:0
+                                                   error:&error];
+    if( error != nil ) {
+        NSLog(@"ERROR: %@", error);
+        handler( @{
+            @"success": @"false",
+            @"errors": @[error]
+        });
+    } else {
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];

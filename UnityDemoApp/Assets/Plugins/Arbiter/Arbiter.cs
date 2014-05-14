@@ -11,11 +11,14 @@ public partial class Arbiter : MonoBehaviour
 		// Add a GO to the scene for iOS to send responses back to
 		GameObject go = new GameObject( "ArbiterBinding" );
 		go.AddComponent<ArbiterBinding>();
-        walletPoller = go.AddComponent<Poller>();
-        competitionPoller = go.AddComponent<Poller>();
+		GameObject.DontDestroyOnLoad( go );
         wallet = new Wallet();
         user = new User();
-		GameObject.DontDestroyOnLoad( go );
+
+		walletPoller = Poller.Create( "ArbiterWalletPoller" );
+		competitionPoller = Poller.Create( "ArbiterCompetitionPoller" );
+		DontDestroyOnLoad( walletPoller.gameObject );
+		DontDestroyOnLoad( competitionPoller.gameObject );
 	}
 
 
@@ -110,8 +113,7 @@ public partial class Arbiter : MonoBehaviour
     public delegate void GetScorableCompetitionCallback( Competition competition );
     public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
         getScorableCompetitionCallback = callback;
-        // ttt TODO: Check if there is already an 'unplayed' competition this user is already a part of. For now just request a new one and then start polling.
-        RequestCompetition( buyIn, filters, null );
+		// Assume that the poll function called here will request a new competition if it doesn't find any acceptable ones on the first try.
 		pollUntilScorableCompetitionFound( buyIn, filters );
     }
 
@@ -125,6 +127,7 @@ public partial class Arbiter : MonoBehaviour
             filters = new Dictionary<string,string>();
         }
         
+		Debug.Log("ttt reqeusting competition from the binding...");
         ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
     }
 
@@ -188,24 +191,21 @@ public partial class Arbiter : MonoBehaviour
 			Action findExistingFromCacheOrRequestNewCompetition = () => {
 				Competition found = findScorableCompetition();
 				Debug.Log("ttt found="+found);
+				Debug.Log("ttt getScorableCompetitionCallback="+getScorableCompetitionCallback);
 				if( found != null ) {
 					if( getScorableCompetitionCallback != null )
 						getScorableCompetitionCallback( found );
 					getScorableCompetitionCallback = null;
+					competitionRequestSemaphore = 0;
 					competitionPoller.Stop();
 				} else {
-					if( competitionRequestSemaphore <= 0 ) {
-						competitionRequestSemaphore += 1;
-						GetScorableCompetitionCallback decSemaphore = ( ignoredComp ) => competitionRequestSemaphore -= 1;
-						GetScorableCompetition( buyIn, filters, decSemaphore );
-					}
-					// else wait for the poller to catch the newly-requested competition!
+					requestNewCompetitionOrWait( buyIn, filters );
 				}
 			};
 			Arbiter.QueryCompetitions( findExistingFromCacheOrRequestNewCompetition );
         });
     }
-    private static Competition findScorableCompetition() {
+	private static Competition findScorableCompetition() {
 		Debug.Log("ttt findScorableCompetition()");
         IEnumerator<Competition> e = inProgressCompetitions.GetEnumerator();
         Competition found = null;
@@ -230,6 +230,17 @@ public partial class Arbiter : MonoBehaviour
 
 		return found;
     }
+	private static void requestNewCompetitionOrWait( string buyIn, Dictionary<string,string> filters ) {
+		Debug.Log("ttt semaphore="+competitionRequestSemaphore);
+		if( competitionRequestSemaphore <= 0 ) {
+			competitionRequestSemaphore += 1;
+			RequestCompetitionCallback tryAgain = () => {
+				competitionPoller.Reset();
+			};
+			RequestCompetition( buyIn, filters, tryAgain );
+		}
+		// else wait for the poller to catch the recently-requested competition!
+	}
 
 
     private static void defaultErrorHandler( List<string> errors ) {

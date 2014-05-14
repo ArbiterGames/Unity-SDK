@@ -21,6 +21,7 @@ public class Poller : MonoBehaviour {
 
 
     public void SetAction( Action poll ) {
+		Debug.Log("ttt Poller.SetAction!!!!!!!!!!!!!!!!!");
         this.poll = ( ignoringCallback ) => { poll(); };
         Reset();
     }

@@ -42,6 +42,7 @@ public class Game : MonoBehaviour {
 
 
     private void OnCompetitionFound( Arbiter.Competition competition ) {
+		Debug.Log("ttt OnCompetitionFound");
         globals.SelectedUnfinishedCompetitionId = CompetitionId = competition.Id;
         PlayGame();
     }

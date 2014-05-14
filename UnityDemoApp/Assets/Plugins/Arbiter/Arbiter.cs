@@ -19,6 +19,8 @@ public partial class Arbiter : MonoBehaviour
 		competitionPoller = Poller.Create( "ArbiterCompetitionPoller" );
 		DontDestroyOnLoad( walletPoller.gameObject );
 		DontDestroyOnLoad( competitionPoller.gameObject );
+		walletPoller.Verbose = false;
+		competitionPoller.Verbose = true;
 	}
 
 
@@ -130,7 +132,8 @@ public partial class Arbiter : MonoBehaviour
 				competitionPoller.Stop();
 				callback( joinableCompetitions[0] );
 			} else {
-				Debug.Log("ttt not found. Waiting for poller to ask again.");
+				Debug.Log("ttt not found. Waiting for poller to ask again. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!");
+				Debug.Log("***************************************************************************");
 			}
 		};
 

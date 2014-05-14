@@ -21,8 +21,7 @@ public class Poller : MonoBehaviour {
 
 
     public void SetAction( Action poll ) {
-		Debug.Log("ttt Poller.SetAction!!!!!!!!!!!!!!!!!");
-        this.poll = ( ignoringCallback ) => { poll(); };
+		this.poll = ( callbackWrapper ) => { poll(); callbackWrapper(); };
         Reset();
     }
 
@@ -41,7 +40,7 @@ public class Poller : MonoBehaviour {
         this.enabled = true;
         this.currentPollTime = 1.0f;
         this.nextPollPeriod = 2.0f;
-        this.waitingForResponse = false; 
+        this.waitingForResponse = false;
     }
 
 
@@ -53,7 +52,7 @@ public class Poller : MonoBehaviour {
                 this.currentPollTime = nextPollPeriod;
                 this.waitingForResponse = true;
                           
-                if( Verbose ) Debug.Log( "Poll timer complete. Will poll again in " + currentPollTime + " seconds and receiving its callback." );                                
+                if( Verbose ) Debug.Log( "Poll timer complete. Will poll again in " + currentPollTime + " seconds and having received its callback." );                                
                                 
                 this.poll( callback );
             }

@@ -26,7 +26,7 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
         }
 
 
-        public bool UserHasNotReportedScore( User user ) {
+        public bool UserCanReportScore( User user ) {
             bool rv = false;
             this.players.ForEach( player => {
                 if( player.User == user && player.Score == 0 )

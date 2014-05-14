@@ -23,7 +23,7 @@ public class Game : MonoBehaviour {
 		globals = globalsGO.GetComponent<Globals>();
 
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
-            Problems = "You need to deposit more bitcoin first.";
+            Problems = "You need to deposit more money first.";
         } else {
             if ( globals.SelectedUnfinishedCompetitionId == null || globals.SelectedUnfinishedCompetitionId == "" ) {
 				GetCompetition();

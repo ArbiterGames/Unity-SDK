@@ -131,8 +131,18 @@ public partial class Arbiter : MonoBehaviour
 			// Else wait for the poller to call this anon func again...
 		};
 
+		int retries = 0;
+		const int MAX_RETRIES = 10;
 		Action askAgain = () => {
-			ArbiterBinding.GetCompetitions( gotCompetitionsPollHelper, getCompetitionsErrorHandler );
+			retries++;
+			if( retries > MAX_RETRIES ) {
+				List<string> errors = new List<string>();
+				errors.Add( "Competition request limit exceeded. Ceasing new requests." );
+				getCompetitionsErrorHandler( errors );
+				competitionPoller.Stop();
+			} else {
+				ArbiterBinding.GetCompetitions( gotCompetitionsPollHelper, getCompetitionsErrorHandler );
+			}
 		};
 		
 		RequestCompetitionCallback gotRequestResponse = () => {
@@ -251,7 +261,6 @@ public partial class Arbiter : MonoBehaviour
 	private static List<Competition> initializingCompetitions;
     private static List<Competition> inProgressCompetitions;
     private static List<Competition> completeCompetitions;
-	private static int competitionRequestSemaphore = 0;
 
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;

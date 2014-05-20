@@ -188,7 +188,7 @@ namespace ArbiterInternal {
 			
 #if UNITY_EDITOR
             ReportIgnore( "ReportScore" );
-            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Initializing, new List<Arbiter.Player>() ));
+            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Initializing, new List<Arbiter.Player>(), null ));
 #elif UNITY_IOS
             _reportScore( competitionId, score.ToString() );
 #endif
@@ -378,7 +378,8 @@ namespace ArbiterInternal {
                 break;
             }
             List<Arbiter.Player> players = parsePlayers( competitionNode["players"] );
-            Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players );
+			Arbiter.Jackpot jackpot = parseJackpot( competitionNode["jackpot"] );
+            Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players, jackpot );
             if( competitionNode["winner"] != null ) {
                 string winnerId = competitionNode["winner"];
                 foreach( var player in players ) {
@@ -407,8 +408,19 @@ namespace ArbiterInternal {
             return rv;
         }
 
+		private Arbiter.Jackpot parseJackpot( JSONNode jackpotNode ) {
+			string id = jackpotNode["id"];
+			string buyIn = jackpotNode["buy_in"];
+			string balance = jackpotNode["balance"];
+			Arbiter.Jackpot rv = new Arbiter.Jackpot();
+			rv.Id = id;
+			rv.BuyIn = buyIn;
+			rv.Balance = balance;
+			return rv;
+		}
+
 
     }
 
 
-} // namespace ArbiterInternal
+}

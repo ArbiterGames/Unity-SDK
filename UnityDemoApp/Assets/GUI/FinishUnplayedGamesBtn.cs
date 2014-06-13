@@ -7,14 +7,14 @@ using System.Collections.Generic;
 public class FinishUnplayedGamesBtn : MonoBehaviour {
 	
 	void OnMouseUpAsButton() {
-		Arbiter.ViewIncompleteCompetitions( PlayUnfinishedGame );
+		Arbiter.ViewIncompleteTournaments( PlayUnfinishedGame );
 	}
 	
-	void PlayUnfinishedGame( string competitionId ) {
-		if ( competitionId != "" ) {
+	void PlayUnfinishedGame( string tournamentId ) {
+		if ( tournamentId != "" ) {
 			GameObject globalsGO = GameObject.Find ("Globals");
 			Globals globals = globalsGO.GetComponent<Globals>();
-			globals.SelectedUnfinishedCompetitionId = competitionId;
+			globals.SelectedUnfinishedTournamentId = tournamentId;
 			Application.LoadLevel( "FakeGameScene.cs" );
 		}
 	}	

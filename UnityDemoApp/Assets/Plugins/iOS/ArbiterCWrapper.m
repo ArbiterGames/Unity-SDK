@@ -84,47 +84,47 @@ void _copyDepositAddressToClipboard()
     [arbiter copyDepositAddressToClipboard];
 }
 
-void _requestCompetition( const char* buyIn, const char* filters )
+void _requestTournament( const char* buyIn, const char* filters )
 {
-    [arbiter requestCompetition:^(NSDictionary *jsonDict) {
+    [arbiter requestTournament:^(NSDictionary *jsonDict) {
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-            UnitySendMessage("ArbiterBinding", "RequestCompetitionHandler", jsonChar );
+            UnitySendMessage("ArbiterBinding", "RequestTournamentHandler", jsonChar );
         }
         buyIn:[[NSString alloc] initWithUTF8String:buyIn]
         filters:[[NSString alloc] initWithUTF8String:filters]
      ];
 }
 
-void _getCompetitions()
+void _getTournaments()
 {
-    [arbiter getCompetitions:^(NSDictionary *jsonDict) {
+    [arbiter getTournaments:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-        UnitySendMessage("ArbiterBinding", "GetCompetitionsHandler", jsonChar);
+        UnitySendMessage("ArbiterBinding", "GetTournamentsHandler", jsonChar);
     } page:nil];
 }
 
-void _viewPreviousCompetitions()
+void _viewPreviousTournaments()
 {
-    [arbiter viewPreviousCompetitions:^(void) {
-        UnitySendMessage("ArbiterBinding", "ViewPreviousCompetitionsHandler", @"" );
+    [arbiter viewPreviousTournaments:^(void) {
+        UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", @"" );
     } page:nil];
 }
 
-void _viewIncompleteCompetitions()
+void _viewIncompleteTournaments()
 {
-    [arbiter viewIncompleteCompetitions:^(NSString *competitionId) {
-        const char* jsonChar = AutonomousStringCopy([competitionId UTF8String]);
-        UnitySendMessage("ArbiterBinding", "ViewIncompleteCompetitionsHandler", jsonChar );
+    [arbiter viewIncompleteTournaments:^(NSString *tournamentId) {
+        const char* jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
+        UnitySendMessage("ArbiterBinding", "ViewIncompleteTournamentsHandler", jsonChar );
     } page:nil];
 }
 
-void _reportScore( const char* competitionId, const char* score )
+void _reportScore( const char* tournamentId, const char* score )
 {
     [arbiter reportScore:^(NSDictionary *jsonDict) {
             NSError *error;
@@ -133,7 +133,7 @@ void _reportScore( const char* competitionId, const char* score )
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
         }
-        competitionId:[[NSString alloc] initWithUTF8String:competitionId]
+        tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
         score:[[NSString alloc] initWithUTF8String:score]
     ];
 }

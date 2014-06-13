@@ -16,11 +16,11 @@ public partial class Arbiter : MonoBehaviour
         user = new User();
 
 		walletPoller = Poller.Create( "ArbiterWalletPoller" );
-		competitionPoller = Poller.Create( "ArbiterCompetitionPoller" );
+		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
 		DontDestroyOnLoad( walletPoller.gameObject );
-		DontDestroyOnLoad( competitionPoller.gameObject );
+		DontDestroyOnLoad( tournamentPoller.gameObject );
 		walletPoller.Verbose = false;
-		competitionPoller.Verbose = true;
+		tournamentPoller.Verbose = true;
 	}
 
 
@@ -56,6 +56,14 @@ public partial class Arbiter : MonoBehaviour
     }
     public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
+
+
+	/// <summary>
+	/// Deletes cached user, wallet, and tournament data and returns Arbiter back to an un-initialized state
+	/// </summary>
+//	public static void Logout( Action done ) {
+//		// Setup ArbiterBinding Function
+//	}
 
 
     public static void VerifyUser( Action done ) {
@@ -112,21 +120,21 @@ public partial class Arbiter : MonoBehaviour
     }
 
 	
-    public delegate void GetScorableCompetitionCallback( Competition competition );
+	public delegate void GetTournamentCallback( Tournament tournament );
 	/// <summary>
-	/// Finds an existing competition that you could join. If no available competitions are found, requests a new one and returns that.
+	/// Finds an existing tournament that you could join. If no available tournaments are found, requests a new one and returns that.
 	/// </summary>
-    public static void GetScorableCompetition( string buyIn, Dictionary<string,string> filters, GetScorableCompetitionCallback callback ) {
-		Func<Competition,bool> isScorableByCurrentUser = ( competition ) => {
-			return (competition.Status == Competition.StatusType.Initializing || competition.Status == Competition.StatusType.InProgress) &&
-				competition.UserCanReportScore( user );
+	public static void GetTournament( string buyIn, Dictionary<string,string> filters, GetTournamentCallback callback ) {
+		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
+			return (tournament.Status == Tournament.StatusType.Initializing || tournament.Status == Tournament.StatusType.InProgress) &&
+			tournament.UserCanReportScore( user );
 		};
 
-		GetCompetitionsCallback gotCompetitionsPollHelper = ( competitions ) => {
-			List<Competition> joinableCompetitions = competitions.Where( iComp => isScorableByCurrentUser( iComp )).ToList();
-			if( joinableCompetitions.Count > 0 ) {
-				competitionPoller.Stop();
-				callback( joinableCompetitions[0] );
+		GetTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
+			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
+			if( joinableTournaments.Count > 0 ) {
+				tournamentPoller.Stop();
+				callback( joinableTournaments[0] );
 			}
 			// Else wait for the poller to call this anon func again...
 		};
@@ -137,101 +145,101 @@ public partial class Arbiter : MonoBehaviour
 			retries++;
 			if( retries > MAX_RETRIES ) {
 				List<string> errors = new List<string>();
-				errors.Add( "Competition request limit exceeded. Ceasing new requests." );
-				getCompetitionsErrorHandler( errors );
-				competitionPoller.Stop();
+				errors.Add( "Tournament request limit exceeded. Ceasing new requests." );
+				getTournamentsErrorHandler( errors );
+				tournamentPoller.Stop();
 			} else {
-				ArbiterBinding.GetCompetitions( gotCompetitionsPollHelper, getCompetitionsErrorHandler );
+				ArbiterBinding.GetTournaments( gotTournamentsPollHelper, getTournamentsErrorHandler );
 			}
 		};
 		
-		RequestCompetitionCallback gotRequestResponse = () => {
-			competitionPoller.SetAction( askAgain );
+		RequestTournamentCallback gotRequestResponse = () => {
+			tournamentPoller.SetAction( askAgain );
 		};
 
-		GetCompetitionsCallback gotCompetitionsFirstTimeHelper = ( competitions ) => {
-			List<Competition> joinableCompetitions = competitions.Where( iComp => isScorableByCurrentUser( iComp )).ToList();
-			if( joinableCompetitions.Count > 0 ) {
-				callback( joinableCompetitions[0] );
+		GetTournamentsCallback gotTournamentsFirstTimeHelper = ( tournaments ) => {
+			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
+			if( joinableTournaments.Count > 0 ) {
+				callback( joinableTournaments[0] );
 			} else {
-				RequestCompetition( buyIn, filters, gotRequestResponse );
+				RequestTournament( buyIn, filters, gotRequestResponse );
 			}
 		};
 
-		ArbiterBinding.GetCompetitions( gotCompetitionsFirstTimeHelper, getCompetitionsErrorHandler );
+		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
     }
 
 
-    public delegate void RequestCompetitionCallback();
+	public delegate void RequestTournamentCallback();
 	/// <summary>
-	/// Requests a new Competition. See also GetScorableCompetition(...).
+	/// Requests a new Tournament.
 	/// </summary>
-    public static void RequestCompetition( Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
-        RequestCompetition( null, filters, callback );
-    }
-    public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, RequestCompetitionCallback callback ) {
-        if( filters == null ) {
-            filters = new Dictionary<string,string>();
-        }
-        ArbiterBinding.RequestCompetition( buyIn, filters, callback, defaultErrorHandler );
-    }
-
-
-	/// <summary>
-	/// Asks the server for a list of competitions in various stages.
-	/// </summary>
-    public static void QueryCompetitions( Action callback ) {
-        getCompetitionsCallback = callback;
-        ArbiterBinding.GetCompetitions( GetCompetitionsSuccessHandler, getCompetitionsErrorHandler );
-    }
-    public delegate void GetCompetitionsCallback( List<Competition> competitions );
-    public static void GetCompetitionsSuccessHandler( List<Competition> competitions ) {
-        initializingCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Initializing ).ToList();
-        inProgressCompetitions = competitions.Where( c => c.Status == Competition.StatusType.InProgress ).ToList();
-        completeCompetitions = competitions.Where( c => c.Status == Competition.StatusType.Complete ).ToList();
-        getCompetitionsCallback();
-    }
-
-
-	public static List<Competition> InitializingCompetitions {
-        get {
-			return initializingCompetitions;
-        }
-    }
-    public static List<Competition> InProgressCompetitions {
-        get {
-            return inProgressCompetitions;
-        }
-    }
-    public static List<Competition> CompleteCompetitions {
-        get {
-            return completeCompetitions;
-        }
-    }
-
-
-    public delegate void ViewPreviousCompetitionsCallback();
-    public static void ViewPreviousCompetitions( ViewPreviousCompetitionsCallback callback ) {
-        if( callback == null )
-            callback = () => {};
-        ArbiterBinding.ViewPreviousCompetitions( callback );
-    }
-    
-    
-	public delegate void ViewIncompleteCompetitionsCallback( string competitionId );
-	public static void ViewIncompleteCompetitions( ViewIncompleteCompetitionsCallback callback ) {
-		if( callback == null )
-			callback = ( String competitionId ) => {};
-		ArbiterBinding.ViewIncompleteCompetitions( callback );
+	public static void RequestTournament( Dictionary<string,string> filters, RequestTournamentCallback callback ) {
+		RequestTournament( null, filters, callback );
+	}
+	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
+		if( filters == null ) {
+			filters = new Dictionary<string,string>();
+		}
+		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
 	}
 
 
-    public delegate void ReportScoreCallback( Competition competition );
-    public static void ReportScore( string competitionId, int score, ReportScoreCallback callback ) {
-        if( callback == null )
-            Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
-        ArbiterBinding.ReportScore( competitionId, score, callback, defaultErrorHandler );
-    }
+
+	/// <summary>
+	/// Asks the server for a list of tournaments in various stages.
+	/// </summary>
+	public static void QueryTournaments( Action callback ) {
+		getTournamentsCallback = callback;
+		ArbiterBinding.GetTournaments( GetTournamentsSuccessHandler, getTournamentsErrorHandler );
+	}
+	public delegate void GetTournamentsCallback( List<Tournament> tournaments );
+	public static void GetTournamentsSuccessHandler( List<Tournament> tournaments ) {
+		initializingTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Initializing ).ToList();
+		inProgressTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.InProgress ).ToList();
+		completeTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Complete ).ToList();
+		getTournamentsCallback();
+	}
+
+	public static List<Tournament> InitializingTournaments {
+		get {
+			return initializingTournaments;
+		}
+	}
+	public static List<Tournament> InProgressTournaments {
+		get {
+			return inProgressTournaments;
+		}
+	}
+	public static List<Tournament> CompleteTournaments {
+		get {
+			return completeTournaments;
+		}
+	}
+
+
+	public delegate void ViewPreviousTournamentsCallback();
+	public static void ViewPreviousTournaments( ViewPreviousTournamentsCallback callback ) {
+		if( callback == null )
+		callback = () => {};
+		ArbiterBinding.ViewPreviousTournaments( callback );
+	}
+    
+    
+	public delegate void ViewIncompleteTournamentsCallback( string tournamentId );
+	public static void ViewIncompleteTournaments( ViewIncompleteTournamentsCallback callback ) {
+		if( callback == null )
+		callback = ( String tournamentId ) => {};
+		ArbiterBinding.ViewIncompleteTournaments( callback );
+	}
+
+
+	public delegate void ReportScoreCallback( Tournament tournament );
+	public static void ReportScore( string tournamentId, int score, ReportScoreCallback callback ) {
+		if( callback == null )
+			Debug.LogError( "Must pass in a non-null handler to Arbiter.ReportScore" );
+		ArbiterBinding.ReportScore( tournamentId, score, callback, defaultErrorHandler );
+	}
 
 
     private static void defaultErrorHandler( List<string> errors ) {
@@ -253,23 +261,23 @@ public partial class Arbiter : MonoBehaviour
 
 
     private static Poller walletPoller;
-    private static Poller competitionPoller;
+    private static Poller tournamentPoller;
     private static User user;
     private enum VerificationStatus { Unknown, Unverified, Verified };
     private static VerificationStatus verified = VerificationStatus.Unknown;
     private static Wallet wallet;
-	private static List<Competition> initializingCompetitions;
-    private static List<Competition> inProgressCompetitions;
-    private static List<Competition> completeCompetitions;
+	private static List<Tournament> initializingTournaments;
+	private static List<Tournament> inProgressTournaments;
+	private static List<Tournament> completeTournaments;
 
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
-    private static Action getCompetitionsCallback;
-    private static ArbiterBinding.ErrorHandler getCompetitionsErrorHandler = defaultErrorHandler;
-	private static Action viewIncompleteCompetitionsCallback;
+	private static Action getTournamentsCallback;
+	private static ArbiterBinding.ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;
+	private static Action viewIncompleteTournamentsCallback;
 #if UNITY_IOS
     private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 #endif

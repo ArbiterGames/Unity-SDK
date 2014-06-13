@@ -9,9 +9,9 @@ using System.Collections.Generic;
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
+		const string GAME_API_KEY = "c61d1e3f7d5544e595551ff773121077";     // This comes from the www.arbiter.me/dashboard/games/
+		
         ArbiterOptionalStep();
-
-        const string GAME_API_KEY = "80637f8cfd534aa0931b4c54a36b299c";     // This comes from the www.arbiter.me/dashboard/games
         Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
 	}
 
@@ -100,6 +100,9 @@ public class Entrypoint : MonoBehaviour {
     void UpdateWalletElements() {
         bool verified = Arbiter.Verified;
         string balance = Arbiter.Balance;
+        // TODO: Add PendingBalance to Arbiter class definition
+        //		 Figure out where else this should also go (wallet alert, main scene)
+		// string pendingBalance = Arbiter.PendingBalance;
         string depositAddress = Arbiter.DepositAddress;
         string depositQrCode = Arbiter.DepositQrCode;
         string withdrawAddress = Arbiter.WithdrawAddress;

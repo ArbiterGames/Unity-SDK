@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 
 [RequireComponent (typeof (GUIText))]
-public class CompetitionIdPoller : MonoBehaviour {
+public class TournamentIdPoller : MonoBehaviour {
 	
 
     void Awake() {
@@ -18,7 +18,7 @@ public class CompetitionIdPoller : MonoBehaviour {
 
 
 	void OnGUI() {
-        textField.text = game.CompetitionId;
+        textField.text = game.TournamentId;
     }
 
 

@@ -7,19 +7,20 @@
 
 
 #import <GameKit/GameKit.h>
+#import <CoreLocation/CoreLocation.h>
 #import "Arbiter.h"
 
 
 #define PRE_URL @"https://www.arbiter.me/api/v1/"
-//#define PRE_URL @"http://10.0.0.7:5000/api/v1/"
 
 NSString *const APIUserInitializeURL = PRE_URL @"user/initialize";
 NSString *const APIWalletURL = PRE_URL @"wallet/";
 NSString *const APIUserLoginURL = PRE_URL @"user/login";
 NSString *const APILinkWithGameCenterURL = PRE_URL @"user/link-with-game-center";
 NSString *const APIUserDetailsURL = PRE_URL @"user/";
-NSString *const APIRequestCompetitionURL = PRE_URL @"competition/";
-NSString *const APIReportScoreURLPart1 = PRE_URL @"competition/";
+NSString *const APITournamentCreateURL = PRE_URL @"tournament/create";
+NSString *const APIRequestTournamentURL = PRE_URL @"tournament/";
+NSString *const APIReportScoreURLPart1 = PRE_URL @"tournament/";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
@@ -41,9 +42,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
 
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-            NSDictionary *userDict = [responseDict objectForKey:@"user"];
-            self.token = [userDict objectForKey:@"token"];
-            self.userId = [userDict objectForKey:@"id"];
+            self.user = [responseDict objectForKey:@"user"];
             self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
             handler(responseDict);
         } copy];
@@ -121,20 +120,19 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 [alert setTag:2];
                 [alert show];
             } else {
-                // TODO: Pass in a zip code that fails
-                //       check what the error message is
-                //       display apology alert
-                //       the confirm click should close the dialog and return to the game state
                 NSLog(@"TODO: Handle apology message: %@", error);
                 handler(responseDict);
             }
         } else {
-            // The user has already agreed to the terms before
             handler(responseDict);
         }
     } copy];
 
-    NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", self.userId];
+    // use significant-change location service
+    // call the locationServicesEnabled class method of CLLocationManager before attempting
+    
+    // TODO: pass in the postal_code as a param
+    NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", [self.user objectForKey:@"id"]];
     NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
 
     [self httpPost:verifyUrl params:nil handler:connectionHandler];
@@ -147,7 +145,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    NSString *walletUrl = [APIWalletURL stringByAppendingString:self.userId];
+    NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
     [self httpGet:walletUrl handler:connectionHandler];
 }
 
@@ -162,8 +160,9 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
     [_alertViewHandlerRegistry setObject:connectionHandler forKey:@"closeWalletHandler"];
 
-    NSString *message = [NSString stringWithFormat: @"Balance: %@ Credits", [self.wallet objectForKey:@"balance"]];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Wallet" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+    NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+    NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLocation: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"postal_code"]];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", @"Update Location", nil];
     [alert setTag:1];
     [alert show];
 }
@@ -204,12 +203,14 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 }
 
 
-#pragma mark Competition Methods
+#pragma mark Tournament Methods
 
-- (void)requestCompetition:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
+/**
+    Requests a new Tournament for this user from Arbiter
+ */
+- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
-        @"game_api_key": self.apiKey,
         @"buy_in":buyIn,
         @"filters":filters
     };
@@ -218,59 +219,58 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    NSString *requestUrl = [APIRequestCompetitionURL stringByAppendingString:self.userId];
-    [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
+    [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
 }
 
 
 /**
-    Makes the request to Arbiter to a paginated set of competitions for this user
+    Makes the request to Arbiter to a paginated set of tournaments for this user
  */
-- (void)getCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
+- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSDictionary *paginationInfo = [responseDict objectForKey:@"competitions"];
-        self.previousPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
-        self.nextPageCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
+        NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
+        self.previousPageTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
+        self.nextPageTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
 
-    NSString *competitionsUrl;
+    NSString *tournamentsUrl;
     if ( [page isEqualToString:@"next"] ) {
-        competitionsUrl = self.nextPageCompetitionsUrl;
+        tournamentsUrl = self.nextPageTournamentsUrl;
     } else if ( [page isEqualToString:@"previous"]) {
-        competitionsUrl = self.previousPageCompetitionsUrl;
+        tournamentsUrl = self.previousPageTournamentsUrl;
     } else {
-        competitionsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestCompetitionURL, self.userId, self.apiKey];
+        tournamentsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestTournamentURL, [self.user objectForKey:@"id"], self.apiKey];
     }
 
-    [self httpGet:competitionsUrl handler:connectionHandler];
+    [self httpGet:tournamentsUrl handler:connectionHandler];
 }
 
 
 /**
-    Calls getCompetitions, then parses the results and displays the competitions in an alertView
+    Calls getTournaments, then parses the results and displays the tournaments in an alertView
  */
-- (void)viewPreviousCompetitions:(void(^)(void))handler page:(NSString *)page
+- (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSDictionary *competitionSerializer = [responseDict objectForKey:@"competitions"];
-        NSArray *competitions = [competitionSerializer objectForKey:@"results"];
+        NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
+        NSArray *tournaments = [tournamentSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
 
-        if ( [competitions count] > 0 ) {
-            for (int i = 0; i < [competitions count]; i++) {
-                NSString *createdOn = [[competitions objectAtIndex:i] objectForKey:@"created_on"];
+        if ( [tournaments count] > 0 ) {
+            for (int i = 0; i < [tournaments count]; i++) {
+                NSString *createdOn = [[tournaments objectAtIndex:i] objectForKey:@"created_on"];
                 NSTimeInterval seconds = [createdOn doubleValue] / 1000;
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                     [dateFormatter stringFromDate:unFormattedDate],
-                    [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
-                    [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
-                    [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
-                [message appendString:competitionString];
+                    [[[tournaments objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                    [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
+                    [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
+                [message appendString:tournamentString];
             }
         } else {
             [message appendString:@"No previous games"];
@@ -278,10 +278,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Previous Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
 
-        if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
+        if ( [tournamentSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Prev"];
         }
-        if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
+        if ( [tournamentSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Next"];
         }
 
@@ -290,62 +290,62 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         [alert show];
     } copy];
 
-    [self getCompetitions:connectionHandler page:page];
+    [self getTournaments:connectionHandler page:page];
 }
 
 
 /**
-    Gets the latest incomplete competitions from Arbiter. Paginated by 1 comp per page
+    Gets the latest incomplete tournaments from Arbiter. Paginated by 1 comp per page
  */
-- (void)getIncompleteCompetitions:(void(^)(NSDictionary*))handler page:(NSString *)page
+- (void)getIncompleteTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSDictionary *paginationInfo = [responseDict objectForKey:@"competitions"];
+        NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
 
-        self.previousPageIncompleteCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
-        self.nextPageIncompleteCompetitionsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
+        self.previousPageIncompleteTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
+        self.nextPageIncompleteTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
 
 
-    NSString *competitionsUrl;
+    NSString *tournamentsUrl;
     if ( [page isEqualToString:@"next"] ) {
-        competitionsUrl = self.nextPageIncompleteCompetitionsUrl;
+        tournamentsUrl = self.nextPageIncompleteTournamentsUrl;
     } else if ( [page isEqualToString:@"previous"]) {
-        competitionsUrl = self.previousPageIncompleteCompetitionsUrl;
+        tournamentsUrl = self.previousPageIncompleteTournamentsUrl;
     } else {
-        competitionsUrl = [NSString stringWithFormat:@"%@%@?page_size=1&exclude=complete", APIRequestCompetitionURL, self.userId];
+        tournamentsUrl = [NSString stringWithFormat:@"%@%@?page_size=1&exclude=complete", APIRequestTournamentURL, [self.user objectForKey:@"id"]];
     }
 
-    [self httpGet:competitionsUrl handler:connectionHandler];
+    [self httpGet:tournamentsUrl handler:connectionHandler];
 }
 
 /**
-    Displays the current incomplete competition in an alertView with buttons to finish the competition
+    Displays the current incomplete tournament in an alertView with buttons to finish the tournament
  */
-- (void)viewIncompleteCompetitions:(void(^)(NSString *))handler page:(NSString *)page
+- (void)viewIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSDictionary *competitionSerializer = [responseDict objectForKey:@"competitions"];
-        NSArray *competitions = [competitionSerializer objectForKey:@"results"];
+        NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
+        NSArray *tournaments = [tournamentSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
         NSMutableString *yourScore = [NSMutableString string];
 
-        if ( [competitions count] > 0 ) {
-            for (int i = 0; i < [competitions count]; i++) {
-                self.currentIncompleteCompetitionId = [[competitions objectAtIndex:i] objectForKey:@"id"];
-                NSString *createdOn = [[competitions objectAtIndex:i] objectForKey:@"created_on"];
+        if ( [tournaments count] > 0 ) {
+            for (int i = 0; i < [tournaments count]; i++) {
+                self.currentIncompleteTournamentId = [[tournaments objectAtIndex:i] objectForKey:@"id"];
+                NSString *createdOn = [[tournaments objectAtIndex:i] objectForKey:@"created_on"];
                 NSTimeInterval seconds = [createdOn doubleValue] / 1000;
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *competitionString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                                                [dateFormatter stringFromDate:unFormattedDate],
-                                               [[[competitions objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
-                                               [self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]],
-                                               [self getOpponentScoreFromCompetition:[competitions objectAtIndex:i]]];
-                [message appendString:competitionString];
-                [yourScore appendString:[self getPlayerScoreFromCompetition:[competitions objectAtIndex:i]]];
+                                               [[[tournaments objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                                               [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
+                                               [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
+                [message appendString:tournamentString];
+                [yourScore appendString:[self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]]];
             }
         } else {
             [message appendString:@"No incomplete games"];
@@ -357,10 +357,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             [alert addButtonWithTitle:@"Play"];
         }
 
-        if ( [competitionSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
+        if ( [tournamentSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Prev"];
         }
-        if ( [competitionSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
+        if ( [tournamentSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Next"];
         }
 
@@ -369,10 +369,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         [alert show];
     } copy];
 
-    [self getIncompleteCompetitions:connectionHandler page:page];
+    [self getIncompleteTournaments:connectionHandler page:page];
 }
 
-- (void)reportScore:(void(^)(NSDictionary *))handler competitionId:(NSString*)competitionId score:(NSString*)score
+- (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score
 {
     NSDictionary *paramsDict = @{
         @"score": score
@@ -382,7 +382,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         handler(responseDict);
     } copy];
 
-    NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [competitionId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:self.userId]]];
+    NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
 
     [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
 }
@@ -396,7 +396,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy
         timeoutInterval:60.0];
-    [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
+    [request setValue:[NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey] forHTTPHeaderField:@"Authorization"];
 
     NSString *key = [url stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -424,7 +424,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:[NSString stringWithFormat:@"Token %@::%@", self.token, self.apiKey] forHTTPHeaderField:@"Authorization"];
+        [request setValue:[NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey] forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         if( paramsData != nil ) {
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
@@ -497,6 +497,33 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             [self showDepositPanel];
         } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {
             [self showWithdrawPanel];
+        } else if ( [buttonTitle isEqualToString:@"Update Location"] ) {
+            
+            // Create the location manager if this object does not already have one.
+            if (nil == locationManager)
+                locationManager = [[CLLocationManager alloc] init];
+            
+            locationManager.delegate = self;
+            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+            locationManager.distanceFilter = 500;
+            [locationManager startUpdatingLocation];
+            [self->locationManager startUpdatingLocation];
+            
+            CLLocation *location = [locationManager location];
+            CLLocationCoordinate2D coordinate = [location coordinate];
+            NSString *latitude = [NSString stringWithFormat:@"%f", coordinate.latitude];
+            NSString *longitude = [NSString stringWithFormat:@"%f", coordinate.longitude];
+            
+            NSLog(@"dLatitude : %@", latitude);
+            NSLog(@"dLongitude : %@",longitude);
+            
+            
+            
+            // TODO: Use location services to get the users location,
+            //       send the postal_code to the server in the verification view
+            //       update the user object with the response
+            //       move this into the verification handler
+            //       then just call the verification view
         } else {
             void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
             handler();
@@ -514,12 +541,15 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         } else if (buttonIndex == 1) {
-            NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms", @"true", @"confirmed_age", nil];
+            
+            // Only include the postal_code
+            NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
+                                                                                  @"true", @"confirmed_age", nil];
             NSError *error;
             NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
 
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-            [verificationUrl appendString: self.userId];
+            [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
 
             NSString *key = [NSString stringWithFormat:@"%@:POST", verificationUrl];
@@ -561,7 +591,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             } copy];
 
             UITextField *address = [alertView textFieldAtIndex:0];
-            NSString *walletUrl = [NSString stringWithFormat:@"%@%@", APIWalletURL, self.userId];
+            NSString *walletUrl = [NSString stringWithFormat:@"%@%@", APIWalletURL, [self.user objectForKey:@"id"]];
             NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:address.text, @"address", [self.wallet objectForKey:@"balance"], @"amount", nil];
             NSError *error;
             NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
@@ -578,27 +608,27 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
 
-    // Previous competitions
+    // Previous tournaments
     } else if ( alertView.tag == 10 ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
 
         if ( [buttonTitle isEqualToString:@"Next"] ) {
-            [self viewPreviousCompetitions:handler page:@"next"];
+            [self viewPreviousTournaments:handler page:@"next"];
         } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
-            [self viewPreviousCompetitions:handler page:@"previous"];
+            [self viewPreviousTournaments:handler page:@"previous"];
         } else {
             handler();
         }
 
-    // Incomplete competitions
+    // Incomplete tournaments
     } else if ( alertView.tag == 11 ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
         if ( [buttonTitle isEqualToString:@"Next"] ) {
-            [self viewIncompleteCompetitions:handler page:@"next"];
+            [self viewIncompleteTournaments:handler page:@"next"];
         } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
-            [self viewIncompleteCompetitions:handler page:@"previous"];
+            [self viewIncompleteTournaments:handler page:@"previous"];
         } else if ( [buttonTitle isEqualToString:@"Play"] ) {
-            handler(self.currentIncompleteCompetitionId);
+            handler(self.currentIncompleteTournamentId);
         }else {
             handler(@"");
         }
@@ -610,13 +640,36 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 }
 
+# pragma mark CLLocation Delegate Methods
+
+- (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
+{
+    currentLocation = [locations objectAtIndex:0];
+    [locationManager stopUpdatingLocation];
+    [self->locationManager stopUpdatingLocation];
+
+    
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder reverseGeocodeLocation:currentLocation completionHandler:^(NSArray *placemarks, NSError *error) {
+        if ( error ) {
+            NSLog(@"Geocode failed with error: %@", error);
+            return;
+        }
+        CLPlacemark *placemark = [placemarks objectAtIndex:0];
+
+        // TODO: Pass the postalCode along to the verification view
+        NSLog(@"postalcode %@",placemark.postalCode);
+    }];
+}
+
 # pragma mark Utility Helpers
 
-- (NSString *)getPlayerScoreFromCompetition: (NSDictionary *)competition
+- (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {
-    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+    // TODO: Might need to add score to the users arrary returned with the tournament
+    for ( NSDictionary *player in [tournament objectForKey:@"users"] ) {
         NSDictionary *playerUser = [player objectForKey:@"user"];
-        if ( [[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+        if ( [[playerUser objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
             if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
                 return @"n/a";
             } else {
@@ -626,11 +679,11 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     }
 }
 
-- (NSString *)getOpponentScoreFromCompetition: (NSDictionary *)competition
+- (NSString *)getOpponentScoreFromTournament: (NSDictionary *)tournament
 {
-    for ( NSDictionary *player in [competition objectForKey:@"players"] ) {
+    for ( NSDictionary *player in [tournament objectForKey:@"users"] ) {
         NSDictionary *playerUser = [player objectForKey:@"user"];
-        if ( ![[playerUser objectForKey:@"id"] isEqualToString:self.userId] ) {
+        if ( ![[playerUser objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
             if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
                 return @"n/a";
             } else {

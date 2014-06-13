@@ -2,7 +2,7 @@
 namespace ArbiterInternal {
     public class Wallet {
 
-
+		// TODO: Add pending balance
         public string Balance;
         public string DepositAddress;
         public string DepositQrCode;

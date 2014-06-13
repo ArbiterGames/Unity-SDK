@@ -116,81 +116,81 @@ namespace ArbiterInternal {
     	}
 
 
+		[DllImport ("__Internal")]
+		private static extern void _requestTournament( string buyIn, string filters );
+		private static Arbiter.RequestTournamentCallback requestTournamentCallback;
+		private static ErrorHandler requestTournamentErrorHandler;
+		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, Arbiter.RequestTournamentCallback callback, ErrorHandler errorHandler ) {
+			requestTournamentCallback = callback;
+			requestTournamentErrorHandler = errorHandler;
+			#if UNITY_EDITOR
+			ReportIgnore( "RequestTournament" );
+			if( requestTournamentCallback != null )
+				requestTournamentCallback();
+			#elif UNITY_IOS
+			_requestTournament( buyIn, SerializeDictionary(filters) );
+			#endif
+		}
+
+
         [DllImport ("__Internal")]
-        private static extern void _requestCompetition( string buyIn, string filters );
-        private static Arbiter.RequestCompetitionCallback requestCompetitionCallback;
-        private static ErrorHandler requestCompetitionErrorHandler;
-        public static void RequestCompetition( string buyIn, Dictionary<string,string> filters, Arbiter.RequestCompetitionCallback callback, ErrorHandler errorHandler ) {
-            requestCompetitionCallback = callback;
-            requestCompetitionErrorHandler = errorHandler;
+        private static extern void _getTournaments();
+        private static Arbiter.GetTournamentsCallback getTournamentsCallback;
+        private static ErrorHandler getTournamentsErrorHandler;
+        public static void GetTournaments( Arbiter.GetTournamentsCallback callback, ErrorHandler errorHandler ) {
+            getTournamentsCallback = callback;
+            getTournamentsErrorHandler = errorHandler;
 #if UNITY_EDITOR
-            ReportIgnore( "RequestCompetition" );
-            if( requestCompetitionCallback != null )
-                requestCompetitionCallback();
+            ReportIgnore( "GetTournaments" );
+            List<Arbiter.Tournament> fakeTournaments = new List<Arbiter.Tournament>();
+            getTournamentsCallback( fakeTournaments );
 #elif UNITY_IOS
-            _requestCompetition( buyIn, SerializeDictionary(filters) );
+            _getTournaments();
 #endif
         }
 
 
         [DllImport ("__Internal")]
-        private static extern void _getCompetitions();
-        private static Arbiter.GetCompetitionsCallback getCompetitionsCallback;
-        private static ErrorHandler getCompetitionsErrorHandler;
-        public static void GetCompetitions( Arbiter.GetCompetitionsCallback callback, ErrorHandler errorHandler ) {
-            getCompetitionsCallback = callback;
-            getCompetitionsErrorHandler = errorHandler;
+        private static extern void _viewPreviousTournaments();
+        private static Arbiter.ViewPreviousTournamentsCallback viewPreviousTournamentsCallback;
+        public static void ViewPreviousTournaments( Arbiter.ViewPreviousTournamentsCallback callback ) {
+            viewPreviousTournamentsCallback = callback;
 #if UNITY_EDITOR
-            ReportIgnore( "GetCompetitions" );
-            List<Arbiter.Competition> fakeCompetitions = new List<Arbiter.Competition>();
-            getCompetitionsCallback( fakeCompetitions );
+            ReportIgnore( "ViewPreviousTournaments" );
+            viewPreviousTournamentsCallback();
 #elif UNITY_IOS
-            _getCompetitions();
-#endif
-        }
-
-
-        [DllImport ("__Internal")]
-        private static extern void _viewPreviousCompetitions();
-        private static Arbiter.ViewPreviousCompetitionsCallback viewPreviousCompetitionsCallback;
-        public static void ViewPreviousCompetitions( Arbiter.ViewPreviousCompetitionsCallback callback ) {
-            viewPreviousCompetitionsCallback = callback;
-#if UNITY_EDITOR
-            ReportIgnore( "ViewPreviousCompetitions" );
-            viewPreviousCompetitionsCallback();
-#elif UNITY_IOS
-            _viewPreviousCompetitions();
+            _viewPreviousTournaments();
 #endif
         }
         
         
 		[DllImport ("__Internal")]
-		private static extern void _viewIncompleteCompetitions();
-		private static Arbiter.ViewIncompleteCompetitionsCallback viewIncompleteCompetitionsCallback;
-		public static void ViewIncompleteCompetitions( Arbiter.ViewIncompleteCompetitionsCallback callback ) {
-			viewIncompleteCompetitionsCallback = callback;
+		private static extern void _viewIncompleteTournaments();
+		private static Arbiter.ViewIncompleteTournamentsCallback viewIncompleteTournamentsCallback;
+		public static void ViewIncompleteTournaments( Arbiter.ViewIncompleteTournamentsCallback callback ) {
+			viewIncompleteTournamentsCallback = callback;
 #if UNITY_EDITOR
-			ReportIgnore( "ViewIncompleteCompetitions" );
-			viewIncompleteCompetitionsCallback( "" );
+			ReportIgnore( "ViewIncompleteTournaments" );
+			viewIncompleteTournamentsCallback( "" );
 #elif UNITY_IOS
-			_viewIncompleteCompetitions();
+			_viewIncompleteTournaments();
 #endif
 		}
 
 
         [DllImport ("__Internal")]
-        private static extern void _reportScore( string competitionId, string score );
+        private static extern void _reportScore( string tournamentId, string score );
         private static Arbiter.ReportScoreCallback reportScoreCallback;
         private static ErrorHandler reportScoreErrorHandler;
-        public static void ReportScore( string competitionId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
+        public static void ReportScore( string tournamentId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
             reportScoreCallback = callback;
             reportScoreErrorHandler = errorHandler;
 			
 #if UNITY_EDITOR
             ReportIgnore( "ReportScore" );
-            reportScoreCallback( new Arbiter.Competition( "1234", Arbiter.Competition.StatusType.Initializing, new List<Arbiter.Player>(), null ));
+            reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.Player>() ));
 #elif UNITY_IOS
-            _reportScore( competitionId, score.ToString() );
+            _reportScore( tournamentId, score.ToString() );
 #endif
         }
 
@@ -255,44 +255,44 @@ namespace ArbiterInternal {
         }
 
 
-        public void RequestCompetitionHandler( string jsonString ) {
+        public void RequestTournamentHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                if( requestCompetitionCallback != null )
-                    requestCompetitionCallback();
+                if( requestTournamentCallback != null )
+                    requestTournamentCallback();
             } else {
-                requestCompetitionErrorHandler( getErrors( json ));
+                requestTournamentErrorHandler( getErrors( json ));
             }
         }
 
 
-        public void GetCompetitionsHandler( string jsonString ) {
+        public void GetTournamentsHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                JSONNode competitionsNode = json["competitions"];
-                getCompetitionsCallback( parseCompetitions( competitionsNode["results"] ));
+                JSONNode tournamentsNode = json["tournaments"];
+                getTournamentsCallback( parseTournaments( tournamentsNode["results"] ));
             } else {
-                getCompetitionsErrorHandler( getErrors( json ));
+                getTournamentsErrorHandler( getErrors( json ));
             }
         }
 
 
-        public void ViewPreviousCompetitionsHandler( string emptyString ) {
-            viewPreviousCompetitionsCallback();
+        public void ViewPreviousTournamentsHandler( string emptyString ) {
+            viewPreviousTournamentsCallback();
         }
         
         
-		public void ViewIncompleteCompetitionsHandler( string competitionId ) {
-			viewIncompleteCompetitionsCallback( competitionId );
+		public void ViewIncompleteTournamentsHandler( string tournamentId ) {
+			viewIncompleteTournamentsCallback( tournamentId );
 		}
 
 
         public void ReportScoreHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-				JSONClass competitionNode = json["competition"] as JSONClass;
+				JSONClass tournamentNode = json["tournament"] as JSONClass;
                 if( reportScoreCallback != null )
-				    reportScoreCallback( parseCompetition( competitionNode ));
+				    reportScoreCallback( parseTournament( tournamentNode ));
             } else {
                 reportScoreErrorHandler( getErrors( json ));
             }
@@ -351,37 +351,37 @@ namespace ArbiterInternal {
         }
 
 
-        private List<Arbiter.Competition> parseCompetitions( JSONNode competitionsNode ) {
-            List<Arbiter.Competition> rv = new List<Arbiter.Competition>();
-            JSONArray rawCompetitions = competitionsNode.AsArray;
-            IEnumerator enumerator = rawCompetitions.GetEnumerator();
+        private List<Arbiter.Tournament> parseTournaments( JSONNode tournamentsNode ) {
+            List<Arbiter.Tournament> rv = new List<Arbiter.Tournament>();
+            JSONArray rawTournaments = tournamentsNode.AsArray;
+            IEnumerator enumerator = rawTournaments.GetEnumerator();
             while( enumerator.MoveNext() ) {
-                JSONClass competition = enumerator.Current as JSONClass;
-                rv.Add( parseCompetition( competition ));
+                JSONClass tournament = enumerator.Current as JSONClass;
+                rv.Add( parseTournament( tournament ));
             }
             return rv;
         }
-        private Arbiter.Competition parseCompetition( JSONClass competitionNode ) {
-            Arbiter.Competition.StatusType status = Arbiter.Competition.StatusType.Unknown;
-            switch( competitionNode["status"] ) {
+        private Arbiter.Tournament parseTournament( JSONClass tournamentNode ) {
+            Arbiter.Tournament.StatusType status = Arbiter.Tournament.StatusType.Unknown;
+            switch( tournamentNode["status"] ) {
             case "initializing":
-                status = Arbiter.Competition.StatusType.Initializing;
+                status = Arbiter.Tournament.StatusType.Initializing;
                 break;
             case "inprogress":
-                status = Arbiter.Competition.StatusType.InProgress;
+                status = Arbiter.Tournament.StatusType.InProgress;
                 break;
             case "complete":
-                status = Arbiter.Competition.StatusType.Complete;
+                status = Arbiter.Tournament.StatusType.Complete;
                 break;
             default:
-                Debug.LogError( "Unknown status encountered: " + competitionNode["status"] );
+                Debug.LogError( "Unknown status encountered: " + tournamentNode["status"] );
                 break;
             }
-            List<Arbiter.Player> players = parsePlayers( competitionNode["players"] );
-			Arbiter.Jackpot jackpot = parseJackpot( competitionNode["jackpot"] );
-            Arbiter.Competition rv = new Arbiter.Competition( competitionNode["id"], status, players, jackpot );
-            if( competitionNode["winner"] != null ) {
-                string winnerId = competitionNode["winner"];
+            List<Arbiter.Player> players = parsePlayers( tournamentNode["players"] );
+//			Arbiter.Jackpot jackpot = parseJackpot( tournamentNode["jackpot"] );
+            Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, players );
+            if( tournamentNode["winner"] != null ) {
+                string winnerId = tournamentNode["winner"];
                 foreach( var player in players ) {
                     if( player.User.Id == winnerId ) {
                         rv.Winner = player;
@@ -408,16 +408,16 @@ namespace ArbiterInternal {
             return rv;
         }
 
-		private Arbiter.Jackpot parseJackpot( JSONNode jackpotNode ) {
-			string id = jackpotNode["id"];
-			string buyIn = jackpotNode["buy_in"];
-			string balance = jackpotNode["balance"];
-			Arbiter.Jackpot rv = new Arbiter.Jackpot();
-			rv.Id = id;
-			rv.BuyIn = buyIn;
-			rv.Balance = balance;
-			return rv;
-		}
+//		private Arbiter.Jackpot parseJackpot( JSONNode jackpotNode ) {
+//			string id = jackpotNode["id"];
+//			string buyIn = jackpotNode["buy_in"];
+//			string balance = jackpotNode["balance"];
+//			Arbiter.Jackpot rv = new Arbiter.Jackpot();
+//			rv.Id = id;
+//			rv.BuyIn = buyIn;
+//			rv.Balance = balance;
+//			return rv;
+//		}
 
 
     }

@@ -71,6 +71,21 @@ namespace ArbiterInternal {
     		_verifyUser();
 #endif
     	}
+    	
+    	
+		[DllImport ("__Internal")]
+		private static extern void _logout();
+		public delegate void LogoutCallback();
+		private static LogoutCallback logoutCallback;
+		public static void Logout( LogoutCallback callback ) {
+			logoutCallback = callback;
+			#if UNITY_EDITOR
+			ReportIgnore( "Logout" );
+			logoutCallback();
+			#elif UNITY_IOS
+			_logout();
+			#endif
+		}
 
 
     	[DllImport ("__Internal")]
@@ -236,6 +251,14 @@ namespace ArbiterInternal {
                 verifyUserErrorHandler( getErrors( json ));
             }
     	}
+    	
+    	
+		public void LogoutHandler( string emptyString ) {
+			Debug.Log ("ArbiterBinding.cs LogoutHandler");
+			if ( logoutCallback != null ) {
+				logoutCallback();
+			}
+		}
 
 
     	public void GetWalletHandler( string jsonString ) {

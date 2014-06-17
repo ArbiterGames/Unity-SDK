@@ -17,8 +17,8 @@
     
 }
 
-@property (copy) NSDictionary *wallet;
-@property (copy) NSDictionary *user;
+@property (strong, atomic) NSMutableDictionary *wallet;
+@property (strong, atomic) NSMutableDictionary *user;
 @property (copy) NSString *token;
 @property (copy) NSString *apiKey;
 @property (copy) NSString *verificationUrl;
@@ -32,10 +32,12 @@
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
+- (void)logout:(void(^)(NSDictionary *))handler;
 
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)copyDepositAddressToClipboard;
+- (void)getDevicePostalCode:(void(^)(NSString *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn;
 - (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;

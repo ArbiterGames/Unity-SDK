@@ -16,6 +16,7 @@
 NSString *const APIUserInitializeURL = PRE_URL @"user/initialize";
 NSString *const APIWalletURL = PRE_URL @"wallet/";
 NSString *const APIUserLoginURL = PRE_URL @"user/login";
+NSString *const APIUserLogoutURL = PRE_URL @"user/logout";
 NSString *const APILinkWithGameCenterURL = PRE_URL @"user/link-with-game-center";
 NSString *const APIUserDetailsURL = PRE_URL @"user/";
 NSString *const APITournamentCreateURL = PRE_URL @"tournament/create";
@@ -29,21 +30,22 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 @implementation Arbiter
 
 
-#pragma mark Arbiter Methods
+#pragma mark User Methods
 
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey
 {
     self = [super init];
     self.apiKey = apiKey;
+    
     if ( self ) {
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
 
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-            self.user = [responseDict objectForKey:@"user"];
-            self.wallet = [responseDict objectForKey:@"wallet"]; // NOTE: it's ok if this is nil
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             handler(responseDict);
         } copy];
 
@@ -108,49 +110,87 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        if ([[responseDict objectForKey:@"success"] boolValue] == NO) {
-            NSString *error = [responseDict objectForKey:@"errors"][0];
-            if ([error isEqualToString:@"This user has not verified their age."]) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"You must be at least 18 years old to bet in this game."
-                    message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
-                    delegate: self
-                    cancelButtonTitle:@"Cancel"
-                    otherButtonTitles:@"Agree", nil];
-                [alert setTag:2];
-                [alert show];
-            } else {
-                NSLog(@"TODO: Handle apology message: %@", error);
-                handler(responseDict);
-            }
+    void (^locationCallback)(NSString *) = ^(NSString *postalCode) {
+        [self.user setValue:postalCode forKey:@"postal_code"];
+        
+        if ( [[self.user objectForKey:@"is_verified"] boolValue] == true ) {
+            handler(self.user);
         } else {
-            handler(responseDict);
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                            message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
+                                                           delegate: self
+                                                  cancelButtonTitle:@"Cancel"
+                                                  otherButtonTitles:@"Agree", nil];
+            [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+            [alert setTag:2];
+            [alert show];
         }
-    } copy];
+    };
+    [self getDevicePostalCode:locationCallback];
 
-    // use significant-change location service
-    // call the locationServicesEnabled class method of CLLocationManager before attempting
+    // TODO:
+    // On the server:
+    //  check the postalCode to the game based on the gameApiKey
+    // Notify the user whether or not they will be able to be here
+    // Then get 'play fake game' button working
     
-    // TODO: pass in the postal_code as a param
-    NSString *userIdPlusVerify = [NSString stringWithFormat:@"%@/verify", [self.user objectForKey:@"id"]];
-    NSString *verifyUrl = [APIUserDetailsURL stringByAppendingString:userIdPlusVerify];
+}
 
-    [self httpPost:verifyUrl params:nil handler:connectionHandler];
+- (void)getDevicePostalCode:(void(^)(NSString *))handler
+{
+    if (nil == locationManager)
+        locationManager = [[CLLocationManager alloc] init];
+    
+    locationManager.delegate = self;
+    locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
+    locationManager.distanceFilter = 500;
+    [locationManager startUpdatingLocation];
+    [self->locationManager startUpdatingLocation];
+    
+    CLLocation *location = [locationManager location];
+    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
+        if ( error ) {
+            handler([NSString stringWithFormat: @"Geocode failed with error: %@", error]);
+        }
+        CLPlacemark *placemark = [placemarks objectAtIndex:0];
+        handler(placemark.postalCode);
+    }];
+}
+
+
+- (void)logout:(void(^)(NSDictionary *))handler
+{
+    // Actually make the /logout call to the server
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        self.user = nil;
+        self.wallet = nil;
+        handler(responseDict);
+    } copy];
+    
+    [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
 - (void)getWallet:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [responseDict objectForKey:@"wallet"];
+//        self.wallet = [responseDict objectForKey:@"wallet"];
+        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         handler(responseDict);
     } copy];
-
-    NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
-    [self httpGet:walletUrl handler:connectionHandler];
+    
+    if ( self.user ) {
+        NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
+        [self httpGet:walletUrl handler:connectionHandler];
+    } else {
+        handler( @{@"success": @"false",
+                   @"errors": @[@"No user is currently logged in. Use the Init, Login or LoginWithGameCenterPlayer, to get an Arbiter User."]
+                 });
+    }
 }
 
 
-#pragma mark Wallet Display Methods
+#pragma mark Wallet Methods
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
@@ -162,7 +202,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
     NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
     NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLocation: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"postal_code"]];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", @"Update Location", nil];
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
     [alert setTag:1];
     [alert show];
 }
@@ -374,10 +414,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score
 {
-    NSDictionary *paramsDict = @{
-        @"score": score
-    };
-
+    NSDictionary *paramsDict = @{@"score": score};
+    
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
@@ -396,8 +434,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy
         timeoutInterval:60.0];
-    [request setValue:[NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey] forHTTPHeaderField:@"Authorization"];
-
+    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [url stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
     [NSURLConnection connectionWithRequest:request delegate:self];
@@ -407,6 +445,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
+    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    
     if( params == nil ) {
         params = @{};
     }
@@ -424,15 +464,18 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:[NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey] forHTTPHeaderField:@"Authorization"];
+        [request setValue:[NSString stringWithFormat:tokenValue] forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         if( paramsData != nil ) {
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
         }
 
-        NSString *key = [url stringByAppendingString:@":POST"];
-        [_connectionHandlerRegistry setObject:handler forKey:key];
+        NSLog(@"apiKey: %@", self.apiKey);
+        NSLog(@"token: %@", [self.user objectForKey:@"token"]);
+        NSLog(@"Token value: %@", tokenValue);
+
+        [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
 }
@@ -497,33 +540,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             [self showDepositPanel];
         } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {
             [self showWithdrawPanel];
-        } else if ( [buttonTitle isEqualToString:@"Update Location"] ) {
-            
-            // Create the location manager if this object does not already have one.
-            if (nil == locationManager)
-                locationManager = [[CLLocationManager alloc] init];
-            
-            locationManager.delegate = self;
-            locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
-            locationManager.distanceFilter = 500;
-            [locationManager startUpdatingLocation];
-            [self->locationManager startUpdatingLocation];
-            
-            CLLocation *location = [locationManager location];
-            CLLocationCoordinate2D coordinate = [location coordinate];
-            NSString *latitude = [NSString stringWithFormat:@"%f", coordinate.latitude];
-            NSString *longitude = [NSString stringWithFormat:@"%f", coordinate.longitude];
-            
-            NSLog(@"dLatitude : %@", latitude);
-            NSLog(@"dLongitude : %@",longitude);
-            
-            
-            
-            // TODO: Use location services to get the users location,
-            //       send the postal_code to the server in the verification view
-            //       update the user object with the response
-            //       move this into the verification handler
-            //       then just call the verification view
         } else {
             void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
             handler();
@@ -533,7 +549,10 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     } else if ( alertView.tag == 2 ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
-                self.wallet = [responseDict objectForKey:@"wallet"];
+                self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+                self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+                void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
+                handler(self.user);
             }
         } copy];
 
@@ -541,27 +560,11 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         } else if (buttonIndex == 1) {
-            
-            // Only include the postal_code
-            NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:@"true", @"agreed_to_terms",
-                                                                                  @"true", @"confirmed_age", nil];
-            NSError *error;
-            NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
-
+            NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
-
-            NSString *key = [NSString stringWithFormat:@"%@:POST", verificationUrl];
-
-            [_connectionHandlerRegistry setObject:connectionHandler forKey:key];
-
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:verificationUrl]];
-            [request setHTTPMethod:@"POST"];
-            [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
-            [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-            [request setHTTPBody:postData];
-            [NSURLConnection connectionWithRequest:request delegate:self];
+            [self httpPost:verificationUrl params:postParams handler:connectionHandler];
         }
 
     } else if ( alertView.tag == 4 ) {
@@ -578,7 +581,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 BOOL success = [[responseDict objectForKey:@"success"] boolValue];
                 if ( success ) {
-                    self.wallet = [responseDict objectForKey:@"wallet"];
+                    self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
                     [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
 
                 } else {
@@ -642,24 +645,15 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 # pragma mark CLLocation Delegate Methods
 
+/**
+ Handler once location coordinates are returned from a location request.
+ Stops updating location after the first coordinates are returned on all device location requests.
+ */
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     currentLocation = [locations objectAtIndex:0];
     [locationManager stopUpdatingLocation];
     [self->locationManager stopUpdatingLocation];
-
-    
-    CLGeocoder *geocoder = [[CLGeocoder alloc] init];
-    [geocoder reverseGeocodeLocation:currentLocation completionHandler:^(NSArray *placemarks, NSError *error) {
-        if ( error ) {
-            NSLog(@"Geocode failed with error: %@", error);
-            return;
-        }
-        CLPlacemark *placemark = [placemarks objectAtIndex:0];
-
-        // TODO: Pass the postalCode along to the verification view
-        NSLog(@"postalcode %@",placemark.postalCode);
-    }];
 }
 
 # pragma mark Utility Helpers

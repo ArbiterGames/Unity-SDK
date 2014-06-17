@@ -60,6 +60,17 @@ void _verifyUser()
     }];
 }
 
+void _logout()
+{
+    [arbiter logout:^(NSDictionary *jsonDict) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage( "ArbiterBinding", "LogoutHandler", jsonChar );
+    }];
+}
+
 void _getWallet()
 {
     [arbiter getWallet:^(NSDictionary *jsonDict) {

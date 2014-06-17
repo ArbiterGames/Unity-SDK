@@ -68,6 +68,9 @@ public partial class Arbiter : MonoBehaviour
 
     public static void VerifyUser( Action done ) {
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {
+        	Debug.Log ("VerifyUserCallback response");
+        	Debug.Log (response);
+        	
             if( response == true )
                 verified = VerificationStatus.Verified;
             if( done != null )
@@ -77,6 +80,27 @@ public partial class Arbiter : MonoBehaviour
         ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
     }
     public static Action<List<string>> VerifyUserErrorHandler { set { verifyUserErrorHandler = ( errors ) => value( errors ); } }
+    
+    
+	/// <summary>
+	/// Removes the cached user and wallet and deletes the user's access token
+	/// </summary>
+	public static void Logout( Action callback ) {
+		logoutSuccessCallback = callback;
+		ArbiterBinding.LogoutCallback parse = () => {
+			walletPoller.Stop();
+			tournamentPoller.Stop();
+			
+			if ( callback != null ) 
+				callback();
+		};
+		ArbiterBinding.Logout( logoutSuccessHandler );
+	}
+//	public static Action<List<string>> LogoutErrorHandler { set { logoutErrorHandler = ( errors ) => value( errors ); } }
+	private static void logoutSuccessHandler( ) {
+		if ( logoutSuccessCallback != null ) 
+			logoutSuccessCallback();
+	}
     
     
     public static void AddWalletListener( Action listener ) {
@@ -274,6 +298,7 @@ public partial class Arbiter : MonoBehaviour
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
+	private static Action logoutSuccessCallback;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 	private static Action getTournamentsCallback;
 	private static ArbiterBinding.ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;

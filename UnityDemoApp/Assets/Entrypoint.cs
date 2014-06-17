@@ -80,7 +80,7 @@ public class Entrypoint : MonoBehaviour {
         LoadAnotherScene();
     }
 
-    void LoadAnotherScene() {
+	void LoadAnotherScene() {
         // Since the 2 listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
         // (if you setup listeners on persistent objects you should be fine)
         Arbiter.RemoveWalletListener( UpdateWalletElements );

@@ -22,7 +22,7 @@ NSString *const APIUserDetailsURL = PRE_URL @"user/";
 NSString *const APITournamentCreateURL = PRE_URL @"tournament/create";
 NSString *const APIRequestTournamentURL = PRE_URL @"tournament/";
 NSString *const APIReportScoreURLPart1 = PRE_URL @"tournament/";
-NSString *const APIReportScoreURLPart2 = @"/report-score/";
+NSString *const APIReportScoreURLPart2 = @"report-score/";
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -127,13 +127,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         }
     };
     [self getDevicePostalCode:locationCallback];
-
-    // TODO:
-    // On the server:
-    //  check the postalCode to the game based on the gameApiKey
-    // Notify the user whether or not they will be able to be here
-    // Then get 'play fake game' button working
-    
 }
 
 - (void)getDevicePostalCode:(void(^)(NSString *))handler
@@ -471,10 +464,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
         }
 
-        NSLog(@"apiKey: %@", self.apiKey);
-        NSLog(@"token: %@", [self.user objectForKey:@"token"]);
-        NSLog(@"Token value: %@", tokenValue);
-
         [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
@@ -552,7 +541,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
                 self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
                 void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
-                handler(self.user);
+                handler(responseDict);
             }
         } copy];
 

@@ -244,7 +244,7 @@ namespace ArbiterInternal {
 
     	public void VerifyUserHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
-            if( wasSuccess( json )) {
+            if( wasSuccess( json ) && isVerified( json["user"] ) && isPermitted( json )) {
                 bool verified = isVerified( json["user"] );
                 verifyUserCallback( verified );
             } else {
@@ -334,6 +334,9 @@ namespace ArbiterInternal {
         }
         private bool isVerified( JSONNode userNode) {
             return string.Equals( userNode["is_verified"].Value, "true" );
+        }
+        private bool isPermitted( JSONNode json ) {
+        	return string.Equals( json["location_permits_betting"].Value, "true" );
         }
 
 

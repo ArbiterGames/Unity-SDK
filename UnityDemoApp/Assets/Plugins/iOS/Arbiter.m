@@ -20,9 +20,9 @@ NSString *const APIUserLogoutURL = PRE_URL @"user/logout";
 NSString *const APILinkWithGameCenterURL = PRE_URL @"user/link-with-game-center";
 NSString *const APIUserDetailsURL = PRE_URL @"user/";
 NSString *const APITournamentCreateURL = PRE_URL @"tournament/create";
-NSString *const APIRequestTournamentURL = PRE_URL @"tournament/";
+NSString *const APIRequestTournamentURL = PRE_URL @"tournament";
 NSString *const APIReportScoreURLPart1 = PRE_URL @"tournament/";
-NSString *const APIReportScoreURLPart2 = @"report-score/";
+NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -274,7 +274,7 @@ NSString *const APIReportScoreURLPart2 = @"report-score/";
     } else if ( [page isEqualToString:@"previous"]) {
         tournamentsUrl = self.previousPageTournamentsUrl;
     } else {
-        tournamentsUrl = [NSString stringWithFormat:@"%@%@?game_api_key=%@", APIRequestTournamentURL, [self.user objectForKey:@"id"], self.apiKey];
+        tournamentsUrl = APIRequestTournamentURL;
     }
 
     [self httpGet:tournamentsUrl handler:connectionHandler];
@@ -347,7 +347,7 @@ NSString *const APIReportScoreURLPart2 = @"report-score/";
     } else if ( [page isEqualToString:@"previous"]) {
         tournamentsUrl = self.previousPageIncompleteTournamentsUrl;
     } else {
-        tournamentsUrl = [NSString stringWithFormat:@"%@%@?page_size=1&exclude=complete", APIRequestTournamentURL, [self.user objectForKey:@"id"]];
+        tournamentsUrl = APIRequestTournamentURL;
     }
 
     [self httpGet:tournamentsUrl handler:connectionHandler];

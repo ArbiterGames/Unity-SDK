@@ -12,32 +12,27 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 			InProgress,
 			Complete
 		}
-		public string Id                { get { return this.id; } }
-		public StatusType Status        { get { return this.status; } }
-		public List<Player> Players     { get { return this.players; } }
-		
-		// TODO: Need to remove the concept of 'Jackpot' and just look for the balance of the tournament directly
-//		public Jackpot Jackpot          { get { return this.jackpot; } }
-		
-		public Player Winner;
+		public string Id                		{ get { return this.id; } }
+		public StatusType Status        		{ get { return this.status; } }
+		public List<TournamentUser> Users     	{ get { return this.users; } }
+		public TournamentUser Winner;
 		
 		
-		public Tournament( string id, StatusType status, List<Player> players ) {
+		public Tournament( string id, StatusType status, List<TournamentUser> users ) {
 			this.id = id;
 			this.status = status;
-			this.players = players;
-//			this.jackpot = jackpot;
+			this.users = users;
 		}
 		
 		
 		/// <summary>
-		/// Attempts to retrieve the score for a player wrapped around the given userId.
+		/// Attempts to retrieve the score for a user wrapped around the given userId.
 		/// </summary>
 		/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
 		public bool GetScoreForUserId( string userId, out int score ) {
-			foreach( var player in this.players ) {
-				if( player.User.Id == userId ) {
-					score = player.Score;
+			foreach( var user in this.users ) {
+				if( user.Id == userId ) {
+					score = user.Score;
 					return true;
 				}
 			}
@@ -47,14 +42,14 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 		
 		
 		/// <summary>
-		/// Attempts to retrieve the score for a player NOT wrapped around the given userId.
-		/// This call usually only makes sense for 2-player games
+		/// Attempts to retrieve the score for a user NOT wrapped around the given userId.
+		/// This call usually only makes sense for 2-user games
 		/// </summary>
 		/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
 		public bool GetScoreForOtherUserId( string userId, out int score ) {
-			foreach( var player in this.players ) {
-				if( player.User.Id != userId ) {
-					score = player.Score;
+			foreach( var user in this.users ) {
+				if( user.Id != userId ) {
+					score = user.Score;
 					return true;
 				}
 			}
@@ -63,14 +58,10 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 		}
 		
 		
-		// TODO: update 'players' to 'users', but need to make sure that this.User won't clash with Aribter.User class
-		public bool UserCanReportScore( User user ) {
-//			if( this.jackpot == null )
-//				return false;
-			
+		public bool UserCanReportScore( string id ) {
 			bool rv = false;
-			this.players.ForEach( player => {
-				if( player.User == user && player.Score == 0 ) {
+			this.users.ForEach( user => {
+				if( user.Id == id && user.Score == 0 ) {
 					rv = true;
 				}
 			});
@@ -82,9 +73,9 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 			string rv = "[Tournament "+
 				"id:"+this.id+", "+
 					"status:"+this.status+", "+
-					"players:[";
-			this.players.ForEach( player => {
-				rv += player +", ";
+					"users:[";
+			this.users.ForEach( user => {
+				rv += user +", ";
 			});
 			rv += "]]";
 			return rv;
@@ -93,46 +84,34 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 		
 		private string id;
 		private StatusType status;
-		private List<Player> players;
-//		private Jackpot jackpot;
-		
+		private List<TournamentUser> users;
 	}
 	
-	
-	public class Player {
+	/// <summary>
+	/// Attempts to retrieve the score for a user wrapped around the given userId.
+	/// </summary>
+	/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
+	public class TournamentUser {
 		
 		public int Score            { get { return this.score; } }
-		public User User            { get { return this.user; } }
+		public string Id            { get { return this.id; } }
 		
+		public TournamentUser( string id ) {
+			this.id = id;
+		}
 		
 		public void SetScore( int score ) {
 			this.score = score;
 		}
 		
-		public Player( User user ) {
-			this.user = user;
-		}
-		
-		
 		public override string ToString() {
-			return "[Player user:"+User+", score:"+Score+"]";
+			return "[Id:"+Id+", score:"+Score+"]";
 		}
 		
 		
 		private int score;
-		private User user;
+		private string id;
 		
 	}
-	
-	
-//	public class Jackpot {
-//		
-//		public string Id;
-//		public string BuyIn;
-//		public string Balance;
-//		
-//		public override string ToString() {
-//			return "[Jackpot id:"+Id+", buyIn:"+BuyIn+", balance:"+Balance+"]";
-//		}
-//	}
+
 }

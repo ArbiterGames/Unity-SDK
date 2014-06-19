@@ -68,9 +68,6 @@ public partial class Arbiter : MonoBehaviour
 
     public static void VerifyUser( Action done ) {
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {
-        	Debug.Log ("VerifyUserCallback response");
-        	Debug.Log (response);
-        	
             if( response == true )
                 verified = VerificationStatus.Verified;
             if( done != null )
@@ -149,13 +146,16 @@ public partial class Arbiter : MonoBehaviour
 	/// Finds an existing tournament that you could join. If no available tournaments are found, requests a new one and returns that.
 	/// </summary>
 	public static void GetTournament( string buyIn, Dictionary<string,string> filters, GetTournamentCallback callback ) {
+		
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
-			return (tournament.Status == Tournament.StatusType.Initializing || tournament.Status == Tournament.StatusType.InProgress) &&
-			tournament.UserCanReportScore( user );
+			return (tournament.Status == Tournament.StatusType.Initializing || 
+					tournament.Status == Tournament.StatusType.InProgress) &&
+					tournament.UserCanReportScore( user.Id );
 		};
 
 		GetTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
+			
 			if( joinableTournaments.Count > 0 ) {
 				tournamentPoller.Stop();
 				callback( joinableTournaments[0] );
@@ -198,9 +198,9 @@ public partial class Arbiter : MonoBehaviour
 	/// <summary>
 	/// Requests a new Tournament.
 	/// </summary>
-	public static void RequestTournament( Dictionary<string,string> filters, RequestTournamentCallback callback ) {
-		RequestTournament( null, filters, callback );
-	}
+//	public static void RequestTournament( Dictionary<string,string> filters, RequestTournamentCallback callback ) {
+//		RequestTournament( null, filters, callback );
+//	}
 	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();

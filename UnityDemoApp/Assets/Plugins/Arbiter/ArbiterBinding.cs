@@ -203,7 +203,7 @@ namespace ArbiterInternal {
 			
 #if UNITY_EDITOR
             ReportIgnore( "ReportScore" );
-            reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.Player>() ));
+            reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.TournamentUser>() ));
 #elif UNITY_IOS
             _reportScore( tournamentId, score.ToString() );
 #endif
@@ -254,7 +254,6 @@ namespace ArbiterInternal {
     	
     	
 		public void LogoutHandler( string emptyString ) {
-			Debug.Log ("ArbiterBinding.cs LogoutHandler");
 			if ( logoutCallback != null ) {
 				logoutCallback();
 			}
@@ -291,6 +290,7 @@ namespace ArbiterInternal {
 
         public void GetTournamentsHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
+			
             if( wasSuccess( json )) {
                 JSONNode tournamentsNode = json["tournaments"];
                 getTournamentsCallback( parseTournaments( tournamentsNode["results"] ));
@@ -389,6 +389,7 @@ namespace ArbiterInternal {
         }
         private Arbiter.Tournament parseTournament( JSONClass tournamentNode ) {
             Arbiter.Tournament.StatusType status = Arbiter.Tournament.StatusType.Unknown;
+            
             switch( tournamentNode["status"] ) {
             case "initializing":
                 status = Arbiter.Tournament.StatusType.Initializing;
@@ -403,14 +404,18 @@ namespace ArbiterInternal {
                 Debug.LogError( "Unknown status encountered: " + tournamentNode["status"] );
                 break;
             }
-            List<Arbiter.Player> players = parsePlayers( tournamentNode["players"] );
-//			Arbiter.Jackpot jackpot = parseJackpot( tournamentNode["jackpot"] );
-            Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, players );
+            
+            List<Arbiter.TournamentUser> users = parseUsers( tournamentNode["users"] );
+            Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, users );
+            
+            // TODO: This expects the server to return a 'winner' key in the tournament object
+            Debug.Log ("Winner:");
+            Debug.Log (tournamentNode["winner"]);
             if( tournamentNode["winner"] != null ) {
                 string winnerId = tournamentNode["winner"];
-                foreach( var player in players ) {
-                    if( player.User.Id == winnerId ) {
-                        rv.Winner = player;
+                foreach( var user in users ) {
+                    if( user.Id == winnerId ) {
+                        rv.Winner = user;
                         break;
                     }
                 }
@@ -418,33 +423,22 @@ namespace ArbiterInternal {
             return rv;
         }
 
-        private List<Arbiter.Player> parsePlayers( JSONNode playersNode ) {
-            List<Arbiter.Player> rv = new List<Arbiter.Player>();
-            JSONArray rawPlayers = playersNode.AsArray;
-            IEnumerator enumerator = rawPlayers.GetEnumerator();
+		// Parses the Tournament.Users JSON array returned from the server and converts each item into a c# TournamentUser
+        private List<Arbiter.TournamentUser> parseUsers( JSONNode usersNode ) {
+			List<Arbiter.TournamentUser> rv = new List<Arbiter.TournamentUser>();
+            JSONArray rawUsers = usersNode.AsArray;
+            IEnumerator enumerator = rawUsers.GetEnumerator();
             while( enumerator.MoveNext() ) {
-                JSONClass playerNode = enumerator.Current as JSONClass;
-                User user = parseUser( playerNode["user"] );
-                string score = playerNode["score"];
-                Arbiter.Player player = new Arbiter.Player( user );
-                if( score != "null" )
-                    player.SetScore( int.Parse( score ));
-                rv.Add( player );
+                JSONClass userNode = enumerator.Current as JSONClass;
+                string id = userNode["id"];
+                string score = userNode["score"];
+				Arbiter.TournamentUser user = new Arbiter.TournamentUser( id );
+                if( score != "null" )                	
+                    user.SetScore( int.Parse( score ));
+                rv.Add( user );
             }
             return rv;
         }
-
-//		private Arbiter.Jackpot parseJackpot( JSONNode jackpotNode ) {
-//			string id = jackpotNode["id"];
-//			string buyIn = jackpotNode["buy_in"];
-//			string balance = jackpotNode["balance"];
-//			Arbiter.Jackpot rv = new Arbiter.Jackpot();
-//			rv.Id = id;
-//			rv.BuyIn = buyIn;
-//			rv.Balance = balance;
-//			return rv;
-//		}
-
 
     }
 

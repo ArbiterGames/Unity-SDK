@@ -245,7 +245,7 @@ public partial class Arbiter : MonoBehaviour
 	public delegate void ViewPreviousTournamentsCallback();
 	public static void ViewPreviousTournaments( ViewPreviousTournamentsCallback callback ) {
 		if( callback == null )
-		callback = () => {};
+			callback = () => {};
 		ArbiterBinding.ViewPreviousTournaments( callback );
 	}
     

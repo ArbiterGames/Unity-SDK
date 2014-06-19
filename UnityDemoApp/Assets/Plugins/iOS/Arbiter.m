@@ -290,7 +290,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         NSArray *tournaments = [tournamentSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
-
+        
         if ( [tournaments count] > 0 ) {
             for (int i = 0; i < [tournaments count]; i++) {
                 NSString *createdOn = [[tournaments objectAtIndex:i] objectForKey:@"created_on"];
@@ -298,9 +298,9 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                     [dateFormatter stringFromDate:unFormattedDate],
-                    [[[tournaments objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                    [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
                     [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
                     [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
                 [message appendString:tournamentString];
@@ -334,7 +334,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
-
         self.previousPageIncompleteTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
         self.nextPageIncompleteTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
@@ -372,9 +371,9 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@Credits \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                                                [dateFormatter stringFromDate:unFormattedDate],
-                                               [[[tournaments objectAtIndex:i] objectForKey:@"jackpot"] objectForKey:@"buy_in"],
+                                               [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
                                                [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
                                                [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
                 [message appendString:tournamentString];
@@ -386,7 +385,7 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Incomplete Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
 
-        if ( [yourScore isEqualToString:@"n/a"]) {
+        if ( [yourScore isEqualToString:@"..."]) {
             [alert addButtonWithTitle:@"Play"];
         }
 
@@ -649,14 +648,12 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {
-    // TODO: Might need to add score to the users arrary returned with the tournament
-    for ( NSDictionary *player in [tournament objectForKey:@"users"] ) {
-        NSDictionary *playerUser = [player objectForKey:@"user"];
-        if ( [[playerUser objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
-            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
-                return @"n/a";
+    for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
+        if ( [[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
+            if ( [user objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"...";
             } else {
-                return [player objectForKey:@"score"];
+                return [user objectForKey:@"score"];
             }
         }
     }
@@ -664,16 +661,15 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (NSString *)getOpponentScoreFromTournament: (NSDictionary *)tournament
 {
-    for ( NSDictionary *player in [tournament objectForKey:@"users"] ) {
-        NSDictionary *playerUser = [player objectForKey:@"user"];
-        if ( ![[playerUser objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
-            if ( [player objectForKey:@"score"] == (id)[NSNull null] ) {
-                return @"n/a";
+    for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
+        if ( ![[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
+            if ( [user objectForKey:@"score"] == (id)[NSNull null] ) {
+                return @"...";
             } else {
-                return [player objectForKey:@"score"];
+                return [user objectForKey:@"score"];
             }
         }
-        return @"n/a";
+        return @"...";
     }}
 
 /*

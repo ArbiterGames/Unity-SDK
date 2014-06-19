@@ -407,10 +407,6 @@ namespace ArbiterInternal {
             
             List<Arbiter.TournamentUser> users = parseUsers( tournamentNode["users"] );
             Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, users );
-            
-            // TODO: This expects the server to return a 'winner' key in the tournament object
-            Debug.Log ("Winner:");
-            Debug.Log (tournamentNode["winner"]);
             if( tournamentNode["winner"] != null ) {
                 string winnerId = tournamentNode["winner"];
                 foreach( var user in users ) {

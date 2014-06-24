@@ -100,9 +100,7 @@ public class Entrypoint : MonoBehaviour {
     void UpdateWalletElements() {
         bool verified = Arbiter.Verified;
         string balance = Arbiter.Balance;
-        // TODO: Add PendingBalance to Arbiter class definition
-        //		 Figure out where else this should also go (wallet alert, main scene)
-		// string pendingBalance = Arbiter.PendingBalance;
+		string pendingBalance = Arbiter.PendingBalance;
         string depositAddress = Arbiter.DepositAddress;
         string depositQrCode = Arbiter.DepositQrCode;
         string withdrawAddress = Arbiter.WithdrawAddress;
@@ -110,6 +108,7 @@ public class Entrypoint : MonoBehaviour {
         Debug.Log( "Update elements if needed.\n"+
             "verified="+verified+"\n"+
             "balance="+balance+"\n"+
+            "pending balance="+pendingBalance+"\n"+
             "deposit="+depositAddress+"\n"+
             "depositQr="+depositQrCode+"\n"+
             "withdraw="+withdrawAddress

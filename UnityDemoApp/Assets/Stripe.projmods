@@ -1,0 +1,10 @@
+{
+    "group": "Stripe",
+    "libs": [],
+    "frameworks": [],
+    "headerpaths": [],
+    "files": [],
+    "folders": ["Plugins/Stripe/"],
+    "excludes": [],
+    "linker_flags": []
+}

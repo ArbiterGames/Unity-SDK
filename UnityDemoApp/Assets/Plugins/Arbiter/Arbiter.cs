@@ -28,6 +28,7 @@ public partial class Arbiter : MonoBehaviour
     public static string    Username                    { get { return user.Name; } }
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
+	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
     public static string    DepositAddress              { get { return wallet.DepositAddress; } }
     public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
     public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }

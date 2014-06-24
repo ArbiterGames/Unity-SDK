@@ -118,7 +118,7 @@ namespace ArbiterInternal {
             _showWalletPanel();
 #endif
         }
-
+		
 
     	[DllImport ("__Internal")]
     	private static extern void _copyDepositAddressToClipboard();
@@ -370,6 +370,7 @@ namespace ArbiterInternal {
         private Wallet parseWallet( JSONNode walletNode ) {
             Wallet rv = new Wallet();
             rv.Balance = walletNode["balance"].Value;
+            rv.PendingBalance = walletNode["pending_balance"].Value;
             rv.DepositAddress = walletNode["deposit_address"].Value;
             rv.DepositQrCode = walletNode["deposit_address_qr_code"].Value;
             rv.WithdrawAddress = walletNode["withdraw_address"].Value;

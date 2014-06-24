@@ -1,0 +1,3 @@
+[submodule "UnityDemoApp/Assets/Editor/Arbiter/Stripe"]
+	path = UnityDemoApp/Assets/Editor/Arbiter/Stripe
+	url = https://github.com/stripe/stripe-ios.git

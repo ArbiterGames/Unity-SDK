@@ -164,10 +164,12 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
+
+#pragma mark Wallet Methods
+
 - (void)getWallet:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-//        self.wallet = [responseDict objectForKey:@"wallet"];
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         handler(responseDict);
     } copy];
@@ -181,9 +183,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
                  });
     }
 }
-
-
-#pragma mark Wallet Methods
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
@@ -202,10 +201,41 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (void)showDepositPanel
 {
-    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
-    [alert setTag:4];
-    [alert show];
+    self.stripeViewContainer = [[UIView alloc] initWithFrame:[self getTopApplicationWindow].bounds];
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(15, 20, 290, 55)
+                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
+    self.stripeView.delegate = self;
+    [[self getTopApplicationWindow] addSubview:self.stripeView];
+    
+    // TODO:
+    //  Setup UXPorter
+    //  Make sure stripe gets imported
+    //  Make sure the stripe directory import is recursive (can verify in iOS_Build/Libraries directory)
+    //      may need to add the paymentkit and paymentkit/resources directory
+    // may need to add compiler flags for ARC
+    // If this works, then move Arbiter into its own directory
+    
+    //  Get the credit card logos rendering in the STPView
+    //  Get the stripe view rendering with a white background
+    //  Display the credit card view here
+    //  Once that is complete, add a button 'Deposit using bitcoin' option to this form
+
+    // TO GET THIS TO WORK - Make sure replacing a build doesnot break this / figure out how to animate this
+    //  -fobjc-arc to all Stripe files
+    //  add Security framework
+    
+    
+//    [self.view addSubView:self.stripeView];
+//    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
+//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
+//    [alert setTag:4];
+//    [alert show];
+}
+
+- (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
+{
+    NSLog(@"CARD IS VALID");
+    // TODO Add a submit button
 }
 
 - (void)showWithdrawPanel
@@ -670,7 +700,8 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
             }
         }
         return @"...";
-    }}
+    }
+}
 
 /*
  Makes slugifies strings into safe urls.
@@ -707,6 +738,18 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     slugalizedString = [[slugalizedString stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-"]] mutableCopy];
 
     return slugalizedString;
+}
+
+- (UIWindow*) getTopApplicationWindow
+{
+    UIApplication* clientApp = [UIApplication sharedApplication];
+    NSArray* windows = [clientApp windows];
+    UIWindow* topWindow = nil;
+    
+    if (windows && [windows count] > 0)
+        topWindow = [[clientApp windows] objectAtIndex:0];
+    
+    return topWindow;
 }
 
 @end

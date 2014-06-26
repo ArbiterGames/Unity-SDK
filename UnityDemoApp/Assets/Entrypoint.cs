@@ -9,10 +9,15 @@ using System.Collections.Generic;
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
-		const string GAME_API_KEY = "c61d1e3f7d5544e595551ff773121077";     // This comes from the www.arbiter.me/dashboard/games/
+//		const string GAME_API_KEY = "c61d1e3f7d5544e595551ff773121077";     // This comes from the www.arbiter.me/dashboard/games/
 		
-        ArbiterOptionalStep();
-        Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
+//        ArbiterOptionalStep();
+        
+        // TODO: Add the Arbiter Prefab to the scene
+        //		 Make sure the missing token and api key error runs
+        //		 Make sure it runs with api key and token
+        //  	 Than call initialize, but shouldn't need the GAME_API_KEY at that point
+//        Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
 	}
 
 

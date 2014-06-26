@@ -123,7 +123,8 @@ void _getTournaments()
 void _viewPreviousTournaments()
 {
     [arbiter viewPreviousTournaments:^(void) {
-        UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", @"" );
+        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", emptyString );
     } page:nil];
 }
 

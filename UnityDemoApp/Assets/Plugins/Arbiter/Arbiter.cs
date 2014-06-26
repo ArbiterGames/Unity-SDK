@@ -8,13 +8,16 @@ using ArbiterInternal;
 public partial class Arbiter : MonoBehaviour
 {
 	static Arbiter() {
+		// TODO: Don't bother creating this GO, just use the prefab
+		// TODO: Figure out how to get rid of the globals
 		// Add a GO to the scene for iOS to send responses back to
-		GameObject go = new GameObject( "ArbiterBinding" );
-		go.AddComponent<ArbiterBinding>();
-		GameObject.DontDestroyOnLoad( go );
+//		GameObject go = new GameObject( "ArbiterBinding" );
+//		go.AddComponent<ArbiterBinding>();
+//		GameObject.DontDestroyOnLoad( go );
+		
+		// TODO: Move these to the initialize
         wallet = new Wallet();
         user = new User();
-
 		walletPoller = Poller.Create( "ArbiterWalletPoller" );
 		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
 		DontDestroyOnLoad( walletPoller.gameObject );
@@ -23,6 +26,9 @@ public partial class Arbiter : MonoBehaviour
 		tournamentPoller.Verbose = true;
 	}
 
+
+	public string accessToken;
+	public string gameApiKey;
 
     public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
@@ -33,6 +39,15 @@ public partial class Arbiter : MonoBehaviour
     public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
     public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
 
+
+    void Awake() {
+        if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
+            Debug.LogWarning( "Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
+        }
+        
+        // TODO: 
+        //	DontDestroyOnLoad
+    }
 
 
 	public static void Initialize( string gameApiKeyFromDashboard, Action done ) {
@@ -45,10 +60,6 @@ public partial class Arbiter : MonoBehaviour
 
 
 #if UNITY_IOS
-    /// <summary>
-    /// Uses Game Center credentials to log in to an Arbiter Account.
-    /// </summary>
-    /// <param name="done">Called when login was completed successfully</param>
     public static void LoginWithGameCenter( Action done ) {
         ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
@@ -57,14 +68,6 @@ public partial class Arbiter : MonoBehaviour
     }
     public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
-
-
-	/// <summary>
-	/// Deletes cached user, wallet, and tournament data and returns Arbiter back to an un-initialized state
-	/// </summary>
-//	public static void Logout( Action done ) {
-//		// Setup ArbiterBinding Function
-//	}
 
 
     public static void VerifyUser( Action done ) {
@@ -77,30 +80,28 @@ public partial class Arbiter : MonoBehaviour
         verified = VerificationStatus.Unverified;
         ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
     }
-    public static Action<List<string>> VerifyUserErrorHandler { set { verifyUserErrorHandler = ( errors ) => value( errors ); } }
-    
-    
-	/// <summary>
-	/// Removes the cached user and wallet and deletes the user's access token
-	/// </summary>
+
+    public static Action<List<string>> VerifyUserErrorHandler {
+        set { verifyUserErrorHandler = ( errors ) => value( errors ); }
+    }
+
 	public static void Logout( Action callback ) {
 		logoutSuccessCallback = callback;
 		ArbiterBinding.LogoutCallback parse = () => {
 			walletPoller.Stop();
 			tournamentPoller.Stop();
-			
-			if ( callback != null ) 
+
+			if ( callback != null )
 				callback();
 		};
 		ArbiterBinding.Logout( logoutSuccessHandler );
 	}
-//	public static Action<List<string>> LogoutErrorHandler { set { logoutErrorHandler = ( errors ) => value( errors ); } }
+
 	private static void logoutSuccessHandler( ) {
-		if ( logoutSuccessCallback != null ) 
+		if ( logoutSuccessCallback != null )
 			logoutSuccessCallback();
 	}
-    
-    
+
     public static void AddWalletListener( Action listener ) {
         if( !walletQueryListeners.Contains( listener ))
             walletQueryListeners.Add( listener );
@@ -108,7 +109,6 @@ public partial class Arbiter : MonoBehaviour
     public static void RemoveWalletListener( Action listener ) {
         walletQueryListeners.Remove( listener );
     }
-
 
     public static void QueryWallet() {
         if( user == null )
@@ -118,6 +118,7 @@ public partial class Arbiter : MonoBehaviour
 
         queryWalletIfAble( null );
     }
+
     private static void queryWalletIfAble( Action callback ) {
         walletSuccessCallback = callback;
 
@@ -129,6 +130,7 @@ public partial class Arbiter : MonoBehaviour
 
         ArbiterBinding.GetWallet( walletSuccessHandler, walletErrorHandler );
     }
+
     private static void walletSuccessHandler( Wallet responseWallet ) {
         wallet = responseWallet;
         walletQueryListeners.ForEach( listener => listener() );
@@ -136,27 +138,22 @@ public partial class Arbiter : MonoBehaviour
             walletSuccessCallback();
     }
 
-
     public static void ShowWalletPanel( Action callback ) {
         ArbiterBinding.ShowWalletPanel( callback );
     }
 
-	
 	public delegate void GetTournamentCallback( Tournament tournament );
-	/// <summary>
-	/// Finds an existing tournament that you could join. If no available tournaments are found, requests a new one and returns that.
-	/// </summary>
 	public static void GetTournament( string buyIn, Dictionary<string,string> filters, GetTournamentCallback callback ) {
-		
+
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
-			return (tournament.Status == Tournament.StatusType.Initializing || 
+			return (tournament.Status == Tournament.StatusType.Initializing ||
 					tournament.Status == Tournament.StatusType.InProgress) &&
 					tournament.UserCanReportScore( user.Id );
 		};
 
 		GetTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
-			
+
 			if( joinableTournaments.Count > 0 ) {
 				tournamentPoller.Stop();
 				callback( joinableTournaments[0] );
@@ -177,7 +174,7 @@ public partial class Arbiter : MonoBehaviour
 				ArbiterBinding.GetTournaments( gotTournamentsPollHelper, getTournamentsErrorHandler );
 			}
 		};
-		
+
 		RequestTournamentCallback gotRequestResponse = () => {
 			tournamentPoller.SetAction( askAgain );
 		};
@@ -194,14 +191,7 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
     }
 
-
 	public delegate void RequestTournamentCallback();
-	/// <summary>
-	/// Requests a new Tournament.
-	/// </summary>
-//	public static void RequestTournament( Dictionary<string,string> filters, RequestTournamentCallback callback ) {
-//		RequestTournament( null, filters, callback );
-//	}
 	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
@@ -209,15 +199,11 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
 	}
 
-
-
-	/// <summary>
-	/// Asks the server for a list of tournaments in various stages.
-	/// </summary>
 	public static void QueryTournaments( Action callback ) {
 		getTournamentsCallback = callback;
 		ArbiterBinding.GetTournaments( GetTournamentsSuccessHandler, getTournamentsErrorHandler );
 	}
+
 	public delegate void GetTournamentsCallback( List<Tournament> tournaments );
 	public static void GetTournamentsSuccessHandler( List<Tournament> tournaments ) {
 		initializingTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Initializing ).ToList();
@@ -231,17 +217,18 @@ public partial class Arbiter : MonoBehaviour
 			return initializingTournaments;
 		}
 	}
+
 	public static List<Tournament> InProgressTournaments {
 		get {
 			return inProgressTournaments;
 		}
 	}
+
 	public static List<Tournament> CompleteTournaments {
 		get {
 			return completeTournaments;
 		}
 	}
-
 
 	public delegate void ViewPreviousTournamentsCallback();
 	public static void ViewPreviousTournaments( ViewPreviousTournamentsCallback callback ) {
@@ -249,8 +236,8 @@ public partial class Arbiter : MonoBehaviour
 			callback = () => {};
 		ArbiterBinding.ViewPreviousTournaments( callback );
 	}
-    
-    
+
+
 	public delegate void ViewIncompleteTournamentsCallback( string tournamentId );
 	public static void ViewIncompleteTournaments( ViewIncompleteTournamentsCallback callback ) {
 		if( callback == null )
@@ -266,23 +253,20 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.ReportScore( tournamentId, score, callback, defaultErrorHandler );
 	}
 
-
     private static void defaultErrorHandler( List<string> errors ) {
         string msg = "";
         errors.ForEach( error => msg+=error+"\n" );
         Debug.LogError( "There were problems with an Arbiter call:\n"+msg );
     }
 
-
     private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
         user = responseUser;
         verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
         wallet = responseWallet != null? responseWallet : new Wallet();
-        
+
         walletPoller.SetAction( queryWalletIfAble );
         done();
     }
-
 
 
     private static Poller walletPoller;

@@ -8,22 +8,13 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import "ArbiterConstants.h"
 #import "Arbiter.h"
+#import "ArbiterPaymentView.h"
+#import "STPView.h"
 
 
-#define PRE_URL @"https://www.arbiter.me/api/v1/"
-
-NSString *const APIUserInitializeURL = PRE_URL @"user/initialize";
-NSString *const APIWalletURL = PRE_URL @"wallet/";
-NSString *const APIUserLoginURL = PRE_URL @"user/login";
-NSString *const APIUserLogoutURL = PRE_URL @"user/logout";
-NSString *const APILinkWithGameCenterURL = PRE_URL @"user/link-with-game-center";
-NSString *const APIUserDetailsURL = PRE_URL @"user/";
-NSString *const APITournamentCreateURL = PRE_URL @"tournament/create";
-NSString *const APIRequestTournamentURL = PRE_URL @"tournament";
-NSString *const APIReportScoreURLPart1 = PRE_URL @"tournament/";
-NSString *const APIReportScoreURLPart2 = @"/report-score/";
-
+#define PAYMENT_VIEW_TAG 666
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
@@ -31,7 +22,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 
 #pragma mark User Methods
-
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey
 {
@@ -53,7 +43,6 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
     }
     return self;
 }
-
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
@@ -201,41 +190,24 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
 - (void)showDepositPanel
 {
-    self.stripeViewContainer = [[UIView alloc] initWithFrame:[self getTopApplicationWindow].bounds];
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(15, 20, 290, 55)
-                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
-    self.stripeView.delegate = self;
-    [[self getTopApplicationWindow] addSubview:self.stripeView];
+    ArbiterPaymentView *paymentView;
+    void (^paymentCallback)(void) = [^(void) {
+        UIView *paymentView = [[self getTopApplicationWindow] viewWithTag:PAYMENT_VIEW_TAG];
+        [paymentView removeFromSuperview];
+    } copy];
     
-    // TODO:
-    //  Setup UXPorter
-    //  Make sure stripe gets imported
-    //  Make sure the stripe directory import is recursive (can verify in iOS_Build/Libraries directory)
-    //      may need to add the paymentkit and paymentkit/resources directory
-    // may need to add compiler flags for ARC
-    // If this works, then move Arbiter into its own directory
-    
-    //  Get the credit card logos rendering in the STPView
-    //  Get the stripe view rendering with a white background
-    //  Display the credit card view here
-    //  Once that is complete, add a button 'Deposit using bitcoin' option to this form
-
-    // TO GET THIS TO WORK - Make sure replacing a build doesnot break this / figure out how to animate this
-    //  -fobjc-arc to all Stripe files
-    //  add Security framework
+    paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
+                                                                     andCallback:paymentCallback];
+    [paymentView setTag:PAYMENT_VIEW_TAG];
+    [[self getTopApplicationWindow] addSubview:paymentView];
+   
     
     
-//    [self.view addSubView:self.stripeView];
+// Previous Bitcoin only modal
 //    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
 //    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
 //    [alert setTag:4];
 //    [alert show];
-}
-
-- (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
-{
-    NSLog(@"CARD IS VALID");
-    // TODO Add a submit button
 }
 
 - (void)showWithdrawPanel
@@ -680,27 +652,24 @@ NSString *const APIReportScoreURLPart2 = @"/report-score/";
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
         if ( [[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
-            if ( [user objectForKey:@"score"] == (id)[NSNull null] ) {
-                return @"...";
-            } else {
+            if ( [user objectForKey:@"score"] != (id)[NSNull null] ) {
                 return [user objectForKey:@"score"];
             }
         }
     }
+    return @"...";
 }
 
 - (NSString *)getOpponentScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
         if ( ![[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
-            if ( [user objectForKey:@"score"] == (id)[NSNull null] ) {
-                return @"...";
-            } else {
+            if ( [user objectForKey:@"score"] != (id)[NSNull null] ) {
                 return [user objectForKey:@"score"];
             }
         }
-        return @"...";
     }
+    return @"...";
 }
 
 /*

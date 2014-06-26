@@ -6,9 +6,8 @@
 //
 
 #import <CoreLocation/CoreLocation.h>
-#import "STPView.h"
 
-@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, STPViewDelegate>
+@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
 {
     NSMutableDictionary *_alertViewHandlerRegistry;
     NSMutableDictionary *_connectionHandlerRegistry;
@@ -28,8 +27,6 @@
 @property (copy) NSString *nextPageIncompleteTournamentsUrl;
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
 @property (copy) NSString *currentIncompleteTournamentId;
-@property STPView *stripeView;
-@property UIView *stripeViewContainer;
 
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey;

@@ -9,15 +9,12 @@ using System.Collections.Generic;
 public class Entrypoint : MonoBehaviour {
 	
 	void Start () {
-//		const string GAME_API_KEY = "c61d1e3f7d5544e595551ff773121077";     // This comes from the www.arbiter.me/dashboard/games/
+		// Override default error handlers if you want
+		OptionallyOverrideDefaultArbiterErrorHandlers();
 		
-//        ArbiterOptionalStep();
-        
-        // TODO: Add the Arbiter Prefab to the scene
-        //		 Make sure the missing token and api key error runs
-        //		 Make sure it runs with api key and token
-        //  	 Than call initialize, but shouldn't need the GAME_API_KEY at that point
-//        Arbiter.Initialize( GAME_API_KEY, LogInToGameCenter );
+		// Establish an Arbiter Session for the current user
+		// TODO: Change this to NewSession
+		Arbiter.Initialize( LogInToGameCenter );
 	}
 
 
@@ -40,47 +37,22 @@ public class Entrypoint : MonoBehaviour {
     }
 
 
-    void ArbiterOptionalStep() {
-        // Override some of the default handlers
-
-        //
-        // Authentication is critical. You can't really bet unless Arbiter knows who you are!
-        //
-        Action<List<string>> criticalErrorHandler = ( errors ) => {
-            Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
-            errors.ForEach( e => Debug.LogError( e ));
-        };
-        Arbiter.InitializeErrorHandler = criticalErrorHandler;
-#if UNITY_IOS
-        Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
-#endif
-
-        // Verification is less critical, but they'll still need to do it to actually compete!
-        Arbiter.VerifyUserErrorHandler = ( errors ) => {
-            Debug.LogError( "Problem with verification. Not all features will be available!" );
-            errors.ForEach( e => Debug.LogError( e ));
-            SetupListenersIfYouWant();
-        };
-
-    }
-
-
     void VerificationStep() {
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
 
         // You can choose to verify later if you prefer. But most of the Arbiter features won't let this user do anything until s/he is verified
         if( Arbiter.Verified )
-            SetupListenersIfYouWant();
+            SetupListenersExample();
         else
-            Arbiter.VerifyUser( SetupListenersIfYouWant );
-    }
-
-    
-    void SetupListenersIfYouWant() {
+			Arbiter.VerifyUser( SetupListenersExample );
+	}
+	
+	
+	void SetupListenersExample() {
         Arbiter.AddWalletListener( UpdateWalletElements );
-        Arbiter.AddWalletListener( SomeOtherHandler );
-        ArbiterDoTheseAsOftenAsYouWant();
+		Arbiter.AddWalletListener( WalletListenerExample );
+		ArbiterDoTheseAsOftenAsYouWant();
 
         LoadAnotherScene();
     }
@@ -89,9 +61,9 @@ public class Entrypoint : MonoBehaviour {
         // Since the 2 listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
         // (if you setup listeners on persistent objects you should be fine)
         Arbiter.RemoveWalletListener( UpdateWalletElements );
-        Arbiter.RemoveWalletListener( SomeOtherHandler );
-
-        Application.LoadLevel( "SecondScene" );
+		Arbiter.RemoveWalletListener( WalletListenerExample );
+		
+		Application.LoadLevel( "SecondScene" );
     }
     
     
@@ -121,7 +93,32 @@ public class Entrypoint : MonoBehaviour {
     }
 
 
-    void SomeOtherHandler() {
+	/**
+		Method to demo setting up a wallet listener
+	*/
+    void WalletListenerExample() {
         Debug.Log( "Example of other wallet listeners triggering." );
     }
+
+    
+	/**
+		Method to demo overriding the default Arbiter error handlers
+	*/
+	void OptionallyOverrideDefaultArbiterErrorHandlers() {
+		Action<List<string>> criticalErrorHandler = ( errors ) => {
+			Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
+			errors.ForEach( e => Debug.LogError( e ));
+		};
+		Arbiter.InitializeErrorHandler = criticalErrorHandler;
+		
+		#if UNITY_IOS
+		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
+		#endif
+		
+		Arbiter.VerifyUserErrorHandler = ( errors ) => {
+			Debug.LogError( "Problem with verification. Not all features will be available!" );
+			errors.ForEach( e => Debug.LogError( e ));
+			SetupListenersExample();
+		};
+	}
 }

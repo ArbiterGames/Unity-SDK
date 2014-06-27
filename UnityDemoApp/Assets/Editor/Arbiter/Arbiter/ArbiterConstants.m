@@ -18,4 +18,3 @@ NSString *const APITournamentCreateURL = @"https://www.arbiter.me/api/v1/tournam
 NSString *const APIRequestTournamentURL = @"https://www.arbiter.me/api/v1/tournament";
 NSString *const APIReportScoreURLPart1 = @"https://www.arbiter.me/api/v1/tournament/";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
-NSString *const TEMP_ACCESS_TOKEN = @"e866be455161f3f1d0f67af2b457fe04392e538e";

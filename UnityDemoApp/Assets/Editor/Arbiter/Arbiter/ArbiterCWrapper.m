@@ -24,7 +24,7 @@ char* AutonomousStringCopy(const char* string)
     return res;
 }
 
-void _init( const char* apiKey )
+void _init( const char* apiKey, const char* accessToken )
 {
     arbiter = [Arbiter alloc];
     [arbiter init:^(NSDictionary *jsonDict) {
@@ -34,7 +34,8 @@ void _init( const char* apiKey )
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
             UnitySendMessage("ArbiterBinding", "InitHandler", jsonChar);
         }
-        apiKey:[[NSString alloc] initWithUTF8String:apiKey]
+           apiKey:[[NSString alloc] initWithUTF8String:apiKey]
+      accessToken:[[NSString alloc] initWithUTF8String:accessToken]
     ];
 }
 

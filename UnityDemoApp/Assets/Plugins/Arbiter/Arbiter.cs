@@ -7,31 +7,12 @@ using ArbiterInternal;
 
 public partial class Arbiter : MonoBehaviour
 {
-	static Arbiter() {
-		// TODO: Don't bother creating this GO, just use the prefab
-		// TODO: Figure out how to get rid of the globals
-		// Add a GO to the scene for iOS to send responses back to
-//		GameObject go = new GameObject( "ArbiterBinding" );
-//		go.AddComponent<ArbiterBinding>();
-//		GameObject.DontDestroyOnLoad( go );
-		
-		// TODO: Move these to the initialize
-        wallet = new Wallet();
-        user = new User();
-		walletPoller = Poller.Create( "ArbiterWalletPoller" );
-		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
-		DontDestroyOnLoad( walletPoller.gameObject );
-		DontDestroyOnLoad( tournamentPoller.gameObject );
-		walletPoller.Verbose = false;
-		tournamentPoller.Verbose = true;
-	}
-
-
 	public string accessToken;
 	public string gameApiKey;
 
     public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
+    // TODO: Need to differentiate between agreed to terms and permitted to play this game in their state
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
@@ -41,21 +22,45 @@ public partial class Arbiter : MonoBehaviour
 
 
     void Awake() {
+    
         if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
             Debug.LogWarning( "Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
         }
         
-        // TODO: 
-        //	DontDestroyOnLoad
-    }
+        _accessToken = accessToken;
+        _gameApiKey = gameApiKey;
+        
+		var arbiters = FindObjectsOfType( typeof( Arbiter ) );
+		if( arbiters.Length > 1 )
+		{
+			Destroy( gameObject );
+			return;
+		}
+		DontDestroyOnLoad( gameObject );
+		
+		GameObject go = new GameObject( "ArbiterBinding" );
+		go.AddComponent<ArbiterBinding>();
+		GameObject.DontDestroyOnLoad( go );
+	}
 
-
-	public static void Initialize( string gameApiKeyFromDashboard, Action done ) {
-        ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    // TODO: These anon functions will call the first "done" callback for every call--need to provide proper function closures!
+	public static void Initialize( Action done ) {
+	
+		wallet = new Wallet();
+		user = new User();
+		walletPoller = Poller.Create( "ArbiterWalletPoller" );
+		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
+		DontDestroyOnLoad( walletPoller.gameObject );
+		DontDestroyOnLoad( tournamentPoller.gameObject );
+		walletPoller.Verbose = false;
+		tournamentPoller.Verbose = true;
+		
+		// TODO: These anon functions will call the first "done" callback for every call--need to provide proper function closures!
+		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    
             parseLoginResponse( responseUser, responseVerified, responseWallet, done );
         };
-        ArbiterBinding.Init( gameApiKeyFromDashboard, parse, initializeErrorHandler );
+        ArbiterBinding.Init( _gameApiKey, _accessToken, parse, initializeErrorHandler );
 	}
+	
     public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
 
 
@@ -86,20 +91,14 @@ public partial class Arbiter : MonoBehaviour
     }
 
 	public static void Logout( Action callback ) {
-		logoutSuccessCallback = callback;
-		ArbiterBinding.LogoutCallback parse = () => {
+		ArbiterBinding.LogoutCallback logoutHandler = () => {
 			walletPoller.Stop();
 			tournamentPoller.Stop();
 
 			if ( callback != null )
 				callback();
 		};
-		ArbiterBinding.Logout( logoutSuccessHandler );
-	}
-
-	private static void logoutSuccessHandler( ) {
-		if ( logoutSuccessCallback != null )
-			logoutSuccessCallback();
+		ArbiterBinding.Logout( logoutHandler );
 	}
 
     public static void AddWalletListener( Action listener ) {
@@ -269,6 +268,8 @@ public partial class Arbiter : MonoBehaviour
     }
 
 
+	private static string _gameApiKey;
+	private static string _accessToken;
     private static Poller walletPoller;
     private static Poller tournamentPoller;
     private static User user;
@@ -283,7 +284,6 @@ public partial class Arbiter : MonoBehaviour
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
-	private static Action logoutSuccessCallback;
     private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 	private static Action getTournamentsCallback;
 	private static ArbiterBinding.ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;

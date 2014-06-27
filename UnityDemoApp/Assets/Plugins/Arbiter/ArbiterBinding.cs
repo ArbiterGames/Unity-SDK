@@ -9,19 +9,14 @@ using SimpleJSON;
 
 namespace ArbiterInternal {
 
-// TODO: Replace all the boilerplate with some helpers
-
-    /// <summary>
-    /// Bridge to the objective c functions for the Arbiter SDK
-    /// </summary>
     public class ArbiterBinding : MonoBehaviour
     {
     	[DllImport ("__Internal")]
-    	private static extern void _init( string gameApiKey );
+    	private static extern void _init( string gameApiKey, string accessToken );
         public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
         private static LoginCallback initCallback;
         private static ErrorHandler initErrorHandler;
-        public static void Init( string gameApiKey, LoginCallback callback, ErrorHandler errorHandler ) {
+        public static void Init( string gameApiKey, string accessToken, LoginCallback callback, ErrorHandler errorHandler ) {
             initCallback = callback;
             initErrorHandler = errorHandler;
 #if UNITY_EDITOR
@@ -31,7 +26,7 @@ namespace ArbiterInternal {
             user.Name = "McMockison";
             initCallback( user, false, null );
 #elif UNITY_IOS
-            _init( gameApiKey );
+            _init( gameApiKey, accessToken );
 #endif
     	}
 

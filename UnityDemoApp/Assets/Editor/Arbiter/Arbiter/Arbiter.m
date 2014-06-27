@@ -23,10 +23,11 @@
 
 #pragma mark User Methods
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];
     self.apiKey = apiKey;
+    self.accessToken = accessToken;
     
     if ( self ) {
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
@@ -44,12 +45,9 @@
     return self;
 }
 
+// This function assumes the player used something else (like Unity) to authenticate.
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-    //
-    // NOTE: This function assumes the player used something else (like Unity) to authenticate.
-    //
-
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
@@ -143,7 +141,6 @@
 
 - (void)logout:(void(^)(NSDictionary *))handler
 {
-    // Actually make the /logout call to the server
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.user = nil;
         self.wallet = nil;
@@ -197,7 +194,9 @@
     } copy];
     
     paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
-                                                                     andCallback:paymentCallback];
+                                                andCallback:paymentCallback
+                                                    forUser:[self user]];
+    
     [paymentView setTag:PAYMENT_VIEW_TAG];
     [[self getTopApplicationWindow] addSubview:paymentView];
    

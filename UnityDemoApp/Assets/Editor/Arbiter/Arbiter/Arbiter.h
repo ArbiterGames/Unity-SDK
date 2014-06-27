@@ -7,7 +7,7 @@
 
 #import <CoreLocation/CoreLocation.h>
 
-@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate>
+@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 {
     NSMutableDictionary *_alertViewHandlerRegistry;
     NSMutableDictionary *_connectionHandlerRegistry;
@@ -19,7 +19,7 @@
 
 @property (strong, atomic) NSMutableDictionary *wallet;
 @property (strong, atomic) NSMutableDictionary *user;
-@property (copy) NSString *token;
+@property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageTournamentsUrl;
@@ -29,7 +29,7 @@
 @property (copy) NSString *currentIncompleteTournamentId;
 
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey;
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
@@ -39,7 +39,7 @@
 - (void)copyDepositAddressToClipboard;
 - (void)getDevicePostalCode:(void(^)(NSString *))handler;
 
-- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn;
+- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;
 - (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 

@@ -14,7 +14,7 @@
 @property (strong, nonatomic) IBOutlet UIButton *purchaseButton;
 @property (assign) STPView *stripeView;
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))callback;
+- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))callback forUser:(NSDictionary *)userDict;
 - (void)cancelButtonClicked: (id)sender;
 - (void)selectButtonClicked: (id)sender;
 - (void)purchaseButtonClicked: (id)sender;

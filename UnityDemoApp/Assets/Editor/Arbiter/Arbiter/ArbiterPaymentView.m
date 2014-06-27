@@ -18,7 +18,8 @@
 {
     // Custom Arbiter
     void(^callback)(void);
-    CGRect *_parentFrame;
+    CGRect *parentFrame;
+    NSDictionary *user;
     
     // Picker View
     UIPickerView *pickerView;
@@ -26,17 +27,20 @@
     NSMutableDictionary *selectedBundle;
     
     // NSURL Connection
-    void(^_responseHandler)(NSDictionary *responseDict);
-    NSMutableData *_responseData;
+    void(^responseHandler)(NSDictionary *responseDict);
+    NSMutableData *responseData;
     
 }
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler
+- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict
 {
-    self = [super initWithFrame:frame];
+    self = [super initWithFrame:CGRectInset(frame, 25, 25)];
     if (self) {
-        _parentFrame = &(frame);
+        parentFrame = &(frame);
+        user = userDict;
         callback = handler;
+        self.backgroundColor = [UIColor whiteColor];
+        [self animateIn];
         [self setupBundleSelectLayout];
     }
     return self;
@@ -44,7 +48,15 @@
 
 - (void)setupBundleSelectLayout
 {
-    self.backgroundColor = [UIColor whiteColor];
+    // border radius
+    [self.layer setCornerRadius:5.0f];
+    
+    // drop shadow
+    [self.layer setShadowColor:[UIColor blackColor].CGColor];
+    [self.layer setShadowOpacity:0.8];
+    [self.layer setShadowRadius:3.0];
+    [self.layer setShadowOffset:CGSizeMake(2.0, 2.0)];
+    
     [self renderCancelButton:350];
     [self renderSelectButton];
     [self renderBundleOptions];
@@ -52,7 +64,7 @@
 
 - (void)setupStripeView
 {
-    self.stripeView = [[STPView alloc] initWithFrame:*(_parentFrame)
+    self.stripeView = [[STPView alloc] initWithFrame:*(parentFrame)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
@@ -65,7 +77,7 @@
 
 - (void)cancelButtonClicked:(id)sender
 {
-    callback();
+    [self animateOut];
 }
 
 - (void)selectButtonClicked:(id)sender
@@ -82,7 +94,7 @@
         } else {
             NSLog(@"Received token %@", token.tokenId);
     
-            _responseHandler = [^(NSDictionary *responseDict) {
+            responseHandler = [^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
@@ -100,10 +112,7 @@
             request.HTTPMethod = @"POST";
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
             [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-
-            // TODO: Include the players token not ours
-            NSString *tokenString = [NSString stringWithFormat:@"Token %@", TEMP_ACCESS_TOKEN];
-            
+            NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
             [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
             [[NSURLConnection alloc] initWithRequest:request delegate:self];
         }
@@ -138,7 +147,7 @@
 - (void)renderBundleOptions
 {
     // Once we get the current bundle prices, display them in a UIPicker
-    _responseHandler = [^(NSDictionary *responseDict) {
+    responseHandler = [^(NSDictionary *responseDict) {
         dataArray = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
         float screenWidth = [UIScreen mainScreen].bounds.size.width;
         float pickerWidth = screenWidth * 3 / 4;
@@ -162,7 +171,7 @@
     NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://www.arbiter.me/cashier/bundle"]];
     request.HTTPMethod = @"GET";
     [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    NSString *tokenString = [NSString stringWithFormat:@"Token %@", TEMP_ACCESS_TOKEN];
+    NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
     NSLog(@"tokenString: %@", tokenString);
     [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
     [[NSURLConnection alloc] initWithRequest:request delegate:self];
@@ -188,6 +197,49 @@
     self.purchaseButton.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, 100);
     [self.purchaseButton addTarget:self action:@selector(purchaseButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.purchaseButton];
+}
+
+
+# pragma mark AlertView Esqueue Animations
+
+- (void)animateIn
+{
+    CAKeyframeAnimation *animation = [CAKeyframeAnimation
+                                      animationWithKeyPath:@"transform"];
+    
+    CATransform3D scale1 = CATransform3DMakeScale(0.5, 0.5, 1);
+    CATransform3D scale2 = CATransform3DMakeScale(0.9, 0.9, 1);
+    CATransform3D scale3 = CATransform3DMakeScale(1.1, 1.1, 1);
+    CATransform3D scale4 = CATransform3DMakeScale(1.0, 1.0, 1);
+    
+    NSArray *frameValues = [NSArray arrayWithObjects:
+                            [NSValue valueWithCATransform3D:scale1],
+                            [NSValue valueWithCATransform3D:scale2],
+                            [NSValue valueWithCATransform3D:scale3],
+                            [NSValue valueWithCATransform3D:scale4],
+                            nil];
+    [animation setValues:frameValues];
+    
+    NSArray *frameTimes = [NSArray arrayWithObjects:
+                           [NSNumber numberWithFloat:0.0],
+                           [NSNumber numberWithFloat:0.5],
+                           [NSNumber numberWithFloat:0.9],
+                           [NSNumber numberWithFloat:1.0],
+                           nil];
+    [animation setKeyTimes:frameTimes];
+    
+    animation.fillMode = kCAFillModeForwards;
+    animation.removedOnCompletion = NO;
+    animation.duration = .2;
+    
+    [self.layer addAnimation:animation forKey:@"popup"];
+}
+
+- (void)animateOut
+{
+    [UIView animateWithDuration:0.2f
+                     animations:^{ [self setAlpha:0.0f]; }
+                     completion:^(BOOL finished) { callback(); }];
 }
 
 
@@ -240,11 +292,11 @@
 # pragma mark NSURLConnection Delegate Methods
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    _responseData = [[NSMutableData alloc] init];
+    responseData = [[NSMutableData alloc] init];
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    [_responseData appendData:data];
+    [responseData appendData:data];
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection
@@ -254,11 +306,11 @@
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
     NSError *error = nil;
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:_responseData
+    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseData
                                                          options:NSJSONReadingMutableLeaves
                                                            error:&error];
-    _responseHandler(dict);
-    _responseData = nil;
+    responseHandler(dict);
+    responseData = nil;
     
 }
 

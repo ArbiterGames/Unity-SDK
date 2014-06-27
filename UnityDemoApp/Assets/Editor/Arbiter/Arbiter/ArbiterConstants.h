@@ -16,3 +16,5 @@ extern NSString *const APITournamentCreateURL;
 extern NSString *const APIRequestTournamentURL;
 extern NSString *const APIReportScoreURLPart1;
 extern NSString *const APIReportScoreURLPart2;
+extern NSString *const APIDepositURL;
+extern NSString *const APIWithdrawURL;

@@ -11,10 +11,12 @@
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterPaymentView.h"
+#import "ArbiterWithdrawView.h"
 #import "STPView.h"
 
 
 #define PAYMENT_VIEW_TAG 666
+#define WITHDRAW_VIEW_TAG 766
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
@@ -211,15 +213,32 @@
 
 - (void)showWithdrawPanel
 {
-    NSString *message = @"Where should we transfer your balance?";
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Withdraw" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Withdraw", nil];
-    [alert setAlertViewStyle:UIAlertViewStylePlainTextInput];
-
-    UITextField *textField = [alert textFieldAtIndex:0];
-    textField.placeholder = @"Enter a Bitcoin address";
-
-    [alert setTag:5];
-    [alert show];
+    ArbiterWithdrawView *withdrawView;
+    void (^withdrawCallback)(void) = [^(void) {
+        UIView *withdrawView = [[self getTopApplicationWindow] viewWithTag:WITHDRAW_VIEW_TAG];
+        [withdrawView removeFromSuperview];
+    } copy];
+    
+    withdrawView = [[ArbiterWithdrawView alloc] initWithFrame:[self getTopApplicationWindow].bounds
+                                                  andCallback:withdrawCallback
+                                                      forUser:[self user]
+                                                    andWallet:[self wallet]];
+    [withdrawView setTag:WITHDRAW_VIEW_TAG];
+    [[self getTopApplicationWindow] addSubview:withdrawView];
+    // TODO: replace the code below with a similar flow to the payment view
+    //  Create ArbiterWithdrawView class
+    //  Setup 'WithdrawAmountSelection' screen
+    //  Once amount is selected, display billing info screen to enter debit card info
+    
+//    NSString *message = @"Where should we transfer your balance?";
+//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Withdraw" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Withdraw", nil];
+//    [alert setAlertViewStyle:UIAlertViewStylePlainTextInput];
+//
+//    UITextField *textField = [alert textFieldAtIndex:0];
+//    textField.placeholder = @"Enter a Bitcoin address";
+//
+//    [alert setTag:5];
+//    [alert show];
 }
 
 - (void)showWithdrawError:(NSString *)error

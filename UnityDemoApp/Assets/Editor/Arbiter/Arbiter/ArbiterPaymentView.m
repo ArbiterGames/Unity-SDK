@@ -39,6 +39,14 @@
         parentFrame = &(frame);
         user = userDict;
         callback = handler;
+        
+        [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
+        [self.layer setCornerRadius:5.0f];
+        [self.layer setShadowColor:[UIColor blackColor].CGColor];
+        [self.layer setShadowOpacity:0.8];
+        [self.layer setShadowRadius:3.0];
+        [self.layer setShadowOffset:CGSizeMake(2.0, 2.0)];
+        
         [self animateIn];
         [self setupBundleSelectLayout];
     }
@@ -47,13 +55,6 @@
 
 - (void)setupBundleSelectLayout
 {
-    [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
-    [self.layer setCornerRadius:5.0f];
-    [self.layer setShadowColor:[UIColor blackColor].CGColor];
-    [self.layer setShadowOpacity:0.8];
-    [self.layer setShadowRadius:3.0];
-    [self.layer setShadowOffset:CGSizeMake(2.0, 2.0)];
-    
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, self.bounds.size.width, 40)];
     [title setText:@"Deposit Credits"];
     [title setFont:[UIFont boldSystemFontOfSize:17]];
@@ -61,7 +62,7 @@
     [title setTag:BUNDLE_SELECT_TAG];
     [self addSubview:title];
     
-    UITextView *message = [[UITextView alloc] initWithFrame:CGRectMake(10, 40, self.bounds.size.width - 20, 50)];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10, 40, self.bounds.size.width - 20, 50)];
     [message setText:@"Select the amount of credits you\nwould like to buy."];
     [message setFont:[UIFont systemFontOfSize:14]];
     [message setTextAlignment:NSTextAlignmentCenter];
@@ -88,7 +89,7 @@
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
     
-    UITextView *message = [[UITextView alloc] initWithFrame:CGRectMake(10, 10, self.bounds.size.width - 20, 50)];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, self.bounds.size.width - 20, 50)];
     NSString *valueText = [self addThousandsSeparatorToString:[selectedBundle objectForKey:@"value"]];
     NSString *messageBody = [NSString stringWithFormat:@"Enter your billing info for purchasing\n%@ credits for $%@", valueText, [selectedBundle objectForKey:@"price"]];
     [message setText:messageBody];
@@ -138,7 +139,7 @@
                                                                  options:0
                                                                    error:&error];
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://www.arbiter.me/stripe/deposit"]];
+            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APIDepositURL]];
             request.HTTPMethod = @"POST";
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
             [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
@@ -366,7 +367,6 @@
 
 - (NSString *)addThousandsSeparatorToString:(NSString *)original
 {
-    
     NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
     [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
     [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];

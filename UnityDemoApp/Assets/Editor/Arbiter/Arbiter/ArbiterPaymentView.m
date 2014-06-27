@@ -34,12 +34,11 @@
 
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict
 {
-    self = [super initWithFrame:CGRectInset(frame, 25, 25)];
+    self = [super initWithFrame:CGRectInset(frame, 25, 50)];
     if (self) {
         parentFrame = &(frame);
         user = userDict;
         callback = handler;
-        self.backgroundColor = [UIColor whiteColor];
         [self animateIn];
         [self setupBundleSelectLayout];
     }
@@ -48,28 +47,59 @@
 
 - (void)setupBundleSelectLayout
 {
-    // border radius
+    [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
     [self.layer setCornerRadius:5.0f];
-    
-    // drop shadow
     [self.layer setShadowColor:[UIColor blackColor].CGColor];
     [self.layer setShadowOpacity:0.8];
     [self.layer setShadowRadius:3.0];
     [self.layer setShadowOffset:CGSizeMake(2.0, 2.0)];
     
-    [self renderCancelButton:350];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, self.bounds.size.width, 40)];
+    [title setText:@"Deposit Credits"];
+    [title setFont:[UIFont boldSystemFontOfSize:17]];
+    [title setTextAlignment:NSTextAlignmentCenter];
+    [title setTag:BUNDLE_SELECT_TAG];
+    [self addSubview:title];
+    
+    UITextView *message = [[UITextView alloc] initWithFrame:CGRectMake(10, 40, self.bounds.size.width - 20, 50)];
+    [message setText:@"Select the amount of credits you\nwould like to buy."];
+    [message setFont:[UIFont systemFontOfSize:14]];
+    [message setTextAlignment:NSTextAlignmentCenter];
+    [message setTag:BUNDLE_SELECT_TAG];
+    [message setBackgroundColor:[UIColor clearColor]];
+    [self addSubview:message];
+    
+    [self renderCancelButton];
     [self renderSelectButton];
     [self renderBundleOptions];
 }
 
-- (void)setupStripeView
+- (void)setupBillingInfoLayout
 {
-    self.stripeView = [[STPView alloc] initWithFrame:*(parentFrame)
+    CGRect frame = self.frame;
+    frame.size.height = 240;
+    frame.size.width = frame.size.width + 30;
+    frame.origin.y = 10;
+    frame.origin.x = 10;
+    [self setFrame:frame];
+
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(5, 70, frame.size.width - 10, 40)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
+    
+    UITextView *message = [[UITextView alloc] initWithFrame:CGRectMake(10, 10, self.bounds.size.width - 20, 50)];
+    NSString *valueText = [self addThousandsSeparatorToString:[selectedBundle objectForKey:@"value"]];
+    NSString *messageBody = [NSString stringWithFormat:@"Enter your billing info for purchasing\n%@ credits for $%@", valueText, [selectedBundle objectForKey:@"price"]];
+    [message setText:messageBody];
+    [message setFont:[UIFont systemFontOfSize:14]];
+    [message setTextAlignment:NSTextAlignmentCenter];
+    [message setBackgroundColor:[UIColor clearColor]];
+    [message setTag:PAYMENT_INFO_TAG];
+    [self addSubview:message];
+    
     [self renderPurchaseButton];
-    [self renderCancelButton:150];
+    [self renderCancelButton];
 }
 
 
@@ -83,7 +113,7 @@
 - (void)selectButtonClicked:(id)sender
 {
     [self hideBundleSelectUI];
-    [self setupStripeView];
+    [self setupBillingInfoLayout];
 }
 
 - (void)purchaseButtonClicked:(id)sender
@@ -124,23 +154,36 @@
 
 - (void)renderSelectButton
 {
+    
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setTitle:@"Select" forState:UIControlStateNormal];
-    [button sizeToFit];
+    [button setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
+    [button setTitle:@"Next" forState:UIControlStateNormal];
+    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
     [button setTag:BUNDLE_SELECT_TAG];
-    button.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, 300);
     [button addTarget:self action:@selector(selectButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:topBorder];
+
     [self addSubview:button];
 }
 
-- (void)renderCancelButton:(NSInteger)yPosition
+- (void)renderCancelButton
 {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width, 50)];
     [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button sizeToFit];
     [button setTag:BUNDLE_SELECT_TAG];
-    button.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, yPosition);
+    [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
     [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:topBorder];
+    
     [self addSubview:button];
 }
 
@@ -149,18 +192,15 @@
     // Once we get the current bundle prices, display them in a UIPicker
     responseHandler = [^(NSDictionary *responseDict) {
         dataArray = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
-        float screenWidth = [UIScreen mainScreen].bounds.size.width;
-        float pickerWidth = screenWidth * 3 / 4;
-        float xPoint = screenWidth / 2 - pickerWidth / 2;
         
         pickerView = [[UIPickerView alloc] init];
         [pickerView setTag:BUNDLE_SELECT_TAG];
         [pickerView setDataSource: self];
         [pickerView setDelegate: self];
-        [pickerView setFrame: CGRectMake(xPoint, 50.0f, pickerWidth, 200.0f)];
+        [pickerView setFrame: CGRectMake(0, 70, self.bounds.size.width, 300)];
         pickerView.showsSelectionIndicator = YES;
         
-        NSInteger selectedRow = 1;
+        NSInteger selectedRow = 2;
         [pickerView selectRow:selectedRow inComponent:0 animated:YES];
         selectedBundle = [dataArray objectAtIndex:selectedRow];
         
@@ -188,13 +228,17 @@
 
 - (void)renderPurchaseButton
 {
-    // Keep it hidden until the payment form is correct
+   // Keep it hidden until the payment form is correct
     self.purchaseButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.purchaseButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [self.purchaseButton sizeToFit];
+    [self.purchaseButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [self.purchaseButton setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
     self.purchaseButton.enabled = false;
     [self.purchaseButton setTag:PAYMENT_INFO_TAG];
-    self.purchaseButton.center = CGPointMake([UIScreen mainScreen].bounds.size.width / 2, 100);
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, self.purchaseButton.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [self.purchaseButton.layer addSublayer:topBorder];
     [self.purchaseButton addTarget:self action:@selector(purchaseButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:self.purchaseButton];
 }
@@ -278,7 +322,7 @@
 // Display each row's data.
 -(NSString *)pickerView:(UIPickerView *)pickerView titleForRow:(NSInteger)row forComponent:(NSInteger)component
 {
-    return [NSString stringWithFormat:@"%@ credits for $%@", [[dataArray objectAtIndex:row] objectForKey:@"value"],
+    return [NSString stringWithFormat:@"%@ credits for $%@", [self addThousandsSeparatorToString:[[dataArray objectAtIndex:row] objectForKey:@"value"]],
                                                              [[dataArray objectAtIndex:row] objectForKey:@"price"]];
 }
 
@@ -320,6 +364,19 @@
 
 #pragma mark Utility Helpers
 
+- (NSString *)addThousandsSeparatorToString:(NSString *)original
+{
+    
+    NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
+    [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
+    [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];
+    
+    NSNumberFormatter *stringToNumberFormatter = [[NSNumberFormatter alloc] init];
+    [stringToNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
+    
+    return [separatorFormattor stringFromNumber:origNumber];
+}
 
 - (UIWindow*) getTopApplicationWindow
 {

@@ -17,6 +17,14 @@
 
 #define PAYMENT_VIEW_TAG 666
 #define WITHDRAW_VIEW_TAG 766
+#define WALLET_ALERT_TAG 331
+#define VERIFICATION_ALERT_TAG 332
+#define ENABLE_LOCATION_ALERT_TAG 333
+#define BITCOIN_WITHDRAW_ALERT_TAG 334
+#define BITCOIN_DEPOSIT_ALERT_TAG 335
+#define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
+#define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
+
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
@@ -99,26 +107,44 @@
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
-    void (^locationCallback)(NSString *) = ^(NSString *postalCode) {
-        [self.user setValue:postalCode forKey:@"postal_code"];
-        
-        if ( [[self.user objectForKey:@"is_verified"] boolValue] == true ) {
-            handler(self.user);
+    void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
+        if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+            NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
+            [self.user setObject:postalCode forKey:@"postal_code"];
+            
+            if ( [[self.user objectForKey:@"is_verified"] boolValue] == true ) {
+                handler(self.user);
+            } else {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                                message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Cancel"
+                                                      otherButtonTitles:@"Agree", nil];
+                [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+                [alert setTag:VERIFICATION_ALERT_TAG];
+                [alert show];
+            }
         } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                            message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
+                                                            message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
                                                            delegate: self
-                                                  cancelButtonTitle:@"Cancel"
-                                                  otherButtonTitles:@"Agree", nil];
-            [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-            [alert setTag:2];
+                                                  cancelButtonTitle:@"Close"
+                                                  otherButtonTitles:@"Try again", nil];
+            [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
+            [alert setTag:ENABLE_LOCATION_ALERT_TAG];
             [alert show];
         }
     };
-    [self getDevicePostalCode:locationCallback];
+    
+    if ([self.user objectForKey:@"postal_code"] == (id)[NSNull null] ) {
+        [self getDevicePostalCode:locationCallback];
+    } else {
+        locationCallback(@{@"success": @true,
+                           @"postalCode": [self.user objectForKey:@"postal_code"]});
+    }
 }
 
-- (void)getDevicePostalCode:(void(^)(NSString *))handler
+- (void)getDevicePostalCode:(void(^)(NSDictionary *))handler
 {
     if (nil == locationManager)
         locationManager = [[CLLocationManager alloc] init];
@@ -131,15 +157,20 @@
     
     CLLocation *location = [locationManager location];
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];
+    
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
+        NSMutableDictionary *response = [[NSMutableDictionary alloc] initWithDictionary:@{@"success": @false}];
+        
         if ( error ) {
-            handler([NSString stringWithFormat: @"Geocode failed with error: %@", error]);
+            handler(response);
+        } else {
+            CLPlacemark *placemark = [placemarks objectAtIndex:0];
+            [response setValue:@true forKey:@"success"];
+            [response setValue:placemark.postalCode forKey:@"postalCode"];
+            handler(response);
         }
-        CLPlacemark *placemark = [placemarks objectAtIndex:0];
-        handler(placemark.postalCode);
     }];
 }
-
 
 - (void)logout:(void(^)(NSDictionary *))handler
 {
@@ -183,7 +214,7 @@
     NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
     NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLocation: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"postal_code"]];
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-    [alert setTag:1];
+    [alert setTag:WALLET_ALERT_TAG];
     [alert show];
 }
 
@@ -207,7 +238,7 @@
 // Previous Bitcoin only modal
 //    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
 //    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
-//    [alert setTag:4];
+//    [alert setTag:BITCOIN_DEPOSIT_ALERT_TAG];
 //    [alert show];
 }
 
@@ -225,11 +256,8 @@
                                                     andWallet:[self wallet]];
     [withdrawView setTag:WITHDRAW_VIEW_TAG];
     [[self getTopApplicationWindow] addSubview:withdrawView];
-    // TODO: replace the code below with a similar flow to the payment view
-    //  Create ArbiterWithdrawView class
-    //  Setup 'WithdrawAmountSelection' screen
-    //  Once amount is selected, display billing info screen to enter debit card info
     
+// TODO: Get the bitcoin option back in
 //    NSString *message = @"Where should we transfer your balance?";
 //    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Withdraw" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Withdraw", nil];
 //    [alert setAlertViewStyle:UIAlertViewStylePlainTextInput];
@@ -237,7 +265,7 @@
 //    UITextField *textField = [alert textFieldAtIndex:0];
 //    textField.placeholder = @"Enter a Bitcoin address";
 //
-//    [alert setTag:5];
+//    [alert setTag:BITCOIN_WITHDRAW_ALERT_TAG];
 //    [alert show];
 }
 
@@ -339,7 +367,7 @@
         }
 
         [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
-        [alert setTag:10];
+        [alert setTag:PREVIOUS_TOURNAMENTS_ALERT_TAG];
         [alert show];
     } copy];
 
@@ -417,7 +445,7 @@
         }
 
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
-        [alert setTag:11];
+        [alert setTag:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
         [alert show];
     } copy];
 
@@ -476,7 +504,7 @@
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setValue:[NSString stringWithFormat:tokenValue] forHTTPHeaderField:@"Authorization"];
+        [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         if( paramsData != nil ) {
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
@@ -536,8 +564,7 @@
 
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
 
-    // Wallet alertView
-    if ( alertView.tag == 1 ) {
+    if ( alertView.tag == WALLET_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Refresh"] ) {
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
@@ -553,8 +580,7 @@
             handler();
         }
 
-    // Verification alertView
-    } else if ( alertView.tag == 2 ) {
+    } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
@@ -575,15 +601,19 @@
             [self httpPost:verificationUrl params:postParams handler:connectionHandler];
         }
 
-    } else if ( alertView.tag == 4 ) {
+    } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
+        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
+        [self verifyUser:^(NSDictionary *dict) {
+            handler(dict);
+        }];
+    } else if ( alertView.tag == BITCOIN_DEPOSIT_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Copy Address"] ) {
             [self copyDepositAddressToClipboard];
         } else if ( [buttonTitle isEqualToString:@"Back"] ) {
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
 
-    // Withdraw
-    } else if ( alertView.tag == 5 ) {
+    } else if ( alertView.tag == BITCOIN_WITHDRAW_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Withdraw"]) {
 
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -619,8 +649,7 @@
             [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         }
 
-    // Previous tournaments
-    } else if ( alertView.tag == 10 ) {
+    } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
 
         if ( [buttonTitle isEqualToString:@"Next"] ) {
@@ -631,8 +660,7 @@
             handler();
         }
 
-    // Incomplete tournaments
-    } else if ( alertView.tag == 11 ) {
+    } else if ( alertView.tag == VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
         if ( [buttonTitle isEqualToString:@"Next"] ) {
             [self viewIncompleteTournaments:handler page:@"next"];

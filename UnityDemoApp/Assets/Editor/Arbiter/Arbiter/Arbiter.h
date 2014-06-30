@@ -37,7 +37,7 @@
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)copyDepositAddressToClipboard;
-- (void)getDevicePostalCode:(void(^)(NSString *))handler;
+- (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;
 - (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;

@@ -15,16 +15,10 @@ public class Game : MonoBehaviour {
     public string TournamentId = "???";
     public string ResultsDescription = "???";
     
-//    private Globals globals;
     private Arbiter arbiter;
 
-
 	void Start() {
-//		GameObject globalsGO = GameObject.Find ("Globals");
 		GameObject arbiterGO = GameObject.Find ("Arbiter");
-		
-		// TODO replace globals with Arbiter
-//		globals = globalsGO.GetComponent<Globals>();
 		arbiter = arbiterGO.GetComponent<Arbiter>();
 
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {

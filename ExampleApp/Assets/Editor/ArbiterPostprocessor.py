@@ -1,5 +1,5 @@
 """
-    Borrowed from: http://tuohuang.info/unity-automate-post-process/#.U6i3_I1dVaR
+    Borrowed then modified from: http://tuohuang.info/unity-automate-post-process/#.U6i3_I1dVaR
 """
 
 import os

@@ -12,9 +12,9 @@ public class FinishUnplayedGamesBtn : MonoBehaviour {
 	
 	void PlayUnfinishedGame( string tournamentId ) {
 		if ( tournamentId != "" ) {
-			GameObject globalsGO = GameObject.Find ("Globals");
-			Globals globals = globalsGO.GetComponent<Globals>();
-			globals.SelectedUnfinishedTournamentId = tournamentId;
+			GameObject arbiterGO = GameObject.Find ("Arbiter");
+			Arbiter arbiter = arbiterGO.GetComponent<Arbiter>();
+			arbiter.SelectedUnfinishedTournamentId = tournamentId;
 			Application.LoadLevel( "FakeGameScene.cs" );
 		}
 	}	

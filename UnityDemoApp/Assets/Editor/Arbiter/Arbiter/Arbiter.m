@@ -297,9 +297,11 @@
     };
 
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSLog(@"server returned: %@", responseDict);
         handler(responseDict);
     } copy];
 
+    NSLog(@"requesting tournament with params: %@", paramsDict);
     [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
 }
 

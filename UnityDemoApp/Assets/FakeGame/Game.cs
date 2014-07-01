@@ -9,23 +9,28 @@ using System.Collections.Generic;
 public class Game : MonoBehaviour {
 	
 
-    public const string BET_SIZE = "1";
+    public const string BET_SIZE = "100";
     public int Score;
     public string Problems = "---";
     public string TournamentId = "???";
     public string ResultsDescription = "???";
     
-    private Globals globals;
+//    private Globals globals;
+    private Arbiter arbiter;
 
 
 	void Start() {
-		GameObject globalsGO = GameObject.Find ("Globals");
-		globals = globalsGO.GetComponent<Globals>();
+//		GameObject globalsGO = GameObject.Find ("Globals");
+		GameObject arbiterGO = GameObject.Find ("Arbiter");
+		
+		// TODO replace globals with Arbiter
+//		globals = globalsGO.GetComponent<Globals>();
+		arbiter = arbiterGO.GetComponent<Arbiter>();
 
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more money first.";
         } else {
-			if ( globals.SelectedUnfinishedTournamentId == null || globals.SelectedUnfinishedTournamentId == "" ) {
+			if ( arbiter.SelectedUnfinishedTournamentId == null || arbiter.SelectedUnfinishedTournamentId == "" ) {
 				GetTournament();
 			} else {
 				PlayGame();
@@ -40,7 +45,7 @@ public class Game : MonoBehaviour {
     }
 
 	private void OnTournamentReturned( Arbiter.Tournament tournament ) {
-		globals.SelectedUnfinishedTournamentId = TournamentId = tournament.Id;
+		arbiter.SelectedUnfinishedTournamentId = TournamentId = tournament.Id;
         PlayGame();
     }
 
@@ -51,8 +56,8 @@ public class Game : MonoBehaviour {
 
 
     private void ReportScore() {
-		TournamentId = globals.SelectedUnfinishedTournamentId;
-		globals.SelectedUnfinishedTournamentId = null;
+		TournamentId = arbiter.SelectedUnfinishedTournamentId;
+		arbiter.SelectedUnfinishedTournamentId = null;
         Arbiter.ReportScore( TournamentId, Score, DisplayResults );
     }
 

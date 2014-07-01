@@ -9,10 +9,10 @@ public partial class Arbiter : MonoBehaviour
 {
 	public string accessToken;
 	public string gameApiKey;
+	public string SelectedUnfinishedTournamentId;
 
     public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
-    // TODO: Need to differentiate between agreed to terms and permitted to play this game in their state
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }

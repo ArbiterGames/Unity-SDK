@@ -9,6 +9,8 @@ public partial class Arbiter : MonoBehaviour
 {
 	public string accessToken;
 	public string gameApiKey;
+	
+	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
 
     public static string    UserId                      { get { return user.Id; } }

@@ -7,13 +7,12 @@ using System.Collections.Generic;
 
 
 public class Entrypoint : MonoBehaviour {
-	
+
 	void Start () {
 		// Override default error handlers if you want
 		OptionallyOverrideDefaultArbiterErrorHandlers();
-		
+
 		// Establish an Arbiter Session for the current user
-		// TODO: Change this to NewSession
 		Arbiter.Initialize( LogInToGameCenter );
 	}
 
@@ -27,9 +26,11 @@ public class Entrypoint : MonoBehaviour {
             if( success ) {
                 Arbiter.LoginWithGameCenter( VerificationStep );
             } else {
+				Debug.LogError( "Could not authenticate to Game Center! Calling Arbiter.Login()" );
+            	Arbiter.Login ( VerificationStep );
+            	
+            	// TODO: if the login is unnsucessfull, then call Arbiter.Initialize()
                 Debug.LogError( "Could not authenticate to Game Center!" );
-                // Can continue, but logged in as the anonymous user created/fetched from the initialize call
-                VerificationStep();
             }
         };
         Social.localUser.Authenticate( processAuth );
@@ -47,8 +48,8 @@ public class Entrypoint : MonoBehaviour {
         else
 			Arbiter.VerifyUser( SetupListenersExample );
 	}
-	
-	
+
+
 	void SetupListenersExample() {
         Arbiter.AddWalletListener( UpdateWalletElements );
 		Arbiter.AddWalletListener( WalletListenerExample );
@@ -62,12 +63,12 @@ public class Entrypoint : MonoBehaviour {
         // (if you setup listeners on persistent objects you should be fine)
         Arbiter.RemoveWalletListener( UpdateWalletElements );
 		Arbiter.RemoveWalletListener( WalletListenerExample );
-		
+
 		Application.LoadLevel( "SecondScene" );
     }
-    
-    
-    
+
+
+
     void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
         Arbiter.QueryWallet();
     }
@@ -100,7 +101,7 @@ public class Entrypoint : MonoBehaviour {
         Debug.Log( "Example of other wallet listeners triggering." );
     }
 
-    
+
 	/**
 		Method to demo overriding the default Arbiter error handlers
 	*/
@@ -110,11 +111,11 @@ public class Entrypoint : MonoBehaviour {
 			errors.ForEach( e => Debug.LogError( e ));
 		};
 		Arbiter.InitializeErrorHandler = criticalErrorHandler;
-		
+
 		#if UNITY_IOS
 		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
 		#endif
-		
+
 		Arbiter.VerifyUserErrorHandler = ( errors ) => {
 			Debug.LogError( "Problem with verification. Not all features will be available!" );
 			errors.ForEach( e => Debug.LogError( e ));

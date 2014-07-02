@@ -17,6 +17,7 @@
 
 #define PAYMENT_VIEW_TAG 666
 #define WITHDRAW_VIEW_TAG 766
+#define LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
@@ -105,6 +106,45 @@
     }
 }
 
+- (void)login:(void(^)(NSDictionary *))handler
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        
+        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+        handler(responseDict);
+    } copy];
+    
+    void (^alertHandler)(NSDictionary *) = [^(NSDictionary *loginCredentials) {
+        [self httpPost:APIUserLoginURL params:loginCredentials handler:connectionHandler];
+    } copy];
+    
+    
+    
+    [_alertViewHandlerRegistry setObject:alertHandler forKey:@"loginHandler"];
+    
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Login to Arbiter"
+                                                    message: nil
+                                                   delegate: self
+                                          cancelButtonTitle:@"Cancel"
+                                          otherButtonTitles:@"Login", nil];
+
+    [alert setAlertViewStyle:UIAlertViewStyleLoginAndPasswordInput];
+    [alert setTag:LOGIN_ALERT_TAG];
+    [alert show];
+}
+
+- (void)logout:(void(^)(NSDictionary *))handler
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        self.user = nil;
+        self.wallet = nil;
+        handler(responseDict);
+    } copy];
+    
+    [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
+}
+
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
@@ -170,17 +210,6 @@
             handler(response);
         }
     }];
-}
-
-- (void)logout:(void(^)(NSDictionary *))handler
-{
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.user = nil;
-        self.wallet = nil;
-        handler(responseDict);
-    } copy];
-    
-    [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
 
@@ -510,6 +539,7 @@
         [request setHTTPMethod:@"POST"];
         if( paramsData != nil ) {
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+            NSLog(@"paramsStr: %@", paramsStr);
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
         }
 
@@ -566,7 +596,10 @@
 
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
 
-    if ( alertView.tag == WALLET_ALERT_TAG ) {
+    if ( alertView.tag == LOGIN_ALERT_TAG ) {
+        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"loginHandler"];
+        handler(@{@"email": [alertView textFieldAtIndex:0].text, @"password": [alertView textFieldAtIndex:1].text});
+    } else if ( alertView.tag == WALLET_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Refresh"] ) {
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                 [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];

@@ -31,8 +31,9 @@
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
-- (void)verifyUser:(void(^)(NSDictionary *))handler;
+- (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
+- (void)verifyUser:(void(^)(NSDictionary *))handler;
 
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;

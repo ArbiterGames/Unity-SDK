@@ -50,14 +50,14 @@ void _loginWithGameCenterPlayer()
     }];
 }
 
-void _verifyUser()
+void _login()
 {
-    [arbiter verifyUser:^(NSDictionary *jsonDict) {
+    [arbiter login:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-        UnitySendMessage("ArbiterBinding", "VerifyUserHandler", jsonChar);
+        UnitySendMessage( "ArbiterBinding", "LoginHandler", jsonChar );
     }];
 }
 
@@ -69,6 +69,17 @@ void _logout()
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", jsonChar );
+    }];
+}
+
+void _verifyUser()
+{
+    [arbiter verifyUser:^(NSDictionary *jsonDict) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage("ArbiterBinding", "VerifyUserHandler", jsonChar);
     }];
 }
 

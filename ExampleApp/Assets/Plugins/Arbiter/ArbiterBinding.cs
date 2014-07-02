@@ -49,6 +49,40 @@ namespace ArbiterInternal {
             _loginWithGameCenterPlayer();
 #endif
         }
+        
+        
+		[DllImport ("__Internal")]
+		private static extern void _login();
+		private static LoginCallback loginCallback;
+		private static ErrorHandler loginErrorHandler;
+		public static void Login( LoginCallback callback, ErrorHandler errorHandler ) {
+			loginCallback = callback;
+			loginErrorHandler = errorHandler;
+#if UNITY_EDITOR
+			ReportIgnore( "Login:BasicAuth" );
+			User user = new User();
+			user.Id = "0";
+			user.Name = "McMockison";
+			loginCallback( user, false, null );
+#elif UNITY_IOS
+			_login();
+#endif
+		}
+		
+		
+		[DllImport ("__Internal")]
+		private static extern void _logout();
+		public delegate void LogoutCallback();
+		private static LogoutCallback logoutCallback;
+		public static void Logout( LogoutCallback callback ) {
+			logoutCallback = callback;
+			#if UNITY_EDITOR
+			ReportIgnore( "Logout" );
+			logoutCallback();
+			#elif UNITY_IOS
+			_logout();
+			#endif
+		}
 
 
     	[DllImport ("__Internal")]
@@ -66,21 +100,6 @@ namespace ArbiterInternal {
     		_verifyUser();
 #endif
     	}
-    	
-    	
-		[DllImport ("__Internal")]
-		private static extern void _logout();
-		public delegate void LogoutCallback();
-		private static LogoutCallback logoutCallback;
-		public static void Logout( LogoutCallback callback ) {
-			logoutCallback = callback;
-			#if UNITY_EDITOR
-			ReportIgnore( "Logout" );
-			logoutCallback();
-			#elif UNITY_IOS
-			_logout();
-			#endif
-		}
 
 
     	[DllImport ("__Internal")]
@@ -251,6 +270,18 @@ namespace ArbiterInternal {
 		public void LogoutHandler( string emptyString ) {
 			if ( logoutCallback != null ) {
 				logoutCallback();
+			}
+		}
+		
+		
+		public void LoginHandler( string jsonString ) {
+			JSONNode json = JSON.Parse( jsonString );
+			if( wasSuccess( json )) {
+				User user = parseUser( json["user"] );
+				bool verified = isVerified( json["user"] );
+				loginCallback( user, verified, null );
+			} else {
+				loginErrorHandler( getErrors( json ));
 			}
 		}
 

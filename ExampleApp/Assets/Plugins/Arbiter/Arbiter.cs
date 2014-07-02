@@ -76,6 +76,28 @@ public partial class Arbiter : MonoBehaviour
     public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
 
+	public static void Login( Action callback ) {
+		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    
+			parseLoginResponse( responseUser, responseVerified, responseWallet, callback );
+		};
+		
+		ArbiterBinding.Login( parse, loginErrorHandler );
+	}
+	public static Action<List<string>> LoginErrorHandler { set { loginErrorHandler = ( errors ) => value( errors ); } }
+	
+	
+	public static void Logout( Action callback ) {
+		ArbiterBinding.LogoutCallback logoutHandler = () => {
+			walletPoller.Stop();
+			tournamentPoller.Stop();
+			
+			if ( callback != null )
+			callback();
+		};
+		ArbiterBinding.Logout( logoutHandler );
+	}
+	
+
 
     public static void VerifyUser( Action done ) {
         ArbiterBinding.VerifyUserCallback parse = ( response ) => {
@@ -91,17 +113,6 @@ public partial class Arbiter : MonoBehaviour
     public static Action<List<string>> VerifyUserErrorHandler {
         set { verifyUserErrorHandler = ( errors ) => value( errors ); }
     }
-
-	public static void Logout( Action callback ) {
-		ArbiterBinding.LogoutCallback logoutHandler = () => {
-			walletPoller.Stop();
-			tournamentPoller.Stop();
-
-			if ( callback != null )
-				callback();
-		};
-		ArbiterBinding.Logout( logoutHandler );
-	}
 
     public static void AddWalletListener( Action listener ) {
         if( !walletQueryListeners.Contains( listener ))
@@ -283,6 +294,7 @@ public partial class Arbiter : MonoBehaviour
 	private static List<Tournament> completeTournaments;
 
     private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
+	private static ArbiterBinding.ErrorHandler loginErrorHandler = defaultErrorHandler;
     private static Action walletSuccessCallback;
     private static List<Action> walletQueryListeners = new List<Action>();
     private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;

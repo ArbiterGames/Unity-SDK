@@ -3,7 +3,8 @@
 using ArbiterInternal;
 
 
-public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes somewhat awkard usage that this isn't actually a namespace
+public partial class Arbiter { 
+
 	public class Tournament {
 		
 		public enum StatusType {
@@ -24,11 +25,6 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 			this.users = users;
 		}
 		
-		
-		/// <summary>
-		/// Attempts to retrieve the score for a user wrapped around the given userId.
-		/// </summary>
-		/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
 		public bool GetScoreForUserId( string userId, out int score ) {
 			foreach( var user in this.users ) {
 				if( user.Id == userId ) {
@@ -40,12 +36,6 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 			return false;
 		}
 		
-		
-		/// <summary>
-		/// Attempts to retrieve the score for a user NOT wrapped around the given userId.
-		/// This call usually only makes sense for 2-user games
-		/// </summary>
-		/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
 		public bool GetScoreForOtherUserId( string userId, out int score ) {
 			foreach( var user in this.users ) {
 				if( user.Id != userId ) {
@@ -87,10 +77,6 @@ public partial class Arbiter { // TODO: Cleanup the namespace usage. Causes some
 		private List<TournamentUser> users;
 	}
 	
-	/// <summary>
-	/// Attempts to retrieve the score for a user wrapped around the given userId.
-	/// </summary>
-	/// <returns><c>true</c>, if score was retrieved, <c>false</c> otherwise.</returns>
 	public class TournamentUser {
 		
 		public int Score            { get { return this.score; } }

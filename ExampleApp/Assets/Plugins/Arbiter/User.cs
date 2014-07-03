@@ -10,6 +10,7 @@ namespace ArbiterInternal {
     {
         public string Id;
         public string Name;
+        public string Token;
 
 
         public override string ToString() {

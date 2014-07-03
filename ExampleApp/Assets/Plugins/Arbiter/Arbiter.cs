@@ -13,8 +13,10 @@ public partial class Arbiter : MonoBehaviour
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
 
+	public static bool		IsAuthenticated				{ get { return user != null; } }
     public static string    UserId                      { get { return user.Id; } }
     public static string    Username                    { get { return user.Name; } }
+    public static string	AccessToken				  	{ get { return user.Token; }}
     public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
     public static string    Balance                     { get { return wallet.Balance; } }
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
@@ -88,11 +90,17 @@ public partial class Arbiter : MonoBehaviour
 	
 	public static void Logout( Action callback ) {
 		ArbiterBinding.LogoutCallback logoutHandler = () => {
-			walletPoller.Stop();
-			tournamentPoller.Stop();
+			if ( walletPoller ) {
+				walletPoller.Stop();
+			}
 			
-			if ( callback != null )
-			callback();
+			if ( tournamentPoller ) {
+				tournamentPoller.Stop();
+			}
+			
+			if ( callback != null ) {
+				callback();			
+			}
 		};
 		ArbiterBinding.Logout( logoutHandler );
 	}
@@ -122,9 +130,9 @@ public partial class Arbiter : MonoBehaviour
         walletQueryListeners.Remove( listener );
     }
 
-    public static void QueryWallet() {
+    public static void GetWallet() {
         if( user == null )
-            Debug.LogWarning( "Cannot query an Arbiter Wallet without first logging in. Did you call Arbiter.Initialize()?" );
+            Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in. Did you call Arbiter.Initialize()?" );
         else if( verified == VerificationStatus.Unknown )
             Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
 
@@ -150,7 +158,7 @@ public partial class Arbiter : MonoBehaviour
             walletSuccessCallback();
     }
 
-    public static void ShowWalletPanel( Action callback ) {
+    public static void DisplayWalletDashboard( Action callback ) {
         ArbiterBinding.ShowWalletPanel( callback );
     }
 
@@ -211,7 +219,7 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
 	}
 
-	public static void QueryTournaments( Action callback ) {
+	public static void GetTournaments( Action callback ) {
 		getTournamentsCallback = callback;
 		ArbiterBinding.GetTournaments( GetTournamentsSuccessHandler, getTournamentsErrorHandler );
 	}
@@ -272,12 +280,16 @@ public partial class Arbiter : MonoBehaviour
     }
 
     private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
-        user = responseUser;
-        verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
-        wallet = responseWallet != null? responseWallet : new Wallet();
-
-        walletPoller.SetAction( queryWalletIfAble );
-        done();
+		user = responseUser;
+		verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
+		wallet = responseWallet != null? responseWallet : new Wallet();
+		
+		if ( !walletPoller ) {
+			walletPoller = Poller.Create( "ArbiterWalletPoller" );
+		}
+		walletPoller.SetAction( queryWalletIfAble );
+		
+		done();
     }
 
 

@@ -109,7 +109,6 @@
 - (void)login:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
         handler(responseDict);
@@ -118,8 +117,6 @@
     void (^alertHandler)(NSDictionary *) = [^(NSDictionary *loginCredentials) {
         [self httpPost:APIUserLoginURL params:loginCredentials handler:connectionHandler];
     } copy];
-    
-    
     
     [_alertViewHandlerRegistry setObject:alertHandler forKey:@"loginHandler"];
     

@@ -70,7 +70,7 @@ public class Entrypoint : MonoBehaviour {
 
 
     void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
-        Arbiter.QueryWallet();
+        Arbiter.GetWallet();
     }
 
 

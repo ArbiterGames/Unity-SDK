@@ -167,8 +167,8 @@ public partial class Arbiter : MonoBehaviour
         ArbiterBinding.ShowWalletPanel( callback );
     }
 
-	public delegate void GetTournamentCallback( Tournament tournament );
-	public static void GetTournament( string buyIn, Dictionary<string,string> filters, GetTournamentCallback callback ) {
+	public delegate void JoinTournamentCallback( Tournament tournament );
+	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback callback ) {
 
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
 			return (tournament.Status == Tournament.StatusType.Initializing ||
@@ -200,7 +200,7 @@ public partial class Arbiter : MonoBehaviour
 			}
 		};
 
-		JoinTournamentCallback gotJoinResponse = () => {
+		RequestTournamentCallback gotRequestResponse = () => {
 			tournamentPoller.SetAction( askAgain );
 		};
 
@@ -209,19 +209,19 @@ public partial class Arbiter : MonoBehaviour
 			if( joinableTournaments.Count > 0 ) {
 				callback( joinableTournaments[0] );
 			} else {
-				JoinTournament( buyIn, filters, gotJoinResponse );
+				RequestTournament( buyIn, filters, gotRequestResponse );
 			}
 		};
 
 		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
     }
 
-	public delegate void JoinTournamentCallback();
-	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback callback ) {
+	public delegate void RequestTournamentCallback();
+	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
 		}
-		ArbiterBinding.JoinTournament( buyIn, filters, callback, defaultErrorHandler );
+		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
 	}
 
 	public static void GetTournaments( Action callback ) {

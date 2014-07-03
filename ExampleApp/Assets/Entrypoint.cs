@@ -12,31 +12,21 @@ public class Entrypoint : MonoBehaviour {
 		// Override default error handlers if you want
 		OptionallyOverrideDefaultArbiterErrorHandlers();
 
-		// Establish an Arbiter Session for the current user
-		Arbiter.Initialize( LogInToGameCenter );
-	}
-
-
-    void LogInToGameCenter() {
 #if UNITY_EDITOR
-        // Skip logging in since we're in editor
-        VerificationStep();
+		// Skip logging in since we're in editor
+		VerificationStep();
 #elif UNITY_IOS
-        Action<bool> processAuth = ( success ) => {
-            if( success ) {
-                Arbiter.LoginWithGameCenter( VerificationStep );
-            } else {
+		Action<bool> processAuth = ( success ) => {
+			if( success ) {
+				Arbiter.LoginWithGameCenter( VerificationStep );
+			} else {
 				Debug.LogError( "Could not authenticate to Game Center! Calling Arbiter.Login()" );
-            	Arbiter.Login ( VerificationStep );
-            	
-            	// TODO: if the login is unnsucessfull, then call Arbiter.Initialize()
-                Debug.LogError( "Could not authenticate to Game Center!" );
-            }
-        };
-        Social.localUser.Authenticate( processAuth );
-#endif
-    }
-
+				Arbiter.Login ( VerificationStep );
+			}
+		};
+		Social.localUser.Authenticate( processAuth );
+#endif	
+	}
 
     void VerificationStep() {
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
@@ -63,7 +53,6 @@ public class Entrypoint : MonoBehaviour {
         // (if you setup listeners on persistent objects you should be fine)
         Arbiter.RemoveWalletListener( UpdateWalletElements );
 		Arbiter.RemoveWalletListener( WalletListenerExample );
-
 		Application.LoadLevel( "SecondScene" );
     }
 

@@ -44,19 +44,23 @@
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
-
-        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-            handler(responseDict);
-        } copy];
-
-        [self httpGet:APIUserInitializeURL handler:connectionHandler];
     }
+    
+    handler(@{@"success": @"true"});
     return self;
 }
 
-// This function assumes the player used something else (like Unity) to authenticate.
+- (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+        handler(responseDict);
+    } copy];
+    
+    [self httpGet:APIUserInitializeURL handler:connectionHandler];
+}
+
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -502,7 +506,14 @@
         requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy
         timeoutInterval:60.0];
-    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    
+    NSString *tokenValue;
+    if ( [self.user objectForKey:@"token"] != (id)[NSNull null] ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    } else {
+        tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
+    }
+          
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [url stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -513,7 +524,15 @@
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
-    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+
+    NSString *tokenValue;
+    if ( [self.user objectForKey:@"token"] != NULL ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    } else {
+        tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
+    }
+
+    NSLog(@"tokenValue: %@", tokenValue);
     
     if( params == nil ) {
         params = @{};
@@ -536,7 +555,6 @@
         [request setHTTPMethod:@"POST"];
         if( paramsData != nil ) {
             NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-            NSLog(@"paramsStr: %@", paramsStr);
             [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
         }
 

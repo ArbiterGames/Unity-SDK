@@ -30,6 +30,7 @@
 
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
+- (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;

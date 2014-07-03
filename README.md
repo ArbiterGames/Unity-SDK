@@ -1,4 +1,4 @@
 arbiter-ios-sdk-example
 =======================
 
-Simple iOS app demonstrating the Arbiter iOS SDK
+[Documentation](http://arbitergames.github.io/documentation/)

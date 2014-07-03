@@ -37,6 +37,8 @@ public class Entrypoint : MonoBehaviour {
 	}
 
     void VerificationStep() {
+    
+    	Debug.Log ("Arbiter.IsAuthenticated" + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
 

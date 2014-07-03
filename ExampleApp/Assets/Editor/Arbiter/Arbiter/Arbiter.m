@@ -17,7 +17,8 @@
 
 #define PAYMENT_VIEW_TAG 666
 #define WITHDRAW_VIEW_TAG 766
-#define LOGIN_ALERT_TAG 330
+#define LOGIN_ALERT_TAG 329
+#define INVALID_LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
@@ -114,27 +115,47 @@
 
 - (void)login:(void(^)(NSDictionary *))handler
 {
+    UIAlertView *loginAlert = [[UIAlertView alloc] initWithTitle: @"Login to Arbiter"
+                                            message: nil
+                                           delegate: self
+                                  cancelButtonTitle:@"Cancel"
+                                  otherButtonTitles:@"Login", nil];
+    [loginAlert setAlertViewStyle:UIAlertViewStyleLoginAndPasswordInput];
+    [loginAlert setTag:LOGIN_ALERT_TAG];
+    [loginAlert show];
+    
+    UIAlertView *invalidLoginAlert = [[UIAlertView alloc] initWithTitle:@"Unable to login"
+                                                   message:@"The email or password was incorrect."
+                                                  delegate:self
+                                         cancelButtonTitle:@"OK"
+                                         otherButtonTitles:nil];
+    [invalidLoginAlert setTag:INVALID_LOGIN_ALERT_TAG];
+    
+    
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        handler(responseDict);
+        if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            handler(responseDict);
+        } else {
+            [invalidLoginAlert show];
+        }
     } copy];
     
-    void (^alertHandler)(NSDictionary *) = [^(NSDictionary *loginCredentials) {
-        [self httpPost:APIUserLoginURL params:loginCredentials handler:connectionHandler];
+    void (^loginAlertHandler)(NSDictionary *) = [^(NSDictionary *loginCredentials) {
+        if ( [loginCredentials objectForKey:@"errors"] ) {
+            handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
+        } else {
+            [self httpPost:APIUserLoginURL params:loginCredentials handler:connectionHandler];
+        }
     } copy];
     
-    [_alertViewHandlerRegistry setObject:alertHandler forKey:@"loginHandler"];
+    void (^invalidLoginAlertHandler)(NSDictionary *) = [^(NSDictionary *emptyDict) {
+        [loginAlert show];
+    } copy];
     
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Login to Arbiter"
-                                                    message: nil
-                                                   delegate: self
-                                          cancelButtonTitle:@"Cancel"
-                                          otherButtonTitles:@"Login", nil];
-
-    [alert setAlertViewStyle:UIAlertViewStyleLoginAndPasswordInput];
-    [alert setTag:LOGIN_ALERT_TAG];
-    [alert show];
+    [_alertViewHandlerRegistry setObject:loginAlertHandler forKey:@"loginHandler"];
+    [_alertViewHandlerRegistry setObject:invalidLoginAlertHandler forKey:@"invalidLoginHandler"];
 }
 
 - (void)logout:(void(^)(NSDictionary *))handler
@@ -613,7 +634,15 @@
 
     if ( alertView.tag == LOGIN_ALERT_TAG ) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"loginHandler"];
-        handler(@{@"email": [alertView textFieldAtIndex:0].text, @"password": [alertView textFieldAtIndex:1].text});
+        if ( buttonIndex == 0 ) {
+            NSArray *errors  = [NSArray arrayWithObjects:@"User canceled the login.", nil];
+            handler(@{@"errors": errors});
+        } else if ( buttonIndex == 1 ) {
+            handler(@{@"email": [alertView textFieldAtIndex:0].text, @"password": [alertView textFieldAtIndex:1].text});
+        }
+    } else if ( alertView.tag == INVALID_LOGIN_ALERT_TAG ) {
+        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"invalidLoginHandler"];
+        handler(@{});
     } else if ( alertView.tag == WALLET_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Refresh"] ) {
             void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {

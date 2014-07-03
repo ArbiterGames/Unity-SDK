@@ -13,7 +13,7 @@ public partial class Arbiter : MonoBehaviour
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
 	
-	public static bool		IsAuthenticated				{ get { return user != null; } }
+	public static bool		IsAuthenticated				{ get { return user.Id != null; } }
 	public static string    UserId                      { get { return user.Id; } }
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
@@ -108,20 +108,20 @@ public partial class Arbiter : MonoBehaviour
 	
 	
 	public static void Logout( Action callback ) {
-		wallet = null;
-		user = null;
+		if ( walletPoller ) {
+			walletPoller.Stop();
+			walletPoller = null;
+		}
+		
+		if ( tournamentPoller ) {
+			tournamentPoller.Stop();
+			tournamentPoller = null;
+		}
+		
+		wallet = new Wallet();
+		user = new User();
 		
 		ArbiterBinding.LogoutCallback logoutHandler = () => {
-			if ( walletPoller ) {
-				walletPoller.Stop();
-				walletPoller = null;
-			}
-			
-			if ( tournamentPoller ) {
-				tournamentPoller.Stop();
-				tournamentPoller = null;
-			}
-			
 			if ( callback != null ) {
 				callback();			
 			}

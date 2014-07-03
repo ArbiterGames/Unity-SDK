@@ -12,9 +12,17 @@ public class Entrypoint : MonoBehaviour {
 		// Override default error handlers if you want
 		OptionallyOverrideDefaultArbiterErrorHandlers();
 
+		if ( Arbiter.IsAuthenticated ) {
+			LoadNextScene();
+		} else {
+			StartAuthenticationFlow();
+		}
+	}
+	
+	void StartAuthenticationFlow() {
 #if UNITY_EDITOR
 		// Skip logging in since we're in editor
-		VerificationStep();
+		Arbiter.LoginAsAnonymous( VerificationStep );
 #elif UNITY_IOS
 		Action<bool> processAuth = ( success ) => {
 			if( success ) {
@@ -45,10 +53,10 @@ public class Entrypoint : MonoBehaviour {
 		Arbiter.AddWalletListener( WalletListenerExample );
 		ArbiterDoTheseAsOftenAsYouWant();
 
-        LoadAnotherScene();
+        LoadNextScene();
     }
 
-	void LoadAnotherScene() {
+	void LoadNextScene() {
         // Since the 2 listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
         // (if you setup listeners on persistent objects you should be fine)
         Arbiter.RemoveWalletListener( UpdateWalletElements );

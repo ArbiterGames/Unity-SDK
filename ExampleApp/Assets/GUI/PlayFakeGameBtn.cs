@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class PlayFakeGameBtn : MonoBehaviour {
 	
 	void OnMouseUpAsButton() {
-        Application.LoadLevel( "FakeGameScene.cs" );
+        Application.LoadLevel( "FakeGameScene" );
     }
 
 }

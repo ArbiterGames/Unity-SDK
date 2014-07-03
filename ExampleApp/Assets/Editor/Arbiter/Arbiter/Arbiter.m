@@ -64,6 +64,8 @@
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
         handler(responseDict);
     } copy];
 
@@ -142,7 +144,7 @@
         self.wallet = nil;
         handler(responseDict);
     } copy];
-    
+
     [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
@@ -227,8 +229,8 @@
         NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
         [self httpGet:walletUrl handler:connectionHandler];
     } else {
-        handler( @{@"success": @"false",
-                   @"errors": @[@"No user is currently logged in. Use the Init, Login or LoginWithGameCenterPlayer, to get an Arbiter User."]
+        handler(@{@"success": @"false",
+                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenterPlayer, to get an Arbiter User."]
                  });
     }
 }
@@ -524,15 +526,14 @@
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
-
+    NSString *paramsStr;
+    
     NSString *tokenValue;
     if ( [self.user objectForKey:@"token"] != NULL ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
     }
-
-    NSLog(@"tokenValue: %@", tokenValue);
     
     if( params == nil ) {
         params = @{};
@@ -540,6 +541,8 @@
     paramsData = [NSJSONSerialization dataWithJSONObject:params
                                                  options:0
                                                    error:&error];
+    paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+    
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);
         handler( @{
@@ -553,10 +556,7 @@
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
-        if( paramsData != nil ) {
-            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-        }
+        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
 
         [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
         [NSURLConnection connectionWithRequest:request delegate:self];

@@ -46,7 +46,7 @@ public class Poller : MonoBehaviour {
 
     void Update() {
         this.currentPollTime -= Time.deltaTime;
-        if( this.currentPollTime < 0 ) {
+        if( this.enabled && this.currentPollTime < 0 ) {
             if( !this.waitingForResponse ) {
                 this.nextPollPeriod *= 2.0f;
                 this.currentPollTime = nextPollPeriod;

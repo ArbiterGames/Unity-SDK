@@ -89,13 +89,18 @@ public partial class Arbiter : MonoBehaviour
 	
 	
 	public static void Logout( Action callback ) {
+		wallet = null;
+		user = null;
+		
 		ArbiterBinding.LogoutCallback logoutHandler = () => {
 			if ( walletPoller ) {
 				walletPoller.Stop();
+				walletPoller = null;
 			}
 			
 			if ( tournamentPoller ) {
 				tournamentPoller.Stop();
+				tournamentPoller = null;
 			}
 			
 			if ( callback != null ) {
@@ -195,7 +200,7 @@ public partial class Arbiter : MonoBehaviour
 			}
 		};
 
-		RequestTournamentCallback gotRequestResponse = () => {
+		JoinTournamentCallback gotJoinResponse = () => {
 			tournamentPoller.SetAction( askAgain );
 		};
 
@@ -204,19 +209,19 @@ public partial class Arbiter : MonoBehaviour
 			if( joinableTournaments.Count > 0 ) {
 				callback( joinableTournaments[0] );
 			} else {
-				RequestTournament( buyIn, filters, gotRequestResponse );
+				JoinTournament( buyIn, filters, gotJoinResponse );
 			}
 		};
 
 		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
     }
 
-	public delegate void RequestTournamentCallback();
-	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
+	public delegate void JoinTournamentCallback();
+	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
 		}
-		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
+		ArbiterBinding.JoinTournament( buyIn, filters, callback, defaultErrorHandler );
 	}
 
 	public static void GetTournaments( Action callback ) {

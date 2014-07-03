@@ -107,14 +107,14 @@ void _copyDepositAddressToClipboard()
     [arbiter copyDepositAddressToClipboard];
 }
 
-void _requestTournament( const char* buyIn, const char* filters )
+void _joinTournament( const char* buyIn, const char* filters )
 {
-    [arbiter requestTournament:^(NSDictionary *jsonDict) {
+    [arbiter joinTournament:^(NSDictionary *jsonDict) {
             NSError *error;
             NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
             NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
             const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-            UnitySendMessage("ArbiterBinding", "RequestTournamentHandler", jsonChar );
+            UnitySendMessage("ArbiterBinding", "JoinTournamentHandler", jsonChar );
         }
         buyIn:[[NSString alloc] initWithUTF8String:buyIn]
         filters:[[NSString alloc] initWithUTF8String:filters]

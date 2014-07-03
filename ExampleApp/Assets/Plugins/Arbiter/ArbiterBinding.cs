@@ -146,18 +146,18 @@ namespace ArbiterInternal {
 
 
 		[DllImport ("__Internal")]
-		private static extern void _requestTournament( string buyIn, string filters );
-		private static Arbiter.RequestTournamentCallback requestTournamentCallback;
-		private static ErrorHandler requestTournamentErrorHandler;
-		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, Arbiter.RequestTournamentCallback callback, ErrorHandler errorHandler ) {
-			requestTournamentCallback = callback;
-			requestTournamentErrorHandler = errorHandler;
+		private static extern void _joinTournament( string buyIn, string filters );
+		private static Arbiter.JoinTournamentCallback joinTournamentCallback;
+		private static ErrorHandler joinTournamentErrorHandler;
+		public static void JoinTournament( string buyIn, Dictionary<string,string> filters, Arbiter.JoinTournamentCallback callback, ErrorHandler errorHandler ) {
+			joinTournamentCallback = callback;
+			joinTournamentErrorHandler = errorHandler;
 			#if UNITY_EDITOR
-			ReportIgnore( "RequestTournament" );
-			if( requestTournamentCallback != null )
-				requestTournamentCallback();
+			ReportIgnore( "JoinTournament" );
+			if( joinTournamentCallback != null )
+				joinTournamentCallback();
 			#elif UNITY_IOS
-			_requestTournament( buyIn, SerializeDictionary(filters) );
+			_joinTournament( buyIn, SerializeDictionary(filters) );
 			#endif
 		}
 
@@ -303,13 +303,13 @@ namespace ArbiterInternal {
         }
 
 
-        public void RequestTournamentHandler( string jsonString ) {
+        public void JoinTournamentHandler( string jsonString ) {
             JSONNode json = JSON.Parse( jsonString );
             if( wasSuccess( json )) {
-                if( requestTournamentCallback != null )
-                    requestTournamentCallback();
+                if( joinTournamentCallback != null )
+                    joinTournamentCallback();
             } else {
-                requestTournamentErrorHandler( getErrors( json ));
+                joinTournamentErrorHandler( getErrors( json ));
             }
         }
 

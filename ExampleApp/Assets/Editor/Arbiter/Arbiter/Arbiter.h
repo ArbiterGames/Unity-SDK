@@ -40,7 +40,7 @@
 - (void)copyDepositAddressToClipboard;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
-- (void)joinTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;
+- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;
 - (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 

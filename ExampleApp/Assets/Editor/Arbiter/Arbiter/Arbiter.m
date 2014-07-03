@@ -315,7 +315,7 @@
 /**
     Requests a new Tournament for this user from Arbiter
  */
-- (void)joinTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
+- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{
         @"buy_in":buyIn,

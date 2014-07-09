@@ -176,9 +176,10 @@
             NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
             [self.user setObject:postalCode forKey:@"postal_code"];
             
-            if ( [[self.user objectForKey:@"is_verified"] boolValue] == true ) {
-                handler(self.user);
-            } else {
+            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+                handler(@{@"user": self.user,
+                          @"success": @"true"});
+            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                                 message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
                                                                delegate: self
@@ -187,6 +188,12 @@
                 [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [alert show];
+            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+                [verificationUrl appendString: [self.user objectForKey:@"id"]];
+                [verificationUrl appendString: @"/verify"];
+                [self httpPost:verificationUrl params:postParams handler:handler];
             }
         } else {
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
@@ -203,7 +210,7 @@
     if ([self.user objectForKey:@"postal_code"] == (id)[NSNull null] ) {
         [self getDevicePostalCode:locationCallback];
     } else {
-        locationCallback(@{@"success": @true,
+        locationCallback(@{@"success": @"true",
                            @"postalCode": [self.user objectForKey:@"postal_code"]});
     }
 }
@@ -229,7 +236,7 @@
             handler(response);
         } else {
             CLPlacemark *placemark = [placemarks objectAtIndex:0];
-            [response setValue:@true forKey:@"success"];
+            [response setValue:@"true" forKey:@"success"];
             [response setValue:placemark.postalCode forKey:@"postalCode"];
             handler(response);
         }

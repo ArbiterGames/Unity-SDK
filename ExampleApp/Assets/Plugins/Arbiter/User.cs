@@ -11,6 +11,8 @@ namespace ArbiterInternal {
         public string Id;
         public string Name;
         public string Token;
+        public bool AgreedToTerms;
+        public bool LocationApproved;
 
 
         public override string ToString() {

@@ -104,7 +104,7 @@ namespace ArbiterInternal {
 		
 		[DllImport ("__Internal")]
 		private static extern void _verifyUser();
-		public delegate void VerifyUserCallback( bool isVerified );    
+		public delegate void VerifyUserCallback( User user );    
 		private static VerifyUserCallback verifyUserCallback;
 		private static ErrorHandler verifyUserErrorHandler;
 		public static void VerifyUser( VerifyUserCallback callback, ErrorHandler errorHandler ) {
@@ -112,7 +112,12 @@ namespace ArbiterInternal {
 			verifyUserErrorHandler = errorHandler;
 #if UNITY_EDITOR
 			ReportIgnore( "VerifyUser" );
-			verifyUserCallback( true );
+			User user = new User();
+			user.Id = "0";
+			user.Name = "McMockison";
+			user.LocationApproved = true;
+			user.AgreedToTerms = true;
+			verifyUserCallback( user );
 #elif UNITY_IOS
 			_verifyUser();
 #endif
@@ -292,9 +297,9 @@ namespace ArbiterInternal {
 		
 		public void VerifyUserHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json ) && isVerified( json["user"] ) && isPermitted( json )) {
-				bool verified = isVerified( json["user"] );
-				verifyUserCallback( verified );
+			if( wasSuccess( json )) {
+				User user = parseUser( json["user"] );
+				verifyUserCallback( user );
 			} else {
 				verifyUserErrorHandler( getErrors( json ));
 			}
@@ -380,11 +385,9 @@ namespace ArbiterInternal {
 		private bool wasSuccess( JSONNode json ) {
 			return (string.Equals( json["success"].Value, "true"));
 		}
+		
 		private bool isVerified( JSONNode userNode) {
-			return string.Equals( userNode["is_verified"].Value, "true" );
-		}
-		private bool isPermitted( JSONNode json ) {
-			return string.Equals( json["location_permits_betting"].Value, "true" );
+			return string.Equals( userNode["agreed_to_terms"].Value, "true" ) && string.Equals( userNode["location_approved"].Value, "true");
 		}
 		
 		
@@ -411,6 +414,8 @@ namespace ArbiterInternal {
 			User rv = new User();
 			rv.Id = userNode["id"].Value;
 			rv.Name = userNode["username"].Value;
+			rv.LocationApproved = userNode["location_approved"].Value.Equals("true");
+			rv.AgreedToTerms = userNode["agreed_to_terms"].Value.Equals("true");
 			return rv;
 		}
 		

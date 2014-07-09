@@ -9,6 +9,7 @@ public partial class Arbiter : MonoBehaviour
 {
 	public string accessToken;
 	public string gameApiKey;
+	public bool showErrorPanel;
 	
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
@@ -18,6 +19,8 @@ public partial class Arbiter : MonoBehaviour
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
 	public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
+	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
+	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
 	public static string    Balance                     { get { return wallet.Balance; } }
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
@@ -34,6 +37,14 @@ public partial class Arbiter : MonoBehaviour
 		_accessToken = accessToken;
 		_gameApiKey = gameApiKey;
 		
+		if ( showErrorPanel ) {
+			GameObject adpGO = new GameObject( "ArbiterDebugPanel" );
+			adpGO.AddComponent<ArbiterDebugPanel>();
+			debugPanel = adpGO.GetComponent<ArbiterDebugPanel>();
+			GameObject.DontDestroyOnLoad( adpGO );
+			debugPanel.message = "This can be turned off by unchecking 'Show Error Panel' in the Inspector for your Arbiter GameObject.";
+		}
+		
 		var arbiters = FindObjectsOfType( typeof( Arbiter ) );
 		if( arbiters.Length > 1 )
 		{
@@ -42,9 +53,9 @@ public partial class Arbiter : MonoBehaviour
 		}
 		DontDestroyOnLoad( gameObject );
 		
-		GameObject go = new GameObject( "ArbiterBinding" );
-		go.AddComponent<ArbiterBinding>();
-		GameObject.DontDestroyOnLoad( go );
+		GameObject abGO = new GameObject( "ArbiterBinding" );
+		abGO.AddComponent<ArbiterBinding>();
+		GameObject.DontDestroyOnLoad( abGO );
 		
 		wallet = new Wallet();
 		user = new User();
@@ -58,25 +69,6 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
 	}
 	public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
-	
-//	public static void Initialize( Action done ) {
-//		
-//		//		wallet = new Wallet();
-//		//		user = new User();
-//		//		walletPoller = Poller.Create( "ArbiterWalletPoller" );
-//		//		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
-//		//		DontDestroyOnLoad( walletPoller.gameObject );
-//		//		DontDestroyOnLoad( tournamentPoller.gameObject );
-//		//		walletPoller.Verbose = false;
-//		//		tournamentPoller.Verbose = true;
-//		//		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    
-//		//            parseLoginResponse( responseUser, responseVerified, responseWallet, done );
-//		//        };
-//		
-//		ArbiterBinding.Init( _gameApiKey, _accessToken, done, initializeErrorHandler );
-//	}
-//	public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
-	
 	
 	public static void LoginAsAnonymous( Action done ) {
 		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
@@ -132,11 +124,14 @@ public partial class Arbiter : MonoBehaviour
 	
 	
 	public static void VerifyUser( Action done ) {
-		ArbiterBinding.VerifyUserCallback parse = ( response ) => {
-			if( response == true )
-			verified = VerificationStatus.Verified;
-			if( done != null )
-			done();
+		ArbiterBinding.VerifyUserCallback parse = ( responseUser ) => {
+			user = responseUser;
+			if( responseUser.AgreedToTerms && responseUser.LocationApproved ) {
+				verified = VerificationStatus.Verified;
+			}
+			if( done != null ) {
+				done();
+			}
 		};
 		verified = VerificationStatus.Unverified;
 		ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
@@ -301,6 +296,9 @@ public partial class Arbiter : MonoBehaviour
 		string msg = "";
 		errors.ForEach( error => msg+=error+"\n" );
 		Debug.LogError( "There were problems with an Arbiter call:\n"+msg );
+		if ( debugPanel ) {
+			debugPanel.message = msg;
+		}
 	}
 	
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
@@ -319,6 +317,7 @@ public partial class Arbiter : MonoBehaviour
 	
 	private static string _gameApiKey;
 	private static string _accessToken;
+	private static ArbiterDebugPanel debugPanel; 
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	private static User user;

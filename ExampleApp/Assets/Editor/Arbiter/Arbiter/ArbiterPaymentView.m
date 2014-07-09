@@ -55,15 +55,16 @@
 
 - (void)setupBundleSelectLayout
 {
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0, 10, self.bounds.size.width, 40)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
     [title setText:@"Deposit Credits"];
     [title setFont:[UIFont boldSystemFontOfSize:17]];
     [title setTextAlignment:NSTextAlignmentCenter];
     [title setTag:BUNDLE_SELECT_TAG];
     [self addSubview:title];
     
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10, 40, self.bounds.size.width - 20, 50)];
-    [message setText:@"Select the amount of credits you\nwould like to buy."];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 40.0f, self.bounds.size.width - 20.0f, 50.0f)];
+    [message setText:@"Select the amount of credits you would like to buy."];
+    [message setNumberOfLines:0];
     [message setFont:[UIFont systemFontOfSize:14]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setTag:BUNDLE_SELECT_TAG];

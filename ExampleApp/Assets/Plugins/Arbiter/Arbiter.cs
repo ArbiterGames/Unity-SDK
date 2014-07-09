@@ -9,7 +9,6 @@ public partial class Arbiter : MonoBehaviour
 {
 	public string accessToken;
 	public string gameApiKey;
-	public bool showErrorPanel;
 	
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
@@ -37,14 +36,6 @@ public partial class Arbiter : MonoBehaviour
 		_accessToken = accessToken;
 		_gameApiKey = gameApiKey;
 		
-		if ( showErrorPanel ) {
-			GameObject adpGO = new GameObject( "ArbiterDebugPanel" );
-			adpGO.AddComponent<ArbiterDebugPanel>();
-			debugPanel = adpGO.GetComponent<ArbiterDebugPanel>();
-			GameObject.DontDestroyOnLoad( adpGO );
-			debugPanel.message = "This can be turned off by unchecking 'Show Error Panel' in the Inspector for your Arbiter GameObject.";
-		}
-		
 		var arbiters = FindObjectsOfType( typeof( Arbiter ) );
 		if( arbiters.Length > 1 )
 		{
@@ -52,6 +43,7 @@ public partial class Arbiter : MonoBehaviour
 			return;
 		}
 		DontDestroyOnLoad( gameObject );
+		
 		
 		GameObject abGO = new GameObject( "ArbiterBinding" );
 		abGO.AddComponent<ArbiterBinding>();
@@ -296,9 +288,6 @@ public partial class Arbiter : MonoBehaviour
 		string msg = "";
 		errors.ForEach( error => msg+=error+"\n" );
 		Debug.LogError( "There were problems with an Arbiter call:\n"+msg );
-		if ( debugPanel ) {
-			debugPanel.message = msg;
-		}
 	}
 	
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
@@ -317,7 +306,6 @@ public partial class Arbiter : MonoBehaviour
 	
 	private static string _gameApiKey;
 	private static string _accessToken;
-	private static ArbiterDebugPanel debugPanel; 
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	private static User user;

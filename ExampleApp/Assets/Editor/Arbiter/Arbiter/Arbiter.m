@@ -560,7 +560,7 @@
     if ( [self.user objectForKey:@"token"] != NULL ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
-        tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
     
     if( params == nil ) {

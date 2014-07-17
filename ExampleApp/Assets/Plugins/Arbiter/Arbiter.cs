@@ -51,13 +51,7 @@ public partial class Arbiter : MonoBehaviour
 		
 		wallet = new Wallet();
 		user = new User();
-		walletPoller = Poller.Create( "ArbiterWalletPoller" );
-		tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
-		DontDestroyOnLoad( walletPoller.gameObject );
-		DontDestroyOnLoad( tournamentPoller.gameObject );
-		walletPoller.Verbose = false;
-		tournamentPoller.Verbose = true;
-		
+		setupPollers();
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
 	}
 	public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
@@ -207,6 +201,7 @@ public partial class Arbiter : MonoBehaviour
 		};
 		
 		RequestTournamentCallback gotRequestResponse = () => {
+			Debug.Log("tournamentPoller" + tournamentPoller);
 			tournamentPoller.SetAction( askAgain );
 		};
 		
@@ -290,16 +285,25 @@ public partial class Arbiter : MonoBehaviour
 		Debug.LogError( "There were problems with an Arbiter call:\n"+msg );
 	}
 	
+	private static void setupPollers() {
+		if ( !walletPoller ) {
+			walletPoller = Poller.Create( "ArbiterWalletPoller" );
+			DontDestroyOnLoad( walletPoller.gameObject );
+			walletPoller.Verbose = false;
+		}
+		if ( !tournamentPoller ) {
+			tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
+			DontDestroyOnLoad( tournamentPoller.gameObject );
+			tournamentPoller.Verbose = true;
+		}
+	}
+	
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
 		user = responseUser;
 		verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
 		wallet = responseWallet != null? responseWallet : new Wallet();
-		
-		if ( !walletPoller ) {
-			walletPoller = Poller.Create( "ArbiterWalletPoller" );
-		}
+		setupPollers();
 		walletPoller.SetAction( queryWalletIfAble );
-		
 		done();
 	}
 	

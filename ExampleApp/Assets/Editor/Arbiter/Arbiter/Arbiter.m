@@ -688,10 +688,12 @@
         }
 
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
-        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
-        [self verifyUser:^(NSDictionary *dict) {
-            handler(dict);
-        }];
+        if (buttonIndex == 1) {
+            void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
+            [self verifyUser:^(NSDictionary *dict) {
+                handler(dict);
+            }];
+        }
     } else if ( alertView.tag == BITCOIN_DEPOSIT_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Copy Address"] ) {
             [self copyDepositAddressToClipboard];

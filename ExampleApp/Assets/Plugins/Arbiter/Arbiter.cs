@@ -17,7 +17,7 @@ public partial class Arbiter : MonoBehaviour
 	public static string    UserId                      { get { return user.Id; } }
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
-	public static bool      Verified                    { get { return verified == VerificationStatus.Verified; } }
+	public static bool      IsVerified                  { get { return verified == VerificationStatus.Verified; } }
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
 	public static string    Balance                     { get { return wallet.Balance; } }

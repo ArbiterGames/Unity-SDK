@@ -361,18 +361,21 @@
  */
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
-    NSDictionary *paramsDict = @{
-        @"buy_in":buyIn,
-        @"filters":filters
-    };
-
+    NSDictionary *paramsDict = @{@"buy_in":buyIn, @"filters":filters};
+    
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSLog(@"server returned: %@", responseDict);
         handler(responseDict);
     } copy];
-
-    NSLog(@"requesting tournament with params: %@", paramsDict);
-    [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
+    
+    if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+        [self verifyUser:^(NSDictionary *dict) {
+            if ( [[dict objectForKey:@"success"] boolValue] == true ) {
+                [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
+            }
+        }];
+    } else {
+        [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
+    }
 }
 
 

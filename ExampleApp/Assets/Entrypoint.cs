@@ -40,10 +40,10 @@ public class Entrypoint : MonoBehaviour {
     
     	Debug.Log ("Arbiter.IsAuthenticated" + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
-        Debug.Log( "Have you verified your age & location yet? " + Arbiter.Verified );
+        Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );
 
         // You can choose to verify later if you prefer. But most of the Arbiter features won't let this user do anything until s/he is verified
-        if( Arbiter.Verified )
+        if( Arbiter.IsVerified )
             SetupListenersExample();
         else
 			Arbiter.VerifyUser( SetupListenersExample );
@@ -75,7 +75,7 @@ public class Entrypoint : MonoBehaviour {
 
 
     void UpdateWalletElements() {
-        bool verified = Arbiter.Verified;
+        bool verified = Arbiter.IsVerified;
         string balance = Arbiter.Balance;
 		string pendingBalance = Arbiter.PendingBalance;
         string depositAddress = Arbiter.DepositAddress;

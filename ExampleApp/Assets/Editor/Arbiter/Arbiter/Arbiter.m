@@ -265,17 +265,27 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    void (^connectionHandler)(void) = [^(void) {
+    void (^closeWalletHandler)(void) = [^(void) {
         handler();
     } copy];
+    [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+    
+    void (^populateThenShowAlert)(void) = [^(void) {
+        NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+        NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLocation: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"postal_code"]];
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+        [alert setTag:WALLET_ALERT_TAG];
+        [alert show];
+    } copy];
+    
+    if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+        [self verifyUser:^(NSDictionary *dict) {
+            populateThenShowAlert();
+        }];
+    } else {
+        populateThenShowAlert();
+    }
 
-    [_alertViewHandlerRegistry setObject:connectionHandler forKey:@"closeWalletHandler"];
-
-    NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-    NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLocation: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"postal_code"]];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-    [alert setTag:WALLET_ALERT_TAG];
-    [alert show];
 }
 
 - (void)showDepositPanel

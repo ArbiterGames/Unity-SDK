@@ -301,7 +301,7 @@
                                                     forUser:[self user]];
     
     [paymentView setTag:PAYMENT_VIEW_TAG];
-    [[self getTopApplicationWindow] addSubview:paymentView];
+    [[self getTopApplicationWindow].rootViewController.view addSubview:paymentView];
    
     
     
@@ -325,7 +325,7 @@
                                                       forUser:[self user]
                                                     andWallet:[self wallet]];
     [withdrawView setTag:WITHDRAW_VIEW_TAG];
-    [[self getTopApplicationWindow] addSubview:withdrawView];
+    [[self getTopApplicationWindow].rootViewController.view addSubview:withdrawView];
     
 // TODO: Get the bitcoin option back in
 //    NSString *message = @"Where should we transfer your balance?";

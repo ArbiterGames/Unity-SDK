@@ -64,21 +64,12 @@
 - (void)setupBundleSelectLayout
 {
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
-    [title setText:@"Deposit Credits"];
+    [title setText:@"How many credits would you like?"];
     [title setFont:[UIFont boldSystemFontOfSize:17]];
     [title setTextAlignment:NSTextAlignmentCenter];
     [title setTag:BUNDLE_SELECT_TAG];
     [self addSubview:title];
-    
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 40.0f, self.bounds.size.width - 20.0f, 50.0f)];
-    [message setText:@"Select the amount of credits you would like to buy."];
-    [message setNumberOfLines:0];
-    [message setFont:[UIFont systemFontOfSize:14]];
-    [message setTextAlignment:NSTextAlignmentCenter];
-    [message setTag:BUNDLE_SELECT_TAG];
-    [message setBackgroundColor:[UIColor clearColor]];
-    [self addSubview:message];
-    
+
     [self renderCancelButton];
     [self renderSelectButton];
     [self renderBundleOptions];
@@ -87,22 +78,18 @@
 - (void)setupBillingInfoLayout
 {
     CGRect frame = self.frame;
-    frame.size.height = 240;
-    frame.size.width = frame.size.width + 30;
+    frame.size.height = 140;
     frame.origin.y = 10;
-    frame.origin.x = 10;
     [self setFrame:frame];
 
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(5, 70, frame.size.width - 10, 40)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(72.0f, 40.0f, frame.size.width, 40.0f)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
     
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10, 10, self.bounds.size.width - 20, 50)];
-    NSString *valueText = [self addThousandsSeparatorToString:[selectedBundle objectForKey:@"value"]];
-    NSString *messageBody = [NSString stringWithFormat:@"Enter your billing info for purchasing\n%@ credits for $%@", valueText, [selectedBundle objectForKey:@"price"]];
-    [message setText:messageBody];
-    [message setFont:[UIFont systemFontOfSize:14]];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
+    [message setText:@"Enter your billing information"];
+    [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:PAYMENT_INFO_TAG];
@@ -207,7 +194,7 @@
         [pickerView setTag:BUNDLE_SELECT_TAG];
         [pickerView setDataSource: self];
         [pickerView setDelegate: self];
-        [pickerView setFrame: CGRectMake(0, 70, self.bounds.size.width, 300)];
+        [pickerView setFrame: CGRectMake(0.0f, 22.0f, self.bounds.size.width, 162.0f)];
         pickerView.showsSelectionIndicator = YES;
         
         NSInteger selectedRow = 2;

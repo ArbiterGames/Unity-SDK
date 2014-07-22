@@ -12,6 +12,7 @@
 
 #define AMOUNT_SELECT_TAG 767
 #define CARD_INFO_TAG 768
+#define NAME_FIELD_TAG 769
 
 @implementation ArbiterWithdrawView
 {
@@ -68,13 +69,13 @@
     float walletBalance = [[wallet objectForKey:@"balance"] floatValue];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
-    [title setText:@"Withdraw Credits"];
+    [title setText:@"Withdraw"];
     [title setFont:[UIFont boldSystemFontOfSize:17]];
     [title setTextAlignment:NSTextAlignmentCenter];
     [title setTag:AMOUNT_SELECT_TAG];
     [self addSubview:title];
     
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 40.0f, self.bounds.size.width - 20.0f, 50.0f)];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 30.0f, self.bounds.size.width - 20.0f, 50.0f)];
     [message setNumberOfLines:0];
     [message setText:@"Select the amount of credits you would like to withdraw."];
     [message setFont:[UIFont systemFontOfSize:14]];
@@ -84,9 +85,10 @@
     [self addSubview:message];
     
     if ( walletBalance < 100 ) {
-        [message setText:[NSString stringWithFormat:@"Current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
+        [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
+        [self renderFullWidthCancelButton];
     } else {
-        UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(5, 150, self.bounds.size.width - 10, 100)];
+        UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(5.0f, 120.0f, self.bounds.size.width - 10.0f, 100.0f)];
         [slider addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
         [slider setBackgroundColor:[UIColor clearColor]];
         [slider setTag:AMOUNT_SELECT_TAG];
@@ -98,46 +100,39 @@
         selectedWithdrawAmount = roundl(slider.value);
         [self addSubview:slider];
         
-        withdrawSelectionLabel = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 120.0f, self.bounds.size.width - 10.0f, 20.0f)];
+        withdrawSelectionLabel = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 100.0f, self.bounds.size.width - 10.0f, 20.0f)];
         [withdrawSelectionLabel setTextAlignment:NSTextAlignmentCenter];
         [withdrawSelectionLabel setFont:[UIFont boldSystemFontOfSize:17]];
         [withdrawSelectionLabel setTag:AMOUNT_SELECT_TAG];
         [self addSubview:withdrawSelectionLabel];
         [self updateSelectedAmountLabel];
         
-        withdrawValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 140.0f, self.bounds.size.width - 10.0f, 20.0f)];
+        withdrawValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 120.0f, self.bounds.size.width - 10.0f, 20.0f)];
         [withdrawValueLabel setTextAlignment:NSTextAlignmentCenter];
         [withdrawValueLabel setFont:[UIFont systemFontOfSize:14]];
         [withdrawValueLabel setTag:AMOUNT_SELECT_TAG];
         [self addSubview:withdrawValueLabel];
         [self updateWithdrawValueLabel];
+        
         [self renderSelectButton];
+        [self renderCancelButton];
     }
-    
-    [self renderCancelButton];
 }
 
-- (void)setupBillingInfoLayout
+- (void)setupNameFieldLayout
 {
     CGRect frame = self.frame;
-    frame.size.height = 240;
-    frame.size.width = frame.size.width + 30;
+    frame.size.height = 140;
     frame.origin.y = 10;
-    frame.origin.x = 10;
     [self setFrame:frame];
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(5.0f, 90.0f, frame.size.width - 10.0f, 40.0f)
-                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
-    self.stripeView.delegate = self;
-    [self addSubview:self.stripeView];
-    
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
-    NSString *messageBody = [NSString stringWithFormat:@"Enter Debit Card Info"];
+    NSString *messageBody = [NSString stringWithFormat:@"Name As It Appears on Your Debit Card"];
     [message setText:messageBody];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
-    [message setTag:CARD_INFO_TAG];
+    [message setTag:NAME_FIELD_TAG];
     [self addSubview:message];
     
     self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
@@ -150,21 +145,45 @@
     [self.nameField setClearButtonMode:UITextFieldViewModeWhileEditing];
     [self.nameField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
     [self.nameField setDelegate:self];
+    [self.nameField setTag:NAME_FIELD_TAG];
     
     UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
     backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
                                  resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
+    [backgroundImageView setTag:NAME_FIELD_TAG];
     [self addSubview:backgroundImageView];
     [self addSubview:self.nameField];
     
-    [self renderSubmitButton];
+    [self.nameField becomeFirstResponder];
+    
+    [self renderSubmitNameButton];
     [self renderCancelButton];
+}
+
+- (void)setupCardFieldUI
+{
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(70.0f, 40.0f, self.frame.size.width, 40.0f)
+                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
+    self.stripeView.delegate = self;
+    [self.stripeView setTag:CARD_INFO_TAG];
+    [self addSubview:self.stripeView];
+    
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
+    NSString *messageBody = [NSString stringWithFormat:@"Enter Your Debit Card Details"];
+    [message setText:messageBody];
+    [message setFont:[UIFont boldSystemFontOfSize:17]];
+    [message setTextAlignment:NSTextAlignmentCenter];
+    [message setBackgroundColor:[UIColor clearColor]];
+    [message setTag:CARD_INFO_TAG];
+    [self addSubview:message];
+    
+    [self renderSubmitCardButton];
 }
 
 - (void)renderSelectButton
 {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
+    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Next" forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
     [button setTag:AMOUNT_SELECT_TAG];
@@ -178,15 +197,34 @@
     [self addSubview:button];
 }
 
-- (void)renderSubmitButton
+- (void)renderSubmitNameButton
+{
+    UIButton *submitButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [submitButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
+                                      self.bounds.size.width / 2, 50)];
+    [submitButton setTitle:@"Submit" forState:UIControlStateNormal];
+    [submitButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [submitButton setTag:NAME_FIELD_TAG];
+    [submitButton addTarget:self action:@selector(submitNameButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, submitButton.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [submitButton.layer addSublayer:topBorder];
+    
+    [self addSubview:submitButton];
+}
+
+- (void)renderSubmitCardButton
 {
     self.submitButton = [UIButton buttonWithType:UIButtonTypeSystem];
     self.submitButton.enabled = false;
-    [self.submitButton setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
+    [self.submitButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
+                                           self.bounds.size.width / 2, 50)];
     [self.submitButton setTitle:@"Submit" forState:UIControlStateNormal];
     [self.submitButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
     [self.submitButton setTag:CARD_INFO_TAG];
-    [self.submitButton addTarget:self action:@selector(submitButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.submitButton addTarget:self action:@selector(submitCardButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0, 0, self.submitButton.frame.size.width, 0.5f);
@@ -196,7 +234,7 @@
     [self addSubview:self.submitButton];
 }
 
-- (void)renderCancelButton
+- (void)renderFullWidthCancelButton
 {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width, 50)];
@@ -211,6 +249,38 @@
     [button.layer addSublayer:topBorder];
     
     [self addSubview:button];
+}
+
+- (void)renderCancelButton
+{
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
+    [button setTitle:@"Cancel" forState:UIControlStateNormal];
+    [button setTag:AMOUNT_SELECT_TAG];
+    [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
+    [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:topBorder];
+    
+    CALayer *rightBorder = [CALayer layer];
+    rightBorder.frame = CGRectMake(button.frame.size.width - 0.5f, 0, 0.5f, button.frame.size.height);
+    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:rightBorder];
+    
+    
+    [self addSubview:button];
+}
+
+- (void)hideNameFieldUI
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == NAME_FIELD_TAG) {
+            [view removeFromSuperview];
+        }
+    }
 }
 
 - (void)hideAmountSelectUI
@@ -233,10 +303,16 @@
 - (void)selectButtonClicked:(id)sender
 {
     [self hideAmountSelectUI];
-    [self setupBillingInfoLayout];
+    [self setupNameFieldLayout];
 }
 
-- (void)submitButtonClicked:(id)sender
+- (void)submitNameButtonClicked:(id)sender
+{
+    [self hideNameFieldUI];
+    [self setupCardFieldUI];
+}
+
+- (void)submitCardButtonClicked:(id)sender
 {
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
@@ -249,7 +325,7 @@
                     callback();
                 }
             } copy];
-
+            
             NSData *paramsData = [NSJSONSerialization dataWithJSONObject:@{@"card_token": token.tokenId,
                                                                            @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
                                                                            @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]}

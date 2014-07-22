@@ -82,13 +82,13 @@
     frame.origin.y = 10;
     [self setFrame:frame];
 
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(72.0f, 40.0f, frame.size.width, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(70.0f, 40.0f, frame.size.width, 40.0f)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
-    [message setText:@"Enter your billing information"];
+    [message setText:@"Enter Billing Information"];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
@@ -153,7 +153,7 @@
 {
     
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
+    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Next" forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
     [button setTag:BUNDLE_SELECT_TAG];
@@ -170,7 +170,7 @@
 - (void)renderCancelButton
 {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width, 50)];
+    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50.0f)];
     [button setTitle:@"Cancel" forState:UIControlStateNormal];
     [button setTag:BUNDLE_SELECT_TAG];
     [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
@@ -180,6 +180,11 @@
     topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
     [button.layer addSublayer:topBorder];
+    
+    CALayer *rightBorder = [CALayer layer];
+    rightBorder.frame = CGRectMake(button.frame.size.width - 0.5f, 0, 0.5f, button.frame.size.height);
+    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:rightBorder];
     
     [self addSubview:button];
 }
@@ -194,7 +199,7 @@
         [pickerView setTag:BUNDLE_SELECT_TAG];
         [pickerView setDataSource: self];
         [pickerView setDelegate: self];
-        [pickerView setFrame: CGRectMake(0.0f, 22.0f, self.bounds.size.width, 162.0f)];
+        [pickerView setFrame: CGRectMake(0.0f, 40.0f, self.bounds.size.width, 180.0f)];
         pickerView.showsSelectionIndicator = YES;
         
         NSInteger selectedRow = 2;
@@ -225,11 +230,12 @@
 
 - (void)renderPurchaseButton
 {
-   // Keep it hidden until the payment form is correct
+    // Keep it hidden until the payment form is correct
     self.purchaseButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.purchaseButton setTitle:@"Submit" forState:UIControlStateNormal];
     [self.purchaseButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.purchaseButton setFrame:CGRectMake(0, self.bounds.size.height - 50 * 2, self.bounds.size.width, 50)];
+    [self.purchaseButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
+                                              self.bounds.size.width / 2, 50)];
     self.purchaseButton.enabled = false;
     [self.purchaseButton setTag:PAYMENT_INFO_TAG];
     CALayer *topBorder = [CALayer layer];

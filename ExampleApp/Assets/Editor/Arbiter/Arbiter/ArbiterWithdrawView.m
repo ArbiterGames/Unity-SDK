@@ -32,7 +32,15 @@
 
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict andWallet:(NSDictionary *)walletDict
 {
-    self = [super initWithFrame:CGRectInset(frame, 25.0f, 50.0f)];
+    UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
+    if ( orientation == 3 || orientation == 4 ) {
+        float wrongWidth = frame.size.width;
+        float wrongHeight = frame.size.height;
+        frame.size.width = wrongHeight;
+        frame.size.height = wrongWidth;
+    }
+    
+    self = [super initWithFrame:CGRectInset(frame, 25.0f, 25.0f)];
     if (self) {
         parentFrame = &(frame);
         user = userDict;

@@ -34,14 +34,38 @@
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict andWallet:(NSDictionary *)walletDict
 {
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-    if ( orientation == 3 || orientation == 4 ) {
+    
+    BOOL isLandscape = orientation == 3 || orientation == 4 || orientation == 5;
+    float trueScreenHeight = [UIScreen mainScreen].bounds.size.height;
+    float trueScreenWidth = [UIScreen mainScreen].bounds.size.width;
+    float maxWidth = 420.0f;
+    float maxHeight = 285.0f;
+    
+    if ( isLandscape ) {
+        trueScreenHeight = [UIScreen mainScreen].bounds.size.width;
+        trueScreenWidth = [UIScreen mainScreen].bounds.size.height;
+        
         float wrongWidth = frame.size.width;
         float wrongHeight = frame.size.height;
         frame.size.width = wrongHeight;
         frame.size.height = wrongWidth;
     }
     
-    self = [super initWithFrame:CGRectInset(frame, 25.0f, 25.0f)];
+    if ( frame.size.height > maxHeight ) {
+        frame.size.height = maxHeight;
+    }
+    
+    if ( frame.size.width > maxWidth ) {
+        frame.size.width = maxWidth;
+    }
+    
+    frame.size.width -= 25.0f;
+    frame.size.height -= 25.0f;
+    
+    self = [super initWithFrame:CGRectMake((trueScreenWidth - frame.size.width) / 2,
+                                           (trueScreenHeight - frame.size.height) / 2,
+                                           frame.size.width,
+                                           frame.size.height)];    self = [super initWithFrame:CGRectInset(frame, 25.0f, 25.0f)];
     if (self) {
         parentFrame = &(frame);
         user = userDict;
@@ -122,8 +146,8 @@
 - (void)setupNameFieldLayout
 {
     CGRect frame = self.frame;
-    frame.size.height = 140;
-    frame.origin.y = 10;
+    frame.size.height = 140.0f;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
     [self setFrame:frame];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];

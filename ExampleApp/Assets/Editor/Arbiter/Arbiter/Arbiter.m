@@ -545,6 +545,11 @@
 
 - (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler {
     NSLog( @"ArbiterSDK GET %@", url );
+    
+    if ( !self.apiKey || !self.accessToken ) {
+        NSLog(@"Arbiter Error: Missing API key or Access Token. Make sure the Arbiter Prefab is added to your startup scene and your credentials are added to the Game Object using the Unity inspector.");
+    }
+    
     NSMutableURLRequest *request = [NSMutableURLRequest
         requestWithURL:[NSURL URLWithString:url]
         cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -568,8 +573,12 @@
     NSError *error = nil;
     NSData *paramsData;
     NSString *paramsStr;
-    
     NSString *tokenValue;
+    
+    if ( !self.apiKey || !self.accessToken ) {
+        NSLog(@"Arbiter Error: Missing API key or Access Token. Make sure the Arbiter Prefab is added to your startup scene and your credentials are added to the Game Object using the Unity inspector.");
+    }
+    
     if ( [self.user objectForKey:@"token"] != NULL ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {

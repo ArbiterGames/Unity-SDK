@@ -13,7 +13,7 @@ public partial class Arbiter : MonoBehaviour
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
 	
-	public static bool		IsAuthenticated				{ get { return user.Id != null; } }
+	public static bool		IsAuthenticated				{ get { return user!= null && user.Id != null; } }
 	public static string    UserId                      { get { return user.Id; } }
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
@@ -25,7 +25,6 @@ public partial class Arbiter : MonoBehaviour
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
 	public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
 	public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
-	
 	
 	void Awake() {
 		
@@ -201,7 +200,6 @@ public partial class Arbiter : MonoBehaviour
 		};
 		
 		RequestTournamentCallback gotRequestResponse = () => {
-			Debug.Log("tournamentPoller" + tournamentPoller);
 			tournamentPoller.SetAction( askAgain );
 		};
 		

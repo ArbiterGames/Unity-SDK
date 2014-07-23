@@ -60,10 +60,14 @@
         frame.size.width = maxWidth;
     }
     
-    self = [super initWithFrame:CGRectMake((trueScreenWidth - frame.size.width - 25.0f) / 2,
-                                           (trueScreenHeight - frame.size.height - 25.0f) / 2,
+    frame.size.width -= 25.0f;
+    frame.size.height -= 25.0f;
+    
+    self = [super initWithFrame:CGRectMake((trueScreenWidth - frame.size.width) / 2,
+                                           (trueScreenHeight - frame.size.height) / 2,
                                            frame.size.width,
                                            frame.size.height)];
+
     if (self) {
         parentFrame = &(frame);
         user = userDict;
@@ -100,7 +104,7 @@
 {
     CGRect frame = self.frame;
     frame.size.height = 140;
-    frame.origin.y = 10;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
     [self setFrame:frame];
 
     self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(70.0f, 40.0f, frame.size.width, 40.0f)

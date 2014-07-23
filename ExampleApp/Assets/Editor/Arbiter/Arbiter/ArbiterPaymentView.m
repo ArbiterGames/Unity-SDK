@@ -35,14 +35,35 @@
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict
 {
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-    if ( orientation == 3 || orientation == 4 ) {
+    
+    BOOL isLandscape = orientation == 3 || orientation == 4 || orientation == 5;
+    float trueScreenHeight = [UIScreen mainScreen].bounds.size.height;
+    float trueScreenWidth = [UIScreen mainScreen].bounds.size.width;
+    float maxWidth = 420.0f;
+    float maxHeight = 285.0f;
+    
+    if ( isLandscape ) {
+        trueScreenHeight = [UIScreen mainScreen].bounds.size.width;
+        trueScreenWidth = [UIScreen mainScreen].bounds.size.height;
+        
         float wrongWidth = frame.size.width;
         float wrongHeight = frame.size.height;
         frame.size.width = wrongHeight;
         frame.size.height = wrongWidth;
     }
     
-    self = [super initWithFrame:CGRectInset(frame, 25, 25)];
+    if ( frame.size.height > maxHeight ) {
+        frame.size.height = maxHeight;
+    }
+    
+    if ( frame.size.width > maxWidth ) {
+        frame.size.width = maxWidth;
+    }
+    
+    self = [super initWithFrame:CGRectMake((trueScreenWidth - frame.size.width - 25.0f) / 2,
+                                           (trueScreenHeight - frame.size.height - 25.0f) / 2,
+                                           frame.size.width,
+                                           frame.size.height)];
     if (self) {
         parentFrame = &(frame);
         user = userDict;

@@ -104,6 +104,7 @@
                     @"signature":[signature base64EncodedStringWithOptions:0],
                     @"salt":[salt base64EncodedStringWithOptions:0],
                     @"playerID":localPlayer.playerID,
+                    @"game_center_username": localPlayer.alias,
                     @"bundleID":[[NSBundle mainBundle] bundleIdentifier]
                 };
 

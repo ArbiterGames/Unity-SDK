@@ -151,7 +151,7 @@
     [self setFrame:frame];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
-    NSString *messageBody = [NSString stringWithFormat:@"Name As It Appears on Your Debit Card"];
+    NSString *messageBody = [NSString stringWithFormat:@"Name on Debit Card"];
     [message setText:messageBody];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
@@ -162,7 +162,7 @@
     self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
     [self.nameField setBackgroundColor:[UIColor clearColor]];
     [self.nameField setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.nameField setPlaceholder:@"Name on debit card"];
+    [self.nameField setPlaceholder:@"Name as it appears on card"];
     [self.nameField setAutocorrectionType:UITextAutocorrectionTypeNo];
     [self.nameField setKeyboardType:UIKeyboardTypeDefault];
     [self.nameField setReturnKeyType:UIReturnKeyDone];
@@ -186,7 +186,9 @@
 
 - (void)setupCardFieldUI
 {
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(70.0f, 40.0f, self.frame.size.width, 40.0f)
+    float cardFieldWidth = 290.0f;
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
+                                                                self.frame.size.width, 40.0f)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self.stripeView setTag:CARD_INFO_TAG];

@@ -103,11 +103,12 @@
 - (void)setupBillingInfoLayout
 {
     CGRect frame = self.frame;
-    frame.size.height = 140;
+    frame.size.height = 140.0f;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
     [self setFrame:frame];
 
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake(70.0f, 40.0f, frame.size.width, 40.0f)
+    float cardFieldWidth = 290.0f;  // taken from PKView.m
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f, frame.size.width, 40.0f)
                                               andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];

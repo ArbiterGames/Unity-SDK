@@ -3,12 +3,12 @@ using UnityEngine.SocialPlatforms;
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 
 
 public class Game : MonoBehaviour {
 	
-
     public const string BET_SIZE = "100";
     public int Score;
     public string Problems = "---";
@@ -20,7 +20,6 @@ public class Game : MonoBehaviour {
 	void Start() {
 		GameObject arbiterGO = GameObject.Find ("Arbiter");
 		arbiter = arbiterGO.GetComponent<Arbiter>();
-
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more money first.";
         } else {
@@ -58,11 +57,17 @@ public class Game : MonoBehaviour {
 
     private void DisplayResults( Arbiter.Tournament tournament ) {
         if( tournament.Status == Arbiter.Tournament.StatusType.Complete ) {
-            if( tournament.Winner.Id == Arbiter.UserId ) {
-                ResultsDescription = "You Won!";
-            } else {
-                ResultsDescription = "You lost to user "+tournament.Winner.Id;
-            }
+			if ( tournament.Winners != null ) {
+				if ( tournament.Winners.First() == Arbiter.UserId ) {
+					if ( tournament.Winners.Count() > 1 ) {
+						ResultsDescription = "You tied!";
+					} else {
+						ResultsDescription = "You Won!";
+					}
+				} else {
+					ResultsDescription = "You lost to user " + tournament.Winners.First();
+	        	}
+			}
 		} else if( tournament.Status == Arbiter.Tournament.StatusType.InProgress || tournament.Status == Arbiter.Tournament.StatusType.Initializing ) {
             ResultsDescription = "Waiting for opponent";
         } else {

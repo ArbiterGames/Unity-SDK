@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 
 using ArbiterInternal;
 
@@ -13,16 +14,18 @@ public partial class Arbiter {
 			InProgress,
 			Complete
 		}
+		
 		public string Id                		{ get { return this.id; } }
 		public StatusType Status        		{ get { return this.status; } }
 		public List<TournamentUser> Users     	{ get { return this.users; } }
-		public TournamentUser Winner;
+		public List<string> Winners				{ get { return this.winners; } }
 		
 		
-		public Tournament( string id, StatusType status, List<TournamentUser> users ) {
+		public Tournament( string id, StatusType status, List<TournamentUser> users, List<string> winners ) {
 			this.id = id;
 			this.status = status;
 			this.users = users;
+			this.winners = winners;
 		}
 		
 		public bool GetScoreForUserId( string userId, out int score ) {
@@ -75,6 +78,7 @@ public partial class Arbiter {
 		private string id;
 		private StatusType status;
 		private List<TournamentUser> users;
+		private List<string> winners;
 	}
 	
 	public class TournamentUser {

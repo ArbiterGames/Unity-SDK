@@ -239,7 +239,7 @@ namespace ArbiterInternal {
 			
 #if UNITY_EDITOR
 			ReportIgnore( "ReportScore" );
-			reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.TournamentUser>() ));
+			reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.TournamentUser>(), new List<string>() ));
 #elif UNITY_IOS
 			_reportScore( tournamentId, score.ToString() );
 #endif
@@ -460,17 +460,24 @@ namespace ArbiterInternal {
 			}
 			
 			List<Arbiter.TournamentUser> users = parseUsers( tournamentNode["users"] );
-			Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, users );
-			if( tournamentNode["winner"] != null ) {
-				string winnerId = tournamentNode["winner"];
-				foreach( var user in users ) {
-					if( user.Id == winnerId ) {
-						rv.Winner = user;
-						break;
-					}
-				}
-			}
+			List<string> winners = parseWinners( tournamentNode["winners"] );
+			Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, users, winners );
+
 			return rv;
+		}
+		
+		// I'm sure the is a more elegant way of converting items in the JSON array in a c# list of strings, but this solves the type casting issue for now
+		private List<string> parseWinners( JSONNode winnersNode ) {
+			List<string> winners = new List<string>();
+			if ( winnersNode != null ) {
+				JSONArray rawNode = winnersNode.AsArray;
+				IEnumerator enumerator = rawNode.GetEnumerator();
+				while( enumerator.MoveNext() ) {
+					JSONData winnerId = enumerator.Current as JSONData;
+					winners.Add( winnerId.Value );
+				}
+			}	
+			return winners;
 		}
 		
 		// Parses the Tournament.Users JSON array returned from the server and converts each item into a c# TournamentUser

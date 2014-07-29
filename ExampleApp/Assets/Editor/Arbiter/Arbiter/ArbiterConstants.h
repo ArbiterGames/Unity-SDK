@@ -18,3 +18,8 @@ extern NSString *const APIReportScoreURLPart1;
 extern NSString *const APIReportScoreURLPart2;
 extern NSString *const APIDepositURL;
 extern NSString *const APIWithdrawURL;
+
+extern NSString *const GameSettingsURL;
+extern NSString *const BundleURL;
+extern NSString *const StripeTestPublishableKey;
+extern NSString *const StripeLivePublishableKey;

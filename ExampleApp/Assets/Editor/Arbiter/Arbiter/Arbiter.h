@@ -19,6 +19,7 @@
 
 @property (strong, atomic) NSMutableDictionary *wallet;
 @property (strong, atomic) NSMutableDictionary *user;
+@property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
 @property (copy) NSString *verificationUrl;
@@ -49,5 +50,8 @@
 - (void)viewIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
+
+- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler;
+- (void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 
 @end

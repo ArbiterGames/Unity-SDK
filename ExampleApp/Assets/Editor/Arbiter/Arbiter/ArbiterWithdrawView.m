@@ -9,6 +9,7 @@
 #import "ArbiterWithdrawView.h"
 #import "ArbiterConstants.h"
 #import "STPView.h"
+#import "Arbiter.h"
 
 #define AMOUNT_SELECT_TAG 767
 #define CARD_INFO_TAG 768
@@ -19,8 +20,7 @@
     // Custom Arbiter
     void(^callback)(void);
     CGRect *parentFrame;
-    NSDictionary *user;
-    NSDictionary *wallet;
+    Arbiter *arbiter;
     float selectedWithdrawAmount;
     NSString *nameOnCard;
     UILabel *withdrawSelectionLabel;
@@ -31,7 +31,7 @@
     NSMutableData *responseData;
 }
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict andWallet:(NSDictionary *)walletDict
+- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
 {
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
     
@@ -68,8 +68,7 @@
                                            frame.size.height)];    self = [super initWithFrame:CGRectInset(frame, 25.0f, 25.0f)];
     if (self) {
         parentFrame = &(frame);
-        user = userDict;
-        wallet = walletDict;
+        arbiter = arbiterInstance;
         callback = handler;
         
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
@@ -90,7 +89,7 @@
 
 - (void)setupWithdrawAmountLayout
 {
-    float walletBalance = [[wallet objectForKey:@"balance"] floatValue];
+    float walletBalance = [[[arbiter wallet] objectForKey:@"balance"] floatValue];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
     [title setText:@"Withdraw"];
@@ -118,9 +117,9 @@
         [slider setTag:AMOUNT_SELECT_TAG];
         
         slider.minimumValue = 100.0f;
-        slider.maximumValue = [[wallet objectForKey:@"balance"] floatValue];
+        slider.maximumValue = walletBalance;
         slider.continuous = YES;
-        slider.value = ( [[wallet objectForKey:@"balance"] floatValue] + 100 ) / 2;
+        slider.value = ( walletBalance + 100.0f ) / 2;
         selectedWithdrawAmount = roundl(slider.value);
         [self addSubview:slider];
         
@@ -186,10 +185,18 @@
 
 - (void)setupCardFieldUI
 {
+    NSString *stripePublishableKey;
     float cardFieldWidth = 290.0f;
+    
+    if ( [[[arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        stripePublishableKey = StripeLivePublishableKey;
+    } else {
+        stripePublishableKey = StripeTestPublishableKey;
+    }
+    
     self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
                                                                 self.frame.size.width, 40.0f)
-                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
+                                              andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self.stripeView setTag:CARD_INFO_TAG];
     [self addSubview:self.stripeView];
@@ -352,19 +359,24 @@
                 }
             } copy];
             
-            NSData *paramsData = [NSJSONSerialization dataWithJSONObject:@{@"card_token": token.tokenId,
-                                                                           @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
-                                                                           @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]}
-                                                                 options:0
-                                                                   error:&error];
-            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APIWithdrawURL]];
-            request.HTTPMethod = @"POST";
-            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-            NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
-            [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
-            [[NSURLConnection alloc] initWithRequest:request delegate:self];
+            NSDictionary *params = @{@"card_token": token.tokenId,
+                                     @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
+                                     @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]};
+//            NSData *paramsData = [NSJSONSerialization dataWithJSONObject:@{@"card_token": token.tokenId,
+//                                                                           @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
+//                                                                           @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]}
+//                                                                 options:0
+//                                                                   error:&error];
+
+            [arbiter httpPost:APIWithdrawURL params:params handler:responseHandler];
+//            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+//            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APIWithdrawURL]];
+//            request.HTTPMethod = @"POST";
+//            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
+//            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+//            NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
+//            [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
+//            [[NSURLConnection alloc] initWithRequest:request delegate:self];
         }
     }];
 }

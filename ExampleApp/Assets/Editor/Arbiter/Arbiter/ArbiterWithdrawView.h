@@ -8,6 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "STPView.h"
+#import "Arbiter.h"
 
 @interface ArbiterWithdrawView : UIView <STPViewDelegate, UITextFieldDelegate>
 
@@ -15,7 +16,7 @@
 @property (strong, nonatomic) IBOutlet UITextField *nameField;
 @property (assign) STPView *stripeView;
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict andWallet:(NSDictionary *)walletDict;
+- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)cancelButtonClicked: (id)sender;
 - (void)selectButtonClicked: (id)sender;
 

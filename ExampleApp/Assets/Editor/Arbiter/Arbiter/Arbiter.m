@@ -38,13 +38,16 @@
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];
-    self.apiKey = apiKey;
-    self.accessToken = accessToken;
     
     if ( self ) {
+        self.apiKey = apiKey;
+        self.accessToken = accessToken;
+        
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
+
+        [self getGameSettings];
     }
     
     handler(@{@"success": @"true"});
@@ -299,12 +302,11 @@
     
     paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
                                                 andCallback:paymentCallback
-                                                    forUser:[self user]];
+                                            arbiterInstance:self];
     
     [paymentView setTag:PAYMENT_VIEW_TAG];
     [[self getTopApplicationWindow].rootViewController.view addSubview:paymentView];
    
-    
     
 // Previous Bitcoin only modal
 //    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
@@ -323,8 +325,7 @@
     
     withdrawView = [[ArbiterWithdrawView alloc] initWithFrame:[self getTopApplicationWindow].bounds
                                                   andCallback:withdrawCallback
-                                                      forUser:[self user]
-                                                    andWallet:[self wallet]];
+                                                      arbiterInstance:self];
     [withdrawView setTag:WITHDRAW_VIEW_TAG];
     [[self getTopApplicationWindow].rootViewController.view addSubview:withdrawView];
     
@@ -544,7 +545,8 @@
 
 #pragma mark NSURLConnection Delegate Methods
 
-- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler {
+- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler
+{
     NSLog( @"ArbiterSDK GET %@", url );
     
     NSMutableURLRequest *request = [NSMutableURLRequest
@@ -553,7 +555,7 @@
         timeoutInterval:60.0];
     
     NSString *tokenValue;
-    if ( [self.user objectForKey:@"token"] != (id)[NSNull null] ) {
+    if ( [self.user objectForKey:@"token"] != (id)[NSNull null] && [self.user objectForKey:@"token"] != nil  ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
@@ -565,7 +567,8 @@
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
--(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler {
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler
+{
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
@@ -796,6 +799,15 @@
 }
 
 # pragma mark Utility Helpers
+
+-(void)getGameSettings
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        self.game = responseDict;
+    } copy];
+    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
+    [self httpGet:gameSettingsUrl handler:connectionHandler];
+}
 
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {

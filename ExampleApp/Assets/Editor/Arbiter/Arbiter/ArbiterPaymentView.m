@@ -10,6 +10,7 @@
 #import <QuartzCore/QuartzCore.h>
 #import "ArbiterPaymentView.h"
 #import "ArbiterConstants.h"
+#import "Arbiter.h"
 
 #define BUNDLE_SELECT_TAG 667
 #define PAYMENT_INFO_TAG 668
@@ -19,7 +20,7 @@
     // Custom Arbiter
     void(^callback)(void);
     CGRect *parentFrame;
-    NSDictionary *user;
+    Arbiter *arbiter;
     
     // Picker View
     UIPickerView *pickerView;
@@ -32,7 +33,7 @@
     
 }
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler forUser:(NSDictionary *)userDict
+- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
 {
     UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
     
@@ -70,7 +71,7 @@
 
     if (self) {
         parentFrame = &(frame);
-        user = userDict;
+        arbiter = arbiterInstance;
         callback = handler;
         
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
@@ -102,14 +103,23 @@
 
 - (void)setupBillingInfoLayout
 {
+    NSString *stripePublishableKey;
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
     [self setFrame:frame];
 
     float cardFieldWidth = 290.0f;  // taken from PKView.m
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f, frame.size.width, 40.0f)
-                                              andKey:@"pk_test_1SQ84edElZEWoGqlR7XB9V5j"];
+    
+    if ( [[[arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        stripePublishableKey = StripeLivePublishableKey;
+    } else {
+        stripePublishableKey = StripeTestPublishableKey;
+    }
+    
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
+                                                                frame.size.width, 40.0f)
+                                              andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
     
@@ -155,19 +165,10 @@
                 }
             } copy];
             
-            
-            NSData *paramsData = [NSJSONSerialization dataWithJSONObject:@{@"card_token": token.tokenId,
-                                                                           @"bundle_sku": [selectedBundle objectForKey:@"sku"]}
-                                                                 options:0
-                                                                   error:&error];
-            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APIDepositURL]];
-            request.HTTPMethod = @"POST";
-            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-            NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
-            [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
-            [[NSURLConnection alloc] initWithRequest:request delegate:self];
+            NSDictionary *params = @{@"card_token": token.tokenId,
+                                     @"bundle_sku": [selectedBundle objectForKey:@"sku"]};
+
+            [arbiter httpPost:APIDepositURL params:params handler:responseHandler];
         }
     }];
 }
@@ -235,14 +236,7 @@
         [self addSubview: pickerView];
     } copy];
     
-    // Get the current bundle prices from the server
-    NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:@"https://www.arbiter.me/cashier/bundle"]];
-    request.HTTPMethod = @"GET";
-    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-    NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
-    NSLog(@"tokenString: %@", tokenString);
-    [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
-    [[NSURLConnection alloc] initWithRequest:request delegate:self];
+    [arbiter httpGet:BundleURL handler:responseHandler];
 }
 
 - (void)hideBundleSelectUI

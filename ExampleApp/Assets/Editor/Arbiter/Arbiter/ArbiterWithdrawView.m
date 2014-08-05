@@ -92,7 +92,6 @@
 
 - (void)setupNextScreen
 {
-    BOOL enabled = true;
     [self hideNextButton];
     [self hideCancelButton];
     [self hideAmountSelectUI];
@@ -101,24 +100,20 @@
     
     if ( selectedWithdrawAmount == 0.0f ) {
         [self setupWithdrawAmountLayout];
-    } else if ( self.nameField == nil ) {
+    } else if ( [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"full_name"]].length == 0 && self.nameField == nil ) {
         [self setupGenericFieldLayoutWithTag:NAME_FIELD_TAG];
-    } else if ( self.emailField == nil ) {
+    } else if ( [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
         [self setupGenericFieldLayoutWithTag:EMAIL_FIELD_TAG];
     } else if ( self.stripeView == nil ) {
         [self setupCardFieldUI];
-        enabled = false;
     } else {
         [self getTokenAndSubmitWithdraw];
-        enabled = false;
     }
-    
-    [self renderCancelButton];
-    [self renderNextButton:enabled];
 }
 
 - (void)setupWithdrawAmountLayout
 {
+    BOOL nextButtonEnabled = true;
     float walletBalance = [[[arbiter wallet] objectForKey:@"balance"] floatValue];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
@@ -139,7 +134,10 @@
     
     if ( walletBalance < 100 ) {
         [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
-        [self renderFullWidthCancelButton];
+        nextButtonEnabled = false;
+        CGRect frame = self.frame;
+        frame.size.height = 160.0f;
+        [self setFrame:frame];
     } else {
         UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(5.0f, 120.0f, self.bounds.size.width - 10.0f, 100.0f)];
         [slider addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
@@ -167,16 +165,19 @@
         [self addSubview:withdrawValueLabel];
         [self updateWithdrawValueLabel];
     }
+    
+    [self renderCancelButton];
+    [self renderNextButton:nextButtonEnabled];
 }
 
 - (void)setupGenericFieldLayoutWithTag:(int)tag
 {
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
     [self setFrame:frame];
+ 
     UITextField *field;
-
     NSString *messageBody;
     NSString *placeHolderText;
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
@@ -186,11 +187,13 @@
         placeHolderText = [NSString stringWithFormat:@"Must match name on debit card"];
         self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
         field = self.nameField;
+        field.autocapitalizationType = UITextAutocapitalizationTypeWords;
     } else if ( tag == EMAIL_FIELD_TAG ) {
         messageBody = [NSString stringWithFormat:@"Email"];
         placeHolderText = [NSString stringWithFormat:@"Enter a valid email address" ];
         self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
         field = self.emailField;
+        field.autocapitalizationType = UITextAutocapitalizationTypeNone;
     }
     
     [message setText:messageBody];
@@ -199,6 +202,8 @@
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:tag];
     [self addSubview:message];
+    
+    [field addTarget:self action:@selector(genericTextFieldChanged:) forControlEvents:UIControlEventEditingChanged];
     
     [field setBackgroundColor:[UIColor clearColor]];
     [field setFont:[UIFont boldSystemFontOfSize:17]];
@@ -219,12 +224,20 @@
     [self addSubview:field];
     
     [field becomeFirstResponder];
+    
+    [self renderCancelButton];
+    [self renderNextButton:false];
 }
 
 - (void)setupCardFieldUI
 {
     NSString *stripePublishableKey;
     float cardFieldWidth = 290.0f;
+    
+    CGRect frame = self.frame;
+    frame.size.height = 140.0f;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setFrame:frame];
     
     if ( [[[arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
@@ -247,6 +260,9 @@
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:CARD_INFO_TAG];
     [self addSubview:message];
+    
+    [self renderCancelButton];
+    [self renderNextButton:false];
 }
 
 - (void)renderNextButton:(BOOL)enabled
@@ -264,23 +280,6 @@
     [self.nextButton.layer addSublayer:topBorder];
     [self.nextButton setEnabled:enabled];
     [self addSubview:self.nextButton];
-}
-
-- (void)renderFullWidthCancelButton
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width, 50)];
-    [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:AMOUNT_SELECT_TAG];
-    [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
-    [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-    
-    [self addSubview:button];
 }
 
 - (void)renderCancelButton
@@ -354,6 +353,14 @@
 
 # pragma mark Event Handlers
 
+- (void)genericTextFieldChanged:(id)sender
+{
+    NSString *text = [NSString stringWithFormat:@"%@", ((UITextField *)sender).text];
+    if ( text.length > 0 && self.nextButton.enabled == false ) {
+        self.nextButton.enabled = true;
+    }
+}
+
 - (void)cancelButtonClicked:(id)sender
 {
     [self animateOut];
@@ -367,6 +374,9 @@
 - (void)getTokenAndSubmitWithdraw
 {
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
+        NSDictionary *params;
+        NSMutableDictionary *mutableParams;
+        
         if (error) {
             [self handleError:[error localizedDescription]];
         } else {
@@ -374,17 +384,32 @@
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
+                    NSLog(@"withdraw.responseDict: %@", responseDict);
+                    arbiter.wallet = [responseDict objectForKey:@"wallet"];
+                    arbiter.user = [responseDict objectForKey:@"user"];
                     callback();
                 }
             } copy];
             
-            NSDictionary *params = @{@"card_token": token.tokenId,
-                                     @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
-                                     @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]};
+            mutableParams = [NSMutableDictionary dictionaryWithObjects: @[token.tokenId,
+                                                                         [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]]
+                                                               forKeys:@[@"card_token", @"amount"]];
 
+            if ( self.emailField != nil ) {
+                [mutableParams setObject:self.emailField.text forKey:@"email"];
+            }
+            
+            if ( self.nameField != nil ) {
+                [mutableParams setObject:self.nameField.text forKey:@"card_name"];
+            }
+            
+            params = [mutableParams copy];
             [arbiter httpPost:APIWithdrawURL params:params handler:responseHandler];
         }
     }];
+    
+    [self renderCancelButton];
+    [self renderNextButton:false];
 }
 
 - (void)sliderAction:(id)sender
@@ -457,7 +482,6 @@
                                             otherButtonTitles:nil];
     [message show];
 }
-
 
 # pragma mark NSURLConnection Delegate Methods
 

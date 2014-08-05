@@ -106,7 +106,7 @@
 {
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
     [self setFrame:frame];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
@@ -146,7 +146,7 @@
     NSString *stripePublishableKey;
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
     [self setFrame:frame];
 
     float cardFieldWidth = 290.0f;  // taken from PKView.m

@@ -29,7 +29,8 @@ public class Entrypoint : MonoBehaviour {
 				Arbiter.LoginWithGameCenter( VerificationStep );
 			} else {
 				Debug.LogError( "Could not authenticate to Game Center! Calling Arbiter.Login()" );
-				Arbiter.Login ( VerificationStep );
+//				Arbiter.Login ( VerificationStep );
+				Arbiter.LoginAsAnonymous( VerificationStep );
 			}
 		};
 		Social.localUser.Authenticate( processAuth );

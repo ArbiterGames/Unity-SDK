@@ -12,12 +12,13 @@
 
 @interface ArbiterWithdrawView : UIView <STPViewDelegate, UITextFieldDelegate>
 
-@property (strong, nonatomic) IBOutlet UIButton *submitButton;
+@property (strong, nonatomic) IBOutlet UIButton *nextButton;
 @property (strong, nonatomic) IBOutlet UITextField *nameField;
+@property (strong, nonatomic) IBOutlet UITextField *emailField;
 @property (assign) STPView *stripeView;
 
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)cancelButtonClicked: (id)sender;
-- (void)selectButtonClicked: (id)sender;
+- (void)nextButtonClicked: (id)sender;
 
 @end

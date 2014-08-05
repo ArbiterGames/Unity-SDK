@@ -14,6 +14,9 @@
 #define AMOUNT_SELECT_TAG 767
 #define CARD_INFO_TAG 768
 #define NAME_FIELD_TAG 769
+#define EMAIL_FIELD_TAG 770
+#define NEXT_BUTTON_TAG 771
+#define CANCEL_BUTTON_TAG 772
 
 @implementation ArbiterWithdrawView
 {
@@ -22,7 +25,7 @@
     CGRect *parentFrame;
     Arbiter *arbiter;
     float selectedWithdrawAmount;
-    NSString *nameOnCard;
+    
     UILabel *withdrawSelectionLabel;
     UILabel *withdrawValueLabel;
     
@@ -79,13 +82,40 @@
         [self.layer setShadowOffset:CGSizeMake(2.0f, 2.0f)];
         
         [self animateIn];
-        [self setupWithdrawAmountLayout];
+        [self setupNextScreen];
     }
     return self;
 }
 
 
 # pragma mark UI Rendering Methods
+
+- (void)setupNextScreen
+{
+    BOOL enabled = true;
+    [self hideNextButton];
+    [self hideCancelButton];
+    [self hideAmountSelectUI];
+    [self hideNameFieldUI];
+    [self hideEmailFieldUI];
+    
+    if ( selectedWithdrawAmount == 0.0f ) {
+        [self setupWithdrawAmountLayout];
+    } else if ( self.nameField == nil ) {
+        [self setupGenericFieldLayoutWithTag:NAME_FIELD_TAG];
+    } else if ( self.emailField == nil ) {
+        [self setupGenericFieldLayoutWithTag:EMAIL_FIELD_TAG];
+    } else if ( self.stripeView == nil ) {
+        [self setupCardFieldUI];
+        enabled = false;
+    } else {
+        [self getTokenAndSubmitWithdraw];
+        enabled = false;
+    }
+    
+    [self renderCancelButton];
+    [self renderNextButton:enabled];
+}
 
 - (void)setupWithdrawAmountLayout
 {
@@ -136,51 +166,59 @@
         [withdrawValueLabel setTag:AMOUNT_SELECT_TAG];
         [self addSubview:withdrawValueLabel];
         [self updateWithdrawValueLabel];
-        
-        [self renderSelectButton];
-        [self renderCancelButton];
     }
 }
 
-- (void)setupNameFieldLayout
+- (void)setupGenericFieldLayoutWithTag:(int)tag
 {
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
     [self setFrame:frame];
-    
+    UITextField *field;
+
+    NSString *messageBody;
+    NSString *placeHolderText;
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
-    NSString *messageBody = [NSString stringWithFormat:@"Name on Debit Card"];
+    
+    if ( tag == NAME_FIELD_TAG ) {
+        messageBody = [NSString stringWithFormat:@"Full legal name"];
+        placeHolderText = [NSString stringWithFormat:@"Must match name on debit card"];
+        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        field = self.nameField;
+    } else if ( tag == EMAIL_FIELD_TAG ) {
+        messageBody = [NSString stringWithFormat:@"Email"];
+        placeHolderText = [NSString stringWithFormat:@"Enter a valid email address" ];
+        self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        field = self.emailField;
+    }
+    
     [message setText:messageBody];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
-    [message setTag:NAME_FIELD_TAG];
+    [message setTag:tag];
     [self addSubview:message];
     
-    self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
-    [self.nameField setBackgroundColor:[UIColor clearColor]];
-    [self.nameField setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.nameField setPlaceholder:@"Name as it appears on card"];
-    [self.nameField setAutocorrectionType:UITextAutocorrectionTypeNo];
-    [self.nameField setKeyboardType:UIKeyboardTypeDefault];
-    [self.nameField setReturnKeyType:UIReturnKeyDone];
-    [self.nameField setClearButtonMode:UITextFieldViewModeWhileEditing];
-    [self.nameField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
-    [self.nameField setDelegate:self];
-    [self.nameField setTag:NAME_FIELD_TAG];
+    [field setBackgroundColor:[UIColor clearColor]];
+    [field setFont:[UIFont boldSystemFontOfSize:17]];
+    [field setPlaceholder:placeHolderText];
+    [field setAutocorrectionType:UITextAutocorrectionTypeNo];
+    [field setKeyboardType:UIKeyboardTypeDefault];
+    [field setReturnKeyType:UIReturnKeyDone];
+    [field setClearButtonMode:UITextFieldViewModeWhileEditing];
+    [field setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
+    [field setDelegate:self];
+    [field setTag:tag];
     
     UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
     backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
                                  resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
-    [backgroundImageView setTag:NAME_FIELD_TAG];
+    [backgroundImageView setTag:tag];
     [self addSubview:backgroundImageView];
-    [self addSubview:self.nameField];
+    [self addSubview:field];
     
-    [self.nameField becomeFirstResponder];
-    
-    [self renderSubmitNameButton];
-    [self renderCancelButton];
+    [field becomeFirstResponder];
 }
 
 - (void)setupCardFieldUI
@@ -202,69 +240,30 @@
     [self addSubview:self.stripeView];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(5.0f, 10.0f, self.bounds.size.width - 10.0f, 20.0f)];
-    NSString *messageBody = [NSString stringWithFormat:@"Enter Your Debit Card Details"];
+    NSString *messageBody = [NSString stringWithFormat:@"Enter debit card info"];
     [message setText:messageBody];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:CARD_INFO_TAG];
     [self addSubview:message];
-    
-    [self renderSubmitCardButton];
 }
 
-- (void)renderSelectButton
+- (void)renderNextButton:(BOOL)enabled
 {
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
-    [button setTitle:@"Next" forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [button setTag:AMOUNT_SELECT_TAG];
-    [button addTarget:self action:@selector(selectButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
+    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
+    [self.nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self.nextButton setTag:NEXT_BUTTON_TAG];
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
+    topBorder.frame = CGRectMake(0, 0, self.nextButton.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-    
-    [self addSubview:button];
-}
-
-- (void)renderSubmitNameButton
-{
-    UIButton *submitButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [submitButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
-                                      self.bounds.size.width / 2, 50)];
-    [submitButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [submitButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [submitButton setTag:NAME_FIELD_TAG];
-    [submitButton addTarget:self action:@selector(submitNameButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, submitButton.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [submitButton.layer addSublayer:topBorder];
-    
-    [self addSubview:submitButton];
-}
-
-- (void)renderSubmitCardButton
-{
-    self.submitButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    self.submitButton.enabled = false;
-    [self.submitButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
-                                           self.bounds.size.width / 2, 50)];
-    [self.submitButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [self.submitButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.submitButton setTag:CARD_INFO_TAG];
-    [self.submitButton addTarget:self action:@selector(submitCardButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, self.submitButton.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [self.submitButton.layer addSublayer:topBorder];
-    
-    [self addSubview:self.submitButton];
+    [self.nextButton.layer addSublayer:topBorder];
+    [self.nextButton setEnabled:enabled];
+    [self addSubview:self.nextButton];
 }
 
 - (void)renderFullWidthCancelButton
@@ -307,6 +306,24 @@
     [self addSubview:button];
 }
 
+- (void)hideNextButton
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == NEXT_BUTTON_TAG) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
+- (void)hideCancelButton
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == CANCEL_BUTTON_TAG) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
 - (void)hideNameFieldUI
 {
     for (UIView *view in [self subviews]) {
@@ -325,6 +342,15 @@
     }
 }
 
+- (void)hideEmailFieldUI
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == EMAIL_FIELD_TAG) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
 
 # pragma mark Event Handlers
 
@@ -333,19 +359,12 @@
     [self animateOut];
 }
 
-- (void)selectButtonClicked:(id)sender
+- (void)nextButtonClicked:(id)sender
 {
-    [self hideAmountSelectUI];
-    [self setupNameFieldLayout];
+    [self setupNextScreen];
 }
 
-- (void)submitNameButtonClicked:(id)sender
-{
-    [self hideNameFieldUI];
-    [self setupCardFieldUI];
-}
-
-- (void)submitCardButtonClicked:(id)sender
+- (void)getTokenAndSubmitWithdraw
 {
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
@@ -362,21 +381,8 @@
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
                                      @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]};
-//            NSData *paramsData = [NSJSONSerialization dataWithJSONObject:@{@"card_token": token.tokenId,
-//                                                                           @"card_name": [NSString stringWithFormat:@"%@", self.nameField.text],
-//                                                                           @"amount": [NSString stringWithFormat:@"%.0f", selectedWithdrawAmount]}
-//                                                                 options:0
-//                                                                   error:&error];
 
             [arbiter httpPost:APIWithdrawURL params:params handler:responseHandler];
-//            NSString *paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-//            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:APIWithdrawURL]];
-//            request.HTTPMethod = @"POST";
-//            [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-//            [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-//            NSString *tokenString = [NSString stringWithFormat:@"Token %@", [user objectForKey:@"token"]];
-//            [request setValue:tokenString forHTTPHeaderField:@"Authorization"];
-//            [[NSURLConnection alloc] initWithRequest:request delegate:self];
         }
     }];
 }
@@ -439,7 +445,7 @@
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
-    self.submitButton.enabled = true;
+    self.nextButton.enabled = true;
 }
 
 - (void)handleError:(NSString *)error

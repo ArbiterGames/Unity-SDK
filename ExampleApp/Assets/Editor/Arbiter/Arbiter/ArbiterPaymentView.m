@@ -14,6 +14,7 @@
 
 #define BUNDLE_SELECT_TAG 667
 #define PAYMENT_INFO_TAG 668
+#define EMAIL_FIELD_TAG 668
 
 @implementation ArbiterPaymentView
 {
@@ -101,6 +102,45 @@
     [self renderBundleOptions];
 }
 
+- (void)setupEmailFieldLayout
+{
+    CGRect frame = self.frame;
+    frame.size.height = 140.0f;
+    frame.origin.y = ([UIScreen mainScreen].bounds.size.width / 2 - frame.size.height) / 2;
+    [self setFrame:frame];
+    
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
+    [message setText:@"Would you like a receipt?"];
+    [message setFont:[UIFont boldSystemFontOfSize:17]];
+    [message setTextAlignment:NSTextAlignmentCenter];
+    [message setBackgroundColor:[UIColor clearColor]];
+    [message setTag:EMAIL_FIELD_TAG];
+    [self addSubview:message];
+    
+    self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+    [self.emailField setBackgroundColor:[UIColor clearColor]];
+    [self.emailField setFont:[UIFont boldSystemFontOfSize:17]];
+    [self.emailField setPlaceholder:@"Email address (optional)"];
+    [self.emailField setAutocorrectionType:UITextAutocorrectionTypeNo];
+    [self.emailField setKeyboardType:UIKeyboardTypeDefault];
+    [self.emailField setReturnKeyType:UIReturnKeyDone];
+    [self.emailField setClearButtonMode:UITextFieldViewModeWhileEditing];
+    [self.emailField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
+    [self.emailField setDelegate:self];
+    [self.emailField setTag:EMAIL_FIELD_TAG];
+    
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
+    backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
+                                 resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
+    [backgroundImageView setTag:EMAIL_FIELD_TAG];
+    [self addSubview:backgroundImageView];
+    [self addSubview:self.emailField];
+    [self.emailField becomeFirstResponder];
+    
+    [self renderSaveEmailButton];
+    [self renderCancelButton];
+}
+
 - (void)setupBillingInfoLayout
 {
     NSString *stripePublishableKey;
@@ -124,7 +164,7 @@
     [self addSubview:self.stripeView];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
-    [message setText:@"Enter Billing Information"];
+    [message setText:@"Enter billing details"];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
     [message setBackgroundColor:[UIColor clearColor]];
@@ -143,9 +183,22 @@
     [self animateOut];
 }
 
-- (void)selectButtonClicked:(id)sender
+- (void)selectBundleButtonClicked:(id)sender
 {
+    NSString *email = [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"email"]];
     [self hideBundleSelectUI];
+    
+    if ( email.length > 0 ) {
+        [self setupBillingInfoLayout];
+    } else {
+        [self setupEmailFieldLayout];
+    }
+}
+
+- (void)saveEmailButtonClicked:(id)sender
+{
+    [self hideEmailFieldUI];
+    [arbiter.user setObject:self.emailField.text forKey:@"email"];
     [self setupBillingInfoLayout];
 }
 
@@ -165,8 +218,18 @@
                 }
             } copy];
             
+            NSString *arbiterEmail = [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"email"]];
+            NSString *receiptEmail;
+            
+            if ( arbiterEmail.length == 0 ) {
+                receiptEmail = self.emailField.text;
+            } else {
+                receiptEmail = arbiterEmail;
+            }
+            
             NSDictionary *params = @{@"card_token": token.tokenId,
-                                     @"bundle_sku": [selectedBundle objectForKey:@"sku"]};
+                                     @"bundle_sku": [selectedBundle objectForKey:@"sku"],
+                                     @"email": receiptEmail};
 
             [arbiter httpPost:APIDepositURL params:params handler:responseHandler];
         }
@@ -178,13 +241,12 @@
 
 - (void)renderSelectButton
 {
-    
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Next" forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
     [button setTag:BUNDLE_SELECT_TAG];
-    [button addTarget:self action:@selector(selectButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [button addTarget:self action:@selector(selectBundleButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
@@ -246,6 +308,33 @@
             [view removeFromSuperview];
         }
     }
+}
+
+- (void)hideEmailFieldUI
+{
+    for ( UIView *view in [self subviews] ) {
+        if ( view.tag == EMAIL_FIELD_TAG ) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
+- (void)renderSaveEmailButton
+{
+    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
+    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
+    [button setTitle:@"Next" forState:UIControlStateNormal];
+    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [button setTag:EMAIL_FIELD_TAG];
+    [button addTarget:self action:@selector(saveEmailButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [button.layer addSublayer:topBorder];
+    
+    [self addSubview:button];
+
 }
 
 - (void)renderPurchaseButton

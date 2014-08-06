@@ -184,7 +184,7 @@ namespace ArbiterInternal {
 		}
 		
 		[DllImport ("__Internal")]
-		private static extern void _showTournamentDetailsPanel();
+		private static extern void _showTournamentDetailsPanel( string tournamentId);
 		private static Action showTournamentDetailsPanelCallback;
 		public static void ShowTournamentDetailsPanel( string tournamentId, Action callback ) {
 			showTournamentDetailsPanelCallback = callback;
@@ -193,7 +193,7 @@ namespace ArbiterInternal {
 			if( showTournamentDetailsPanelCallback != null )
 				showTournamentDetailsPanelCallback();
 			#elif UNITY_IOS
-			_showTournamentDetailsPanel();
+			_showTournamentDetailsPanel( tournamentId );
 			#endif
 		}
 		

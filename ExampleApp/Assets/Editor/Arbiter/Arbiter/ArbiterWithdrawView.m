@@ -36,15 +36,12 @@
 
 - (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
 {
-    UIDeviceOrientation orientation = [[UIDevice currentDevice] orientation];
-    
-    BOOL isLandscape = orientation == 3 || orientation == 4 || orientation == 5;
     float trueScreenHeight = [UIScreen mainScreen].bounds.size.height;
     float trueScreenWidth = [UIScreen mainScreen].bounds.size.width;
     float maxWidth = 420.0f;
     float maxHeight = 285.0f;
     
-    if ( isLandscape ) {
+    if ( UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]) ) {
         trueScreenHeight = [UIScreen mainScreen].bounds.size.width;
         trueScreenWidth = [UIScreen mainScreen].bounds.size.height;
         

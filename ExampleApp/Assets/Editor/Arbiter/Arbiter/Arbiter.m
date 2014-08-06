@@ -842,19 +842,8 @@
         }
 
     } else if ( alertView.tag == TOURNAMENT_DETAILS_ALERT_TAG ) {
-        if ( [buttonTitle isEqualToString:@"Refresh"] ) {
-            NSLog(@"TODO: Get the tournament details then update this alert");
-            void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-                // TODO: Update the tournament ID to the real tournament ID
-                [self showTournamentDetailsPanel:[_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"] tournamentId:@"TOURNAMENT ID"];
-            } copy];
-            
-            // TODO: Setup a getTournamentDetails call
-            [self getWallet:connectionHandler];
-        } else {
-            void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
-            handler();
-        }
+        void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
+        handler();
         
     // Default to the main wallet screen
     } else {

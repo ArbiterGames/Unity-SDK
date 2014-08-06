@@ -20,6 +20,7 @@ public class Game : MonoBehaviour {
 	void Start() {
 		GameObject arbiterGO = GameObject.Find ("Arbiter");
 		arbiter = arbiterGO.GetComponent<Arbiter>();
+		
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more money first.";
         } else {

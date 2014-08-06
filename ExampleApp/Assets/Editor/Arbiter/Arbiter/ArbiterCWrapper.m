@@ -194,3 +194,12 @@ void _reportScore( const char* tournamentId, const char* score )
                    score:[[NSString alloc] initWithUTF8String:score]
      ];
 }
+
+void _showTournamentDetailsPanel( const char* tournamentId )
+{
+    checkForArbiterGameObject();
+    [arbiter showTournamentDetailsPanel:^(void) {
+        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", emptyString );
+    } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
+}

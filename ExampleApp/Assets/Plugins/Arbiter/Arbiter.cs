@@ -240,6 +240,10 @@ public partial class Arbiter : MonoBehaviour
 		getTournamentsCallback();
 	}
 	
+	public static void DisplayTournamentDetails( string tournamentId, Action callback ) {
+		ArbiterBinding.ShowTournamentDetailsPanel( tournamentId, callback );
+	}
+	
 	public static List<Tournament> InitializingTournaments {
 		get {
 			return initializingTournaments;

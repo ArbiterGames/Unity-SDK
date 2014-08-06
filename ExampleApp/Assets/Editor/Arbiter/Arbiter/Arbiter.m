@@ -26,6 +26,7 @@
 #define BITCOIN_DEPOSIT_ALERT_TAG 335
 #define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
+#define TOURNAMENT_DETAILS_ALERT_TAG 338
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -542,6 +543,20 @@
     [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
 }
 
+- (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
+{
+    void (^closeTournamentDetailsHandler)(void) = [^(void) {
+        handler();
+    } copy];
+    [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
+    
+    NSString *title = @"TOURNAMENT STATUS";
+    NSString *message = @"tournament details";
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", nil];
+    [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
+    [alert show];
+}
+
 
 #pragma mark NSURLConnection Delegate Methods
 
@@ -778,6 +793,21 @@
             handler(@"");
         }
 
+    } else if ( alertView.tag == TOURNAMENT_DETAILS_ALERT_TAG ) {
+        if ( [buttonTitle isEqualToString:@"Refresh"] ) {
+            NSLog(@"TODO: Get the tournament details then update this alert");
+            void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+                // TODO: Update the tournament ID to the real tournament ID
+                [self showTournamentDetailsPanel:[_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"] tournamentId:@"TOURNAMENT ID"];
+            } copy];
+            
+            // TODO: Setup a getTournamentDetails call
+            [self getWallet:connectionHandler];
+        } else {
+            void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
+            handler();
+        }
+        
     // Default to the main wallet screen
     } else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];

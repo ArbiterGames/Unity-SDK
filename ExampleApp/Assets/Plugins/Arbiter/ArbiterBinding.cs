@@ -183,6 +183,20 @@ namespace ArbiterInternal {
 #endif
 		}
 		
+		[DllImport ("__Internal")]
+		private static extern void _showTournamentDetailsPanel();
+		private static Action showTournamentDetailsPanelCallback;
+		public static void ShowTournamentDetailsPanel( string tournamentId, Action callback ) {
+			showTournamentDetailsPanelCallback = callback;
+			#if UNITY_EDITOR
+			ReportIgnore( "ShowTournamentDetailsPanel" );
+			if( showTournamentDetailsPanelCallback != null )
+				showTournamentDetailsPanelCallback();
+			#elif UNITY_IOS
+			_showTournamentDetailsPanel();
+			#endif
+		}
+		
 		
 		[DllImport ("__Internal")]
 		private static extern void _getTournaments();
@@ -349,6 +363,12 @@ namespace ArbiterInternal {
 				getTournamentsCallback( parseTournaments( tournamentsNode["results"] ));
 			} else {
 				getTournamentsErrorHandler( getErrors( json ));
+			}
+		}
+		
+		public void ShowTournamentDetailsPanelHandler( string emptyString ) {
+			if ( showTournamentDetailsPanelCallback != null ) {
+				showTournamentDetailsPanelCallback();
 			}
 		}
 		

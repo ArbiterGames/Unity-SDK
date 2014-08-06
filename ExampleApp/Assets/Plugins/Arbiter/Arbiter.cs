@@ -214,7 +214,9 @@ public partial class Arbiter : MonoBehaviour
 		
 		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
 	}
-	
+	public static Action<List<string>> JoinTournamentErrorHandler { set { getTournamentsErrorHandler = ( errors ) => value( errors ); } }
+
+
 	public delegate void RequestTournamentCallback();
 	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
 		if( filters == null ) {

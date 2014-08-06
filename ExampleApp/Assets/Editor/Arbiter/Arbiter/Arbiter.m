@@ -270,27 +270,29 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    void (^closeWalletHandler)(void) = [^(void) {
-        handler();
-    } copy];
-    [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
-    
-    void (^populateThenShowAlert)(void) = [^(void) {
-        NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-        NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLogged in as: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"username"]];
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-        [alert setTag:WALLET_ALERT_TAG];
-        [alert show];
-    } copy];
-    
-    if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-        [self verifyUser:^(NSDictionary *dict) {
-            populateThenShowAlert();
-        }];
-    } else {
-        populateThenShowAlert();
-    }
+    [self getWallet:^(NSDictionary *responseDict) {
 
+        void (^closeWalletHandler)(void) = [^(void) {
+            handler();
+        } copy];
+        
+        void (^populateThenShowAlert)(void) = [^(void) {
+            NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+            NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLogged in as: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"username"]];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+            [alert setTag:WALLET_ALERT_TAG];
+            [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+            [alert show];
+        } copy];
+        
+        if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+            [self verifyUser:^(NSDictionary *dict) {
+                populateThenShowAlert();
+            }];
+        } else {
+            populateThenShowAlert();
+        }
+    }];
 }
 
 - (void)showDepositPanel
@@ -381,6 +383,16 @@
     }
 }
 
+- (void)getTournament:(void(^)(NSDictionary*))handler tournamentId:(NSString *)tournamentId
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSLog(@"++ Arbiter.me getTournament.responseDict: %@", responseDict);
+        NSDictionary *tournament = [responseDict objectForKey:@"tournament"];
+        handler(tournament);
+    } copy];
+    
+    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] handler:connectionHandler];
+}
 
 /**
     Makes the request to Arbiter to a paginated set of tournaments for this user
@@ -538,23 +550,59 @@
         handler(responseDict);
     } copy];
 
-    NSString *requestUrl = [APIReportScoreURLPart1 stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
+    NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
 
     [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
 {
-    void (^closeTournamentDetailsHandler)(void) = [^(void) {
-        handler();
-    } copy];
-    [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
+    void (^getTournamentHandler)(NSDictionary *tournament) = [^(NSDictionary *tournament) {
+        void (^closeTournamentDetailsHandler)(void) = [^(void) {
+            handler();
+        } copy];
     
-    NSString *title = @"TOURNAMENT STATUS";
-    NSString *message = @"tournament details";
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", nil];
-    [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
-    [alert show];
+        NSString *title;
+        NSMutableString *message = [[NSMutableString alloc] init];
+        NSString *status = [tournament objectForKey:@"status"];
+        NSString *createdOn = [tournament objectForKey:@"created_on"];
+        NSTimeInterval seconds = [createdOn doubleValue] / 1000;
+        NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
+        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+        [dateFormatter setDateFormat:@"EEE, MMM d"];
+        
+        if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
+            title = @"Waiting for opponent";
+            [message appendString:[NSString stringWithFormat:@"Your opponent has not finished their game. Check back later for results.\n\n Your score: %@\nBuy-in: %@\nPayout: %@",
+                                   [self getPlayerScoreFromTournament:tournament],
+                                   [tournament objectForKey:@"buy_in"],
+                                   [tournament objectForKey:@"payout"]]];
+        } else {
+            if ( [[tournament objectForKey:@"winners"] containsObject:[self.user objectForKey:@"id"]] ) {
+                title = [NSString stringWithFormat:@"You won %@ credits!", [tournament objectForKey:@"payout"]];
+            } else {
+                title = @"You have been defeated";
+            }
+            [message appendString:[NSString stringWithFormat:@"Your score: %@\nOpponent score: %@\nDate: %@\nBuy-in: %@\nPayout: %@",
+                                   [self getPlayerScoreFromTournament:tournament],
+                                   [self getOpponentScoreFromTournament:tournament],
+                                   [dateFormatter stringFromDate:unFormattedDate],
+                                   [tournament objectForKey:@"buy_in"],
+                                   [tournament objectForKey:@"payout"]]];
+        }
+        
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                        message:message
+                                                       delegate:self
+                                              cancelButtonTitle:@"Close"
+                                              otherButtonTitles:nil];
+
+        [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
+        [alert show];
+        [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
+    } copy];
+    
+    [self getTournament:getTournamentHandler tournamentId:tournamentId];
 }
 
 

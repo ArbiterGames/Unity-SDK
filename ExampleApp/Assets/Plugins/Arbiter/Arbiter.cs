@@ -215,15 +215,17 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
 	}
 	public static Action<List<string>> JoinTournamentErrorHandler { set { getTournamentsErrorHandler = ( errors ) => value( errors ); } }
-
-
+	
+	
 	public delegate void RequestTournamentCallback();
 	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
 		}
-		ArbiterBinding.RequestTournament( buyIn, filters, callback, defaultErrorHandler );
+		ArbiterBinding.RequestTournament( buyIn, filters, callback, requestTournamentErrorHandler );
 	}
+	public static Action<List<string>> RequestTournamentErrorHandler { set { requestTournamentErrorHandler = ( errors ) => value( errors ); } }
+	
 	
 	public static void GetTournaments( Action callback ) {
 		getTournamentsCallback = callback;
@@ -329,6 +331,7 @@ public partial class Arbiter : MonoBehaviour
 	private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 	private static Action getTournamentsCallback;
 	private static ArbiterBinding.ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;
+	private static ArbiterBinding.ErrorHandler requestTournamentErrorHandler = defaultErrorHandler;
 	private static Action viewIncompleteTournamentsCallback;
 	#if UNITY_IOS
 	private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;

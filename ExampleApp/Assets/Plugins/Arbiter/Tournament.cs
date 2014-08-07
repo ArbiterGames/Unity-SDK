@@ -30,8 +30,8 @@ public partial class Arbiter {
 		
 		public bool GetScoreForUserId( string userId, out int score ) {
 			foreach( var user in this.users ) {
-				if( user.Id == userId ) {
-					score = user.Score;
+				if( user.Id == userId && user.HasScore ) {
+					score = user.Score.Value;
 					return true;
 				}
 			}
@@ -41,8 +41,8 @@ public partial class Arbiter {
 		
 		public bool GetScoreForOtherUserId( string userId, out int score ) {
 			foreach( var user in this.users ) {
-				if( user.Id != userId ) {
-					score = user.Score;
+				if( user.Id != userId && user.HasScore ) {
+					score = user.Score.Value;
 					return true;
 				}
 			}
@@ -54,7 +54,7 @@ public partial class Arbiter {
 		public bool UserCanReportScore( string id ) {
 			bool rv = false;
 			this.users.ForEach( user => {
-				if( user.Id == id && user.Score == 0 ) {
+				if( user.Id == id && user.Paid && !user.HasScore ) {
 					rv = true;
 				}
 			});
@@ -82,25 +82,30 @@ public partial class Arbiter {
 	}
 	
 	public class TournamentUser {
-		
-		public int Score            { get { return this.score; } }
+
 		public string Id            { get { return this.id; } }
+		public bool Paid			{ get { return this.paid; } set { this.paid = value; } }
+		public bool HasScore		{ get { return this.score.HasValue; } }
+		public int? Score           { get { return this.score; } set { this.score = value; } }
+
 		
 		public TournamentUser( string id ) {
 			this.id = id;
+			this.paid = false;
+			this.score = null;
 		}
-		
+
 		public void SetScore( int score ) {
 			this.score = score;
 		}
 		
 		public override string ToString() {
-			return "[Id:"+Id+", score:"+Score+"]";
+			return "[Id:"+Id+", paid:"+paid+", score:"+Score+"]";
 		}
 		
-		
-		private int score;
 		private string id;
+		private bool paid;
+		private int? score;
 		
 	}
 

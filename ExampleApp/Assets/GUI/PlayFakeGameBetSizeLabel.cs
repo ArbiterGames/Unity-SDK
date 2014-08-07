@@ -6,7 +6,7 @@ using System.Collections.Generic;
 
 
 [RequireComponent (typeof (GUIText))]
-public class PlayFakeGameBestSizeLabel : MonoBehaviour {
+public class PlayFakeGameBetSizeLabel : MonoBehaviour {
 	
 	
 	void Start() {

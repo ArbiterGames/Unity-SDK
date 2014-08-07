@@ -12,6 +12,7 @@
 #import "Arbiter.h"
 #import "ArbiterPaymentView.h"
 #import "ArbiterWithdrawView.h"
+#import "ArbiterAlertWindow.h"
 #import "STPView.h"
 
 
@@ -22,8 +23,6 @@
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
-#define BITCOIN_WITHDRAW_ALERT_TAG 334
-#define BITCOIN_DEPOSIT_ALERT_TAG 335
 #define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
@@ -43,6 +42,7 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
+        self.alertWindow = [[ArbiterAlertWindow alloc] init];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -299,23 +299,18 @@
 {
     ArbiterPaymentView *paymentView;
     void (^paymentCallback)(void) = [^(void) {
-        UIView *paymentView = [[self getTopApplicationWindow] viewWithTag:PAYMENT_VIEW_TAG];
-        [paymentView removeFromSuperview];
+        [self.alertWindow hide:nil];
     } copy];
     
+    // TODO:
+    // Go into the payment view,
+    // make sure that the subviews of the payment view (card, email, name) get added correctly to the rootView
+    // make sure the cancel buttons trigger correctly (closing the keyboard and such)
     paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
                                                 andCallback:paymentCallback
                                             arbiterInstance:self];
-    
     [paymentView setTag:PAYMENT_VIEW_TAG];
-    [[self getTopApplicationWindow].rootViewController.view addSubview:paymentView];
-   
-    
-// Previous Bitcoin only modal
-//    NSString *message = [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"deposit_address"]];
-//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Deposit" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Copy Address", nil];
-//    [alert setTag:BITCOIN_DEPOSIT_ALERT_TAG];
-//    [alert show];
+    [self.alertWindow show:paymentView];
 }
 
 - (void)showWithdrawPanel
@@ -331,33 +326,13 @@
                                                       arbiterInstance:self];
     [withdrawView setTag:WITHDRAW_VIEW_TAG];
     [[self getTopApplicationWindow].rootViewController.view addSubview:withdrawView];
-    
-// TODO: Get the bitcoin option back in
-//    NSString *message = @"Where should we transfer your balance?";
-//    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Withdraw" message:message delegate:self cancelButtonTitle:@"Back" otherButtonTitles:@"Withdraw", nil];
-//    [alert setAlertViewStyle:UIAlertViewStylePlainTextInput];
-//
-//    UITextField *textField = [alert textFieldAtIndex:0];
-//    textField.placeholder = @"Enter a Bitcoin address";
-//
-//    [alert setTag:BITCOIN_WITHDRAW_ALERT_TAG];
-//    [alert show];
-}
+    }
 
 - (void)showWithdrawError:(NSString *)error
 {
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Unsuccessful Withdraw" message:error delegate:self cancelButtonTitle:@"Back" otherButtonTitles:nil];
     [alert show];
 }
-
-- (void)copyDepositAddressToClipboard
-{
-    UIPasteboard *pasteboard = [UIPasteboard generalPasteboard];
-    pasteboard.string = [self.wallet objectForKey:@"deposit_address"];
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Successfully Copied Address" message:@"Now use your preferred Bitcoin wallet to send some Bitcoin to that address. We suggest using Coinbase.com." delegate:self cancelButtonTitle:@"OK" otherButtonTitles:nil];
-    [alert show];
-}
-
 
 #pragma mark Tournament Methods
 
@@ -775,49 +750,6 @@
                 handler(dict);
             }];
         }
-    } else if ( alertView.tag == BITCOIN_DEPOSIT_ALERT_TAG ) {
-        if ( [buttonTitle isEqualToString:@"Copy Address"] ) {
-            [self copyDepositAddressToClipboard];
-        } else if ( [buttonTitle isEqualToString:@"Back"] ) {
-            [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-        }
-
-    } else if ( alertView.tag == BITCOIN_WITHDRAW_ALERT_TAG ) {
-        if ( [buttonTitle isEqualToString:@"Withdraw"]) {
-
-            void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-                BOOL success = [[responseDict objectForKey:@"success"] boolValue];
-                if ( success ) {
-                    self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-                    [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-
-                } else {
-                    NSMutableString *error = [NSMutableString string];
-                    for (NSString *element in [responseDict objectForKey:@"errors"]) {
-                        [error appendString:[NSString stringWithFormat:@"%@. ", element]];
-                    }
-                    [self showWithdrawError:error];
-                }
-            } copy];
-
-            UITextField *address = [alertView textFieldAtIndex:0];
-            NSString *walletUrl = [NSString stringWithFormat:@"%@%@", APIWalletURL, [self.user objectForKey:@"id"]];
-            NSDictionary *postDict = [[NSDictionary alloc] initWithObjectsAndKeys:address.text, @"address", [self.wallet objectForKey:@"balance"], @"amount", nil];
-            NSError *error;
-            NSData *postData = [NSJSONSerialization dataWithJSONObject:postDict options:NSJSONWritingPrettyPrinted error:&error];
-            NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:walletUrl]];
-
-            [request setHTTPMethod:@"POST"];
-            [request setValue:@"application/json; charset=UTF-8" forHTTPHeaderField:@"Content-Type"];
-            [request setValue:@"application/json" forHTTPHeaderField:@"Accept"];
-            [request setHTTPBody:postData];
-            [_connectionHandlerRegistry setObject:connectionHandler forKey:[NSString stringWithFormat:@"%@:POST", walletUrl]];
-            [NSURLConnection connectionWithRequest:request delegate:self];
-
-        } else if ( [buttonTitle isEqualToString:@"Back"] ) {
-            [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-        }
-
     } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
 
@@ -866,6 +798,15 @@
 }
 
 # pragma mark Utility Helpers
+
+- (void)removeSubviewsFromSuperViewWithTag:(int)tag
+{
+    for (UIView *view in [[self getTopApplicationWindow].rootViewController.view subviews]) {
+        if (view.tag == tag) {
+            [view removeFromSuperview];
+        }
+    }
+}
 
 -(void)getGameSettings
 {
@@ -939,9 +880,9 @@
 
 - (UIWindow*) getTopApplicationWindow
 {
-    UIApplication* clientApp = [UIApplication sharedApplication];
-    NSArray* windows = [clientApp windows];
-    UIWindow* topWindow = nil;
+    UIApplication *clientApp = [UIApplication sharedApplication];
+    NSArray *windows = [clientApp windows];
+    UIWindow *topWindow = nil;
     
     if (windows && [windows count] > 0)
         topWindow = [[clientApp windows] objectAtIndex:0];

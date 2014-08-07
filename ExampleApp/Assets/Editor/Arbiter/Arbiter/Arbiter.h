@@ -6,6 +6,7 @@
 //
 
 #import <CoreLocation/CoreLocation.h>
+#import "ArbiterAlertWindow.h"
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 {
@@ -22,6 +23,7 @@
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
+@property (retain) ArbiterAlertWindow *alertWindow;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageTournamentsUrl;
 @property (copy) NSString *previousPageTournamentsUrl;
@@ -39,7 +41,6 @@
 
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
-- (void)copyDepositAddressToClipboard;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;

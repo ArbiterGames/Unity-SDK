@@ -157,17 +157,6 @@ namespace ArbiterInternal {
 		
 		
 		[DllImport ("__Internal")]
-		private static extern void _copyDepositAddressToClipboard();
-		public static void CopyDepositAddressToClipboard() {
-#if UNITY_EDITOR
-			ReportIgnore( "CopyDepositAddressToClipboard" );
-#elif UNITY_IOS
-			_copyDepositAddressToClipboard();
-#endif
-		}
-		
-		
-		[DllImport ("__Internal")]
 		private static extern void _requestTournament( string buyIn, string filters );
 		private static Arbiter.RequestTournamentCallback requestTournamentCallback;
 		private static ErrorHandler requestTournamentErrorHandler;

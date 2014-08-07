@@ -130,11 +130,6 @@ void _showWalletPanel()
     }];
 }
 
-void _copyDepositAddressToClipboard()
-{
-    [arbiter copyDepositAddressToClipboard];
-}
-
 void _requestTournament( const char* buyIn, const char* filters )
 {
     checkForArbiterGameObject();

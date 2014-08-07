@@ -71,6 +71,10 @@
         arbiter = arbiterInstance;
         callback = handler;
         
+        // TODO: try adding another view to this view for the background overlay
+        //          if that doesn't work, then use the arbiter.getTopApplicationWindow and add the overlay that way
+
+        
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
         [self.layer setCornerRadius:5.0f];
         [self.layer setShadowColor:[UIColor blackColor].CGColor];

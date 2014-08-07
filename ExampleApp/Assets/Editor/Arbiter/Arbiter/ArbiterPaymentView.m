@@ -486,17 +486,5 @@
     return [separatorFormattor stringFromNumber:origNumber];
 }
 
-- (UIWindow*) getTopApplicationWindow
-{
-    UIApplication* clientApp = [UIApplication sharedApplication];
-    NSArray* windows = [clientApp windows];
-    UIWindow* topWindow = nil;
-    
-    if (windows && [windows count] > 0)
-        topWindow = [[clientApp windows] objectAtIndex:0];
-    
-    return topWindow;
-}
-
 
 @end

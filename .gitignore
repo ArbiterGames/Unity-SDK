@@ -25,3 +25,5 @@ Pods
 *.csproj
 /UnityDemoApp/ArbiterExample/Library/EditorUserBuildSettings.asset
 /UnityDemoApp/ArbiterExample/Library/expandedItems
+*.pyc.meta
+Physics2DSettings.asset

@@ -24,15 +24,11 @@ for f in files_in_dir:
             if os.path.isfile(pathname):
                 project.add_file(pathname)
             if os.path.isdir(pathname):
-                # TODO: Make sure this is n-depth recursive
                 project.add_folder(pathname, excludes=["^.*\.meta$"])
 
 # Change build settings
 ############################
 project.add_other_buildsetting('GCC_ENABLE_OBJC_EXCEPTIONS', 'YES')
-
-# TODO: Remove this line before deploying
-project.add_other_buildsetting('DEBUG_INFORMATION_FORMAT', 'dwarf')
 
 
 # Add ARC compiler flag for Stripe and PaymentKit files

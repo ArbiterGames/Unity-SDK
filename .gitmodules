@@ -1,9 +1,0 @@
-[submodule "UnityDemoApp/Assets/Editor/Arbiter/Stripe"]
-	path = UnityDemoApp/Assets/Editor/Arbiter/Stripe
-	url = https://github.com/stripe/stripe-ios.git
-[submodule "ExampleApp/Assets/Editor/Arbiter/stripe-ios"]
-	path = ExampleApp/Assets/Editor/Arbiter/stripe-ios
-	url = https://github.com/stripe/stripe-ios.git
-[submodule "ExampleApp/Assets/Editor/Arbiter/Stripe"]
-	path = ExampleApp/Assets/Editor/Arbiter/Stripe
-	url = https://github.com/stripe/stripe-ios.git

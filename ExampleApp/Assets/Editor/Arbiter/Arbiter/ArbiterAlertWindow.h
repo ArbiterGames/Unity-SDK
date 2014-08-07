@@ -12,7 +12,10 @@
 
 @interface ArbiterAlertWindow : UIWindow
 
+@property (retain) UIWindow *gameWindow;
+
+- (id)initWithGameWindow:(UIWindow *)gameWindow;
 - (void)show:(UIView *)view;
-- (void)hide:(UIView *)view;
+- (void)hide;
 
 @end

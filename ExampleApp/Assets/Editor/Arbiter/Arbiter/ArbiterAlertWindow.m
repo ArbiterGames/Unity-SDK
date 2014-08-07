@@ -12,10 +12,11 @@
 
 @implementation ArbiterAlertWindow
 
-- (id)init
+- (id)initWithGameWindow:(UIWindow *)gameWindow
 {
     self = [super initWithFrame:[[UIScreen mainScreen] bounds]];
     if ( self ) {
+        self.gameWindow = gameWindow;
         self.rootViewController = [[ArbiterAlertViewController alloc] init];
     }
     return self;
@@ -27,12 +28,16 @@
     [self addSubview:view];
 }
 
-- (void)hide:(UIView *)view
+- (void)hide
 {
-    if ( view ) {
+    for ( UIView *view in [self.rootViewController.view subviews] ) {
         [view removeFromSuperview];
-    } else {
-        [self setHidden:YES];
+    }
+    
+    for ( UIWindow *window in [[UIApplication sharedApplication] windows] ) {
+        if ( window == self.gameWindow ) {
+            [self.gameWindow makeKeyAndVisible];
+        }
     }
 }
 

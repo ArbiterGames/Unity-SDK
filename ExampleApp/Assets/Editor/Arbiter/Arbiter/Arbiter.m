@@ -42,7 +42,7 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
-        self.alertWindow = [[ArbiterAlertWindow alloc] init];
+        self.alertWindow = [[ArbiterAlertWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -299,13 +299,9 @@
 {
     ArbiterPaymentView *paymentView;
     void (^paymentCallback)(void) = [^(void) {
-        [self.alertWindow hide:nil];
+        [self.alertWindow hide];
     } copy];
     
-    // TODO:
-    // Go into the payment view,
-    // make sure that the subviews of the payment view (card, email, name) get added correctly to the rootView
-    // make sure the cancel buttons trigger correctly (closing the keyboard and such)
     paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
                                                 andCallback:paymentCallback
                                             arbiterInstance:self];

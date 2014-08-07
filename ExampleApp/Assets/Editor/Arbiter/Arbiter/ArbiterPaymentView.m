@@ -123,6 +123,7 @@
     [self.emailField setReturnKeyType:UIReturnKeyDone];
     [self.emailField setClearButtonMode:UITextFieldViewModeWhileEditing];
     [self.emailField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
+    [self.emailField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
     [self.emailField setDelegate:self];
     [self.emailField setTag:EMAIL_FIELD_TAG];
     
@@ -178,6 +179,7 @@
 - (void)cancelButtonClicked:(id)sender
 {
     [self animateOut];
+    [self endEditing:YES];
 }
 
 - (void)selectBundleButtonClicked:(id)sender
@@ -211,7 +213,7 @@
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
-                    callback();
+                    [self animateOut];
                 }
             } copy];
             

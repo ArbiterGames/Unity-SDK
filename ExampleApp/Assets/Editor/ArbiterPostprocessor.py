@@ -24,6 +24,7 @@ for f in files_in_dir:
             if os.path.isfile(pathname):
                 project.add_file(pathname)
             if os.path.isdir(pathname):
+                # TODO: Make sure this is n-depth recursive
                 project.add_folder(pathname, excludes=["^.*\.meta$"])
 
 # Change build settings

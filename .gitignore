@@ -25,5 +25,4 @@ Pods
 *.csproj
 /UnityDemoApp/ArbiterExample/Library/EditorUserBuildSettings.asset
 /UnityDemoApp/ArbiterExample/Library/expandedItems
-/UnityDemoApp/ArbiterExample/ProjectSettings/Physics2DSettings.asset
 ExampleApp/Assets/Editor/Arbiter/Stripe

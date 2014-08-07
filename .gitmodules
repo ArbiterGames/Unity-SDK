@@ -1,0 +1,3 @@
+[submodule "ExampleApp/Assets/Editor/Arbiter/Stripe"]
+	path = ExampleApp/Assets/Editor/Arbiter/Stripe
+	url = git@github.com:ArbiterGames/stripe-ios.git

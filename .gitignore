@@ -15,7 +15,6 @@ DerivedData
 .idea/
 *.hmap
 *.xccheckout
-*.meta
 *.pyc
 Pods
 **/iOS_Build/*

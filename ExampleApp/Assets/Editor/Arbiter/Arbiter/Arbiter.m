@@ -27,6 +27,8 @@
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 
+#define GET_WALLET_REQUEST_TAG 340
+
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
@@ -270,6 +272,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
+    [self.alertWindow addRequestToQueue:GET_WALLET_REQUEST_TAG];
     [self getWallet:^(NSDictionary *responseDict) {
 
         void (^closeWalletHandler)(void) = [^(void) {
@@ -283,6 +286,7 @@
             [alert setTag:WALLET_ALERT_TAG];
             [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
             [alert show];
+            [self.alertWindow removeRequestFromQueue:GET_WALLET_REQUEST_TAG];
         } copy];
         
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
@@ -671,7 +675,7 @@
     } else {
         NSLog( @"%@", dict );
     }
-
+    
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:key];
     handler(dict);
 }

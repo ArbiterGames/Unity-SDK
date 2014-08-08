@@ -41,4 +41,20 @@
     }
 }
 
+- (void)addRequestToQueue:(int)key
+{
+    NSLog(@"Adding %d to queue", key);
+    
+    // if the key is already in the queue
+    //  increment the key
+    // otherwise
+    //  set it to 1
+    // [self.requestQueue increment key]
+}
+
+- (void)removeRequestFromQueue:(int)key
+{
+    NSLog(@"removing %d from queue", key);
+}
+
 @end

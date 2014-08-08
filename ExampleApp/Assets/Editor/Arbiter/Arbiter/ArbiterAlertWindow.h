@@ -13,9 +13,12 @@
 @interface ArbiterAlertWindow : UIWindow
 
 @property (retain) UIWindow *gameWindow;
+@property (retain) NSMutableDictionary *requestQueue;
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow;
 - (void)show:(UIView *)view;
 - (void)hide;
+- (void)addRequestToQueue:(int)key;
+- (void)removeRequestFromQueue:(int)key;
 
 @end

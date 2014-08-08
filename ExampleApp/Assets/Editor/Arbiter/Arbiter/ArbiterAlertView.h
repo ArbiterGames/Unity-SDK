@@ -17,7 +17,7 @@
 @property (assign) void(^responseHandler)(NSDictionary *responseDict);
 @property (assign) void(^callback)(void);
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance;
+- (id)initWithCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)setupNextScreen;
 - (void)animateIn;
 - (void)animateOut;

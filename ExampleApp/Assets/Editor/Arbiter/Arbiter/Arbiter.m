@@ -302,8 +302,7 @@
         [self.alertWindow hide];
     } copy];
     
-    paymentView = [[ArbiterPaymentView alloc] initWithFrame:[self getTopApplicationWindow].bounds
-                                                andCallback:paymentCallback
+    paymentView = [[ArbiterPaymentView alloc] initWithCallback:paymentCallback
                                             arbiterInstance:self];
     [paymentView setTag:PAYMENT_VIEW_TAG];
     [self.alertWindow show:paymentView];
@@ -317,8 +316,7 @@
         [withdrawView removeFromSuperview];
     } copy];
     
-    withdrawView = [[ArbiterWithdrawView alloc] initWithFrame:[self getTopApplicationWindow].bounds
-                                                  andCallback:withdrawCallback
+    withdrawView = [[ArbiterWithdrawView alloc] initWithCallback:withdrawCallback
                                                       arbiterInstance:self];
     [withdrawView setTag:WITHDRAW_VIEW_TAG];
     [[self getTopApplicationWindow].rootViewController.view addSubview:withdrawView];

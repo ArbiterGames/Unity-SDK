@@ -7,6 +7,7 @@
 //
 
 #import "ArbiterAlertViewController.h"
+#import "ArbiterAlertView.h"
 
 @implementation ArbiterAlertViewController
 
@@ -19,6 +20,13 @@
     // TODO: Animate in
 }
 
+- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    for ( UIView *view in self.view.subviews ) {
+        [view setFrame:[[UIScreen mainScreen] bounds]];
+    }
+}
+
 - (BOOL)prefersStatusBarHidden
 {
     return YES;
@@ -26,17 +34,7 @@
 
 - (BOOL)shouldAutorotate
 {
-    return NO;
+    return YES;
 }
-
-// NOTE: If we need to autoRotate, try to figure out what orientation the phone is in below
-//- (void)viewWillLayoutSubviews
-//{
-//    if ( UIDeviceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]) ) {
-//        NSLog(@"CHANGED TO PORTRAIT ORIENTATION");
-//    } else {
-//        NSLog(@"CHANGED TO LANDSCAPE ORIENTATION");
-//    }
-//}
 
 @end

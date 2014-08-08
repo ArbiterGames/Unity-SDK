@@ -9,20 +9,16 @@
 #import "ArbiterAlertView.h"
 
 @implementation ArbiterAlertView
-{
-    CGRect *parentFrame;
-}
 
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
+- (id)initWithCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super init];
     
     if (self) {
-        parentFrame = &(frame);
         self.arbiter = arbiterInstance;
         self.callback = handler;
         
-        [self setFrameDimensions];
+        [self setFrame:[[UIScreen mainScreen] bounds]];
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
         [self.layer setCornerRadius:5.0f];
         [self.layer setShadowColor:[UIColor blackColor].CGColor];
@@ -36,11 +32,17 @@
     return self;
 }
 
-- (void)setFrameDimensions
+- (void)setFrame:(CGRect)frame
 {
     float maxWidth = 420.0f;
     float maxHeight = 285.0f;
-    CGRect frame = *(parentFrame);
+    float orientedWidth = frame.size.width;
+    float orientedHeight = frame.size.height;
+    
+    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        orientedHeight = frame.size.width;
+        orientedWidth = frame.size.height;
+    }
     
     if ( frame.size.height > maxHeight ) {
         frame.size.height = maxHeight;
@@ -52,10 +54,10 @@
     
     frame.size.width -= 25.0f;
     frame.size.height -= 25.0f;
-    frame.origin.x = ([UIScreen mainScreen].bounds.size.width - frame.size.width) / 2;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.height - frame.size.height) / 2;
+    frame.origin.x = (orientedWidth - frame.size.width) / 2;
+    frame.origin.y = (orientedHeight - frame.size.height) / 2;
     
-    [self setFrame:frame];
+    [super setFrame:frame];
 }
 
 - (void)setupNextScreen

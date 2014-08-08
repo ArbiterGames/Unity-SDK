@@ -24,4 +24,19 @@
     return YES;
 }
 
+- (BOOL)shouldAutorotate
+{
+    return NO;
+}
+
+// NOTE: If we need to autoRotate, try to figure out what orientation the phone is in below
+//- (void)viewWillLayoutSubviews
+//{
+//    if ( UIDeviceOrientationIsPortrait([[UIApplication sharedApplication] statusBarOrientation]) ) {
+//        NSLog(@"CHANGED TO PORTRAIT ORIENTATION");
+//    } else {
+//        NSLog(@"CHANGED TO LANDSCAPE ORIENTATION");
+//    }
+//}
+
 @end

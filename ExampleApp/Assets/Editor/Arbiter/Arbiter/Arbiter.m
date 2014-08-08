@@ -16,8 +16,6 @@
 #import "STPView.h"
 
 
-#define PAYMENT_VIEW_TAG 666
-#define WITHDRAW_VIEW_TAG 766
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
@@ -304,7 +302,6 @@
     
     paymentView = [[ArbiterPaymentView alloc] initWithCallback:paymentCallback
                                             arbiterInstance:self];
-    [paymentView setTag:PAYMENT_VIEW_TAG];
     [self.alertWindow show:paymentView];
 }
 
@@ -312,15 +309,13 @@
 {
     ArbiterWithdrawView *withdrawView;
     void (^withdrawCallback)(void) = [^(void) {
-        UIView *withdrawView = [[self getTopApplicationWindow] viewWithTag:WITHDRAW_VIEW_TAG];
-        [withdrawView removeFromSuperview];
+        [self.alertWindow hide];
     } copy];
     
     withdrawView = [[ArbiterWithdrawView alloc] initWithCallback:withdrawCallback
                                                       arbiterInstance:self];
-    [withdrawView setTag:WITHDRAW_VIEW_TAG];
-    [[self getTopApplicationWindow].rootViewController.view addSubview:withdrawView];
-    }
+    [self.alertWindow show:withdrawView];
+}
 
 - (void)showWithdrawError:(NSString *)error
 {

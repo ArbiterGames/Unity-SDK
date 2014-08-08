@@ -23,7 +23,6 @@
         self.callback = handler;
         
         [self setFrameDimensions];
-        
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
         [self.layer setCornerRadius:5.0f];
         [self.layer setShadowColor:[UIColor blackColor].CGColor];

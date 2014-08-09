@@ -9,6 +9,9 @@
 #import "ArbiterAlertView.h"
 
 @implementation ArbiterAlertView
+{
+    float _maxHeight;
+}
 
 - (id)initWithCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
 {
@@ -17,6 +20,9 @@
     if (self) {
         self.arbiter = arbiterInstance;
         self.callback = handler;
+        
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
         
         [self setFrame:[[UIScreen mainScreen] bounds]];
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
@@ -32,17 +38,34 @@
     return self;
 }
 
+- (void)setMaxHeight:(float)maxHeight
+{
+    _maxHeight = maxHeight;
+}
+
 - (void)setFrame:(CGRect)frame
 {
-    float maxWidth = 420.0f;
+    float maxWidth = 320.0f;
     float maxHeight = 285.0f;
     float orientedWidth = frame.size.width;
     float orientedHeight = frame.size.height;
     
+    if ( _maxHeight ) {
+        maxHeight = _maxHeight;
+    }
+    
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
         orientedHeight = frame.size.width;
         orientedWidth = frame.size.height;
+        frame.size.height = orientedHeight;
+        frame.size.width = orientedWidth;
     }
+    
+    NSLog(@"frame width: %f", frame.size.width);
+    NSLog(@"orientedWidth: %f", orientedWidth);
+    
+    NSLog(@"frame height: %f", frame.size.height);
+    NSLog(@"orientedHeight: %f", orientedHeight);
     
     if ( frame.size.height > maxHeight ) {
         frame.size.height = maxHeight;
@@ -54,6 +77,7 @@
     
     frame.size.width -= 25.0f;
     frame.size.height -= 25.0f;
+    
     frame.origin.x = (orientedWidth - frame.size.width) / 2;
     frame.origin.y = (orientedHeight - frame.size.height) / 2;
     
@@ -157,6 +181,21 @@
     NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
     
     return [separatorFormattor stringFromNumber:origNumber];
+}
+
+
+# pragma mark NSNotification Handlers
+
+- (void)keyboardDidShow:(NSNotification *)notification
+{
+    NSLog(@"setting frame from keyboard notification");
+    CGRect screenSize = [[[notification userInfo] valueForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue];
+    [self setFrame:screenSize];
+}
+
+-(void)keyboardDidHide:(NSNotification *)notification
+{
+    [self setFrame:[[[notification userInfo] valueForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue]];
 }
 
 

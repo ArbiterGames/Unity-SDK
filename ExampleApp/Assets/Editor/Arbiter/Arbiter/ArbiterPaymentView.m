@@ -46,7 +46,7 @@
 {
     CGRect frame = self.frame;
     frame.size.height = 140.0f;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setMaxHeight:frame.size.height];
     [self setFrame:frame];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
@@ -77,6 +77,10 @@
     [self addSubview:backgroundImageView];
     [self addSubview:self.emailField];
     [self.emailField becomeFirstResponder];
+    
+    //
+    // TODO: Get the save and cancel buttons rendering correctly in the UIView
+    //
     
     [self renderSaveEmailButton];
     [self renderCancelButton];

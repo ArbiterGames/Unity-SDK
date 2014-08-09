@@ -11,7 +11,6 @@
 
 @interface ArbiterAlertView : UIView <NSURLConnectionDataDelegate>
 
-
 @property (assign) Arbiter *arbiter;
 @property (assign) NSMutableData *responseData;
 @property (assign) void(^responseHandler)(NSDictionary *responseDict);
@@ -22,6 +21,7 @@
 - (void)animateIn;
 - (void)animateOut;
 - (void)cancelButtonClicked:(id)sender;
+- (void)setMaxHeight:(float)maxHeight;
 - (NSString *)addThousandsSeparatorToString:(NSString *)original;
 
 @end

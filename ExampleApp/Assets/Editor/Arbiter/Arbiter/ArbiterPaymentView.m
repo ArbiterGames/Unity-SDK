@@ -48,9 +48,6 @@
 {
     [self hideNextButton];
     [self hideCancelButton];
-    // TODO:
-    //   go through any text fields in the current view and center them
-    //   then test this with the iPad layouts
     [self renderNextButton];
     [self renderCancelButton];
 }

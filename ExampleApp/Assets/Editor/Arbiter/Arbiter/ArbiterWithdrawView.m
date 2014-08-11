@@ -20,6 +20,7 @@
 @implementation ArbiterWithdrawView
 {
     float selectedWithdrawAmount;
+    BOOL shouldEnableNextButton;
     UILabel *withdrawSelectionLabel;
     UILabel *withdrawValueLabel;
 }
@@ -47,9 +48,18 @@
     }
 }
 
+- (void)resetSubviewFrames
+{
+    [self hideNextButton];
+    [self hideCancelButton];
+    
+    [self renderNextButton];
+    [self renderCancelButton];
+}
+
 - (void)setupWithdrawAmountLayout
 {
-    BOOL nextButtonEnabled = true;
+    shouldEnableNextButton = YES;
     float walletBalance = [[[self.arbiter wallet] objectForKey:@"balance"] floatValue];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
@@ -70,7 +80,7 @@
     
     if ( walletBalance < 100 ) {
         [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
-        nextButtonEnabled = false;
+        shouldEnableNextButton = NO;
         CGRect frame = self.frame;
         frame.size.height = 160.0f;
         [self setFrame:frame];
@@ -103,14 +113,17 @@
     }
     
     [self renderCancelButton];
-    [self renderNextButton:nextButtonEnabled];
+    [self renderNextButton];
 }
 
 - (void)setupGenericFieldLayoutWithTag:(int)tag
 {
+    shouldEnableNextButton = NO;
+    float maxHeight = 190.0f;
     CGRect frame = self.frame;
-    frame.size.height = 140.0f;
+    frame.size.height = maxHeight;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setMaxHeight:maxHeight];
     [self setFrame:frame];
  
     UITextField *field;
@@ -121,13 +134,13 @@
     if ( tag == NAME_FIELD_TAG ) {
         messageBody = [NSString stringWithFormat:@"Full legal name"];
         placeHolderText = [NSString stringWithFormat:@"Must match name on debit card"];
-        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, self.frame.size.width - 25.0f, 45.0f)];
         field = self.nameField;
         field.autocapitalizationType = UITextAutocapitalizationTypeWords;
     } else if ( tag == EMAIL_FIELD_TAG ) {
         messageBody = [NSString stringWithFormat:@"Email"];
         placeHolderText = [NSString stringWithFormat:@"Enter a valid email address" ];
-        self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, self.frame.size.width - 25.0f, 45.0f)];
         field = self.emailField;
         field.autocapitalizationType = UITextAutocapitalizationTypeNone;
     }
@@ -152,7 +165,7 @@
     [field setDelegate:self];
     [field setTag:tag];
     
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, self.frame.size.width - 10.0f, 45.0f)];
     backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
                                  resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
     [backgroundImageView setTag:tag];
@@ -162,18 +175,23 @@
     [field becomeFirstResponder];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
 - (void)setupCardFieldUI
 {
+    shouldEnableNextButton = NO;
     NSString *stripePublishableKey;
-    float cardFieldWidth = 290.0f;
-    
     CGRect frame = self.frame;
-    frame.size.height = 140.0f;
+    float maxHeight = 190.0f;
+
+    frame.size.height = maxHeight;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setMaxHeight:maxHeight];
     [self setFrame:frame];
+    
+    float cardFieldWidth = 290.0f;
+    float frameWidthPlusPadding = self.frame.size.width + 25.0f;
     
     if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
@@ -181,8 +199,8 @@
         stripePublishableKey = StripeTestPublishableKey;
     }
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
-                                                                self.frame.size.width, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((frameWidthPlusPadding - cardFieldWidth) / 2, 40.0f,
+                                                                 frameWidthPlusPadding, 40.0f)
                                               andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self.stripeView setTag:CARD_INFO_TAG];
@@ -198,10 +216,10 @@
     [self addSubview:message];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
-- (void)renderNextButton:(BOOL)enabled
+- (void)renderNextButton
 {
     self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
@@ -214,7 +232,7 @@
     topBorder.frame = CGRectMake(0, 0, self.nextButton.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
     [self.nextButton.layer addSublayer:topBorder];
-    [self.nextButton setEnabled:enabled];
+    [self.nextButton setEnabled:shouldEnableNextButton];
     [self addSubview:self.nextButton];
 }
 
@@ -223,7 +241,7 @@
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:AMOUNT_SELECT_TAG];
+    [button setTag:CANCEL_BUTTON_TAG];
     [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
     [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -299,6 +317,7 @@
 
 - (void)getTokenAndSubmitWithdraw
 {
+    shouldEnableNextButton = NO;
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         NSDictionary *params;
         NSMutableDictionary *mutableParams;
@@ -335,7 +354,7 @@
     }];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
 - (void)sliderAction:(id)sender
@@ -396,6 +415,7 @@
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
+    shouldEnableNextButton = YES;
     self.nextButton.enabled = true;
 }
 

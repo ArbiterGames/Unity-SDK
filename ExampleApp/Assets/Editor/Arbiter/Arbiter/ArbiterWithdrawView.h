@@ -12,11 +12,9 @@
 
 @interface ArbiterWithdrawView : ArbiterAlertView <STPViewDelegate, UITextFieldDelegate>
 
-@property (strong, nonatomic) IBOutlet UIButton *nextButton;
+
 @property (strong, nonatomic) IBOutlet UITextField *nameField;
 @property (strong, nonatomic) IBOutlet UITextField *emailField;
 @property (assign) STPView *stripeView;
-
-- (void)nextButtonClicked: (id)sender;
 
 @end

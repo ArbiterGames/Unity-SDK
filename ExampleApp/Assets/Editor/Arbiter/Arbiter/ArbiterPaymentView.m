@@ -14,6 +14,8 @@
 #define BUNDLE_SELECT_TAG 667
 #define PAYMENT_INFO_TAG 668
 #define EMAIL_FIELD_TAG 668
+#define NEXT_BUTTON_TAG 669
+#define CANCEL_BUTTON_TAG 670
 
 @implementation ArbiterPaymentView
 {
@@ -25,7 +27,32 @@
 
 - (void)setupNextScreen
 {
-    [self setupBundleSelectLayout];
+    [self hideNextButton];
+    [self hideCancelButton];
+    
+    [self hideBundleSelectUI];
+    [self hideEmailFieldUI];
+    
+    if ( [selectedBundle count] == 0 ) {
+        [self setupBundleSelectLayout];
+    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
+        [self setupEmailFieldLayout];
+    } else if ( self.stripeView == nil ) {
+        [self setupBillingInfoLayout];
+    } else {
+        [self getTokenAndSubmitPayment];
+    }
+}
+
+- (void)resetSubviewFrames
+{
+    [self hideNextButton];
+    [self hideCancelButton];
+    // TODO:
+    //   go through any text fields in the current view and center them
+    //   then test this with the iPad layouts
+    [self renderNextButton];
+    [self renderCancelButton];
 }
 
 - (void)setupBundleSelectLayout
@@ -36,17 +63,19 @@
     [title setTextAlignment:NSTextAlignmentCenter];
     [title setTag:BUNDLE_SELECT_TAG];
     [self addSubview:title];
-
-    [self renderCancelButton];
-    [self renderSelectButton];
+    
     [self renderBundleOptions];
+    [self renderCancelButton];
+    [self renderNextButton];
 }
 
 - (void)setupEmailFieldLayout
 {
     CGRect frame = self.frame;
-    frame.size.height = 140.0f;
-    [self setMaxHeight:frame.size.height];
+    float maxHeight = 190.0f;
+
+    frame.size.height = maxHeight;
+    [self setMaxHeight:maxHeight];
     [self setFrame:frame];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
@@ -57,7 +86,7 @@
     [message setTag:EMAIL_FIELD_TAG];
     [self addSubview:message];
     
-    self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+    self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, self.frame.size.width - 25.0f, 45.0f)];
     [self.emailField setBackgroundColor:[UIColor clearColor]];
     [self.emailField setFont:[UIFont boldSystemFontOfSize:17]];
     [self.emailField setPlaceholder:@"Email address (optional)"];
@@ -70,19 +99,16 @@
     [self.emailField setDelegate:self];
     [self.emailField setTag:EMAIL_FIELD_TAG];
     
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, self.frame.size.width - 10.0f, 45.0f)];
     backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
                                  resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
     [backgroundImageView setTag:EMAIL_FIELD_TAG];
+
     [self addSubview:backgroundImageView];
     [self addSubview:self.emailField];
     [self.emailField becomeFirstResponder];
     
-    //
-    // TODO: Get the save and cancel buttons rendering correctly in the UIView
-    //
-    
-    [self renderSaveEmailButton];
+    [self renderNextButton];
     [self renderCancelButton];
 }
 
@@ -94,7 +120,8 @@
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
     [self setFrame:frame];
 
-    float cardFieldWidth = 290.0f;  // taken from PKView.m
+    float cardFieldWidth = 290.0f;  // taken from Stripe/Stripe/Vendor/PaymentKit/PaymentKit/PKView.m
+    float frameWidthPlusPadding = self.frame.size.width + 25.0f;
     
     if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
@@ -102,13 +129,13 @@
         stripePublishableKey = StripeTestPublishableKey;
     }
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
-                                                                frame.size.width, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((frameWidthPlusPadding - cardFieldWidth) / 2, 40.0f,
+                                                                 frameWidthPlusPadding, 40.0f)
                                               andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];
     
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.frame.size.width, 40.0f)];
     [message setText:@"Enter billing details"];
     [message setFont:[UIFont boldSystemFontOfSize:17]];
     [message setTextAlignment:NSTextAlignmentCenter];
@@ -116,20 +143,16 @@
     [message setTag:PAYMENT_INFO_TAG];
     [self addSubview:message];
     
-    [self renderPurchaseButton];
+    [self renderNextButton];
     [self renderCancelButton];
 }
 
-- (void)selectBundleButtonClicked:(id)sender
+
+# pragma mark Click Handlers
+
+- (void)nextButtonClicked:(id)sender
 {
-    NSString *email = [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]];
-    [self hideBundleSelectUI];
-    
-    if ( email.length > 0 ) {
-        [self setupBillingInfoLayout];
-    } else {
-        [self setupEmailFieldLayout];
-    }
+    [self setupNextScreen];
 }
 
 - (void)saveEmailButtonClicked:(id)sender
@@ -139,7 +162,7 @@
     [self setupBillingInfoLayout];
 }
 
-- (void)purchaseButtonClicked:(id)sender
+- (void)getTokenAndSubmitPayment
 {
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
@@ -176,14 +199,14 @@
 
 # pragma mark UI Rendering Methods
 
-- (void)renderSelectButton
+- (void)renderNextButton
 {
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Next" forState:UIControlStateNormal];
     [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [button setTag:BUNDLE_SELECT_TAG];
-    [button addTarget:self action:@selector(selectBundleButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [button setTag:NEXT_BUTTON_TAG];
+    [button addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
     CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
@@ -198,7 +221,7 @@
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50.0f)];
     [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:BUNDLE_SELECT_TAG];
+    [button setTag:CANCEL_BUTTON_TAG];
     [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
     [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -213,6 +236,24 @@
     [button.layer addSublayer:rightBorder];
     
     [self addSubview:button];
+}
+
+- (void)hideNextButton
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == NEXT_BUTTON_TAG) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
+- (void)hideCancelButton
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == CANCEL_BUTTON_TAG) {
+            [view removeFromSuperview];
+        }
+    }
 }
 
 - (void)renderBundleOptions
@@ -256,47 +297,11 @@
     }
 }
 
-- (void)renderSaveEmailButton
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
-    [button setTitle:@"Next" forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [button setTag:EMAIL_FIELD_TAG];
-    [button addTarget:self action:@selector(saveEmailButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-    
-    [self addSubview:button];
-
-}
-
-- (void)renderPurchaseButton
-{
-    // Keep it hidden until the payment form is correct
-    self.purchaseButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.purchaseButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [self.purchaseButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.purchaseButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50,
-                                              self.bounds.size.width / 2, 50)];
-    self.purchaseButton.enabled = false;
-    [self.purchaseButton setTag:PAYMENT_INFO_TAG];
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, self.purchaseButton.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [self.purchaseButton.layer addSublayer:topBorder];
-    [self.purchaseButton addTarget:self action:@selector(purchaseButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:self.purchaseButton];
-}
-
 # pragma mark Stripe View Delegate Methods
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
-    self.purchaseButton.enabled = true;
+    self.nextButton.enabled = true;
 }
 
 - (void)handleError:(NSString *)error

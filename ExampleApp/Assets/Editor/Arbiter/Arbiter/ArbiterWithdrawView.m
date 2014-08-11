@@ -297,16 +297,6 @@
     }
 }
 
-- (void)cancelButtonClicked:(id)sender
-{
-    [self animateOut];
-}
-
-- (void)nextButtonClicked:(id)sender
-{
-    [self setupNextScreen];
-}
-
 - (void)getTokenAndSubmitWithdraw
 {
     [self.stripeView createToken:^(STPToken *token, NSError *error) {

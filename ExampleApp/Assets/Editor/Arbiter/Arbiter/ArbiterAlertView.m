@@ -8,6 +8,8 @@
 
 #import "ArbiterAlertView.h"
 
+
+
 @implementation ArbiterAlertView
 {
     float _maxHeight;
@@ -82,6 +84,12 @@
     frame.origin.y = (orientedHeight - frame.size.height) / 2;
     
     [super setFrame:frame];
+    [self resetSubviewFrames];
+}
+
+- (void)resetSubviewFrames
+{
+    NSLog(@"Override resetSubviewFrames in subclass");
 }
 
 - (void)setupNextScreen
@@ -90,6 +98,12 @@
 }
 
 # pragma mark Click Handlers
+
+
+- (void)nextButtonClicked:(id)sender
+{
+    [self setupNextScreen];
+}
 
 - (void)cancelButtonClicked:(id)sender
 {
@@ -188,7 +202,6 @@
 
 - (void)keyboardDidShow:(NSNotification *)notification
 {
-    NSLog(@"setting frame from keyboard notification");
     CGRect screenSize = [[[notification userInfo] valueForKey:UIKeyboardFrameBeginUserInfoKey] CGRectValue];
     [self setFrame:screenSize];
 }

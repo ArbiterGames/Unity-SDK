@@ -7,6 +7,7 @@
 //
 
 #import "ArbiterAlertViewController.h"
+#import "ArbiterAlertView.h"
 
 @implementation ArbiterAlertViewController
 
@@ -19,7 +20,20 @@
     // TODO: Animate in
 }
 
+- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
+{
+    for ( UIView *view in self.view.subviews ) {
+        NSLog(@"setting frame from rotation");
+        [view setFrame:[[UIScreen mainScreen] bounds]];
+    }
+}
+
 - (BOOL)prefersStatusBarHidden
+{
+    return YES;
+}
+
+- (BOOL)shouldAutorotate
 {
     return YES;
 }

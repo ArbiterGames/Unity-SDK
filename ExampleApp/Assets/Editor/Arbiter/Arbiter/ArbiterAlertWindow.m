@@ -25,7 +25,7 @@
 - (void)show:(UIView *)view
 {
     [self makeKeyAndVisible];
-    [self addSubview:view];
+    [self.rootViewController.view addSubview:view];
 }
 
 - (void)hide

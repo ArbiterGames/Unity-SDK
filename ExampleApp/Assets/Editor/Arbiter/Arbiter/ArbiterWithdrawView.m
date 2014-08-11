@@ -9,7 +9,6 @@
 #import "ArbiterWithdrawView.h"
 #import "ArbiterConstants.h"
 #import "STPView.h"
-#import "Arbiter.h"
 
 #define AMOUNT_SELECT_TAG 767
 #define CARD_INFO_TAG 768
@@ -20,74 +19,11 @@
 
 @implementation ArbiterWithdrawView
 {
-    // Custom Arbiter
-    void(^callback)(void);
-    CGRect *parentFrame;
-    Arbiter *arbiter;
     float selectedWithdrawAmount;
-    
+    BOOL shouldEnableNextButton;
     UILabel *withdrawSelectionLabel;
     UILabel *withdrawValueLabel;
-    
-    // NSURL Connection
-    void(^responseHandler)(NSDictionary *responseDict);
-    NSMutableData *responseData;
 }
-
-- (id)initWithFrame:(CGRect)frame andCallback:(void(^)(void))handler arbiterInstance:(Arbiter *)arbiterInstance
-{
-    float trueScreenHeight = [UIScreen mainScreen].bounds.size.height;
-    float trueScreenWidth = [UIScreen mainScreen].bounds.size.width;
-    float maxWidth = 420.0f;
-    float maxHeight = 285.0f;
-    
-    if ( UIDeviceOrientationIsLandscape([[UIDevice currentDevice] orientation]) ) {
-        trueScreenHeight = [UIScreen mainScreen].bounds.size.width;
-        trueScreenWidth = [UIScreen mainScreen].bounds.size.height;
-        
-        float wrongWidth = frame.size.width;
-        float wrongHeight = frame.size.height;
-        frame.size.width = wrongHeight;
-        frame.size.height = wrongWidth;
-    }
-    
-    if ( frame.size.height > maxHeight ) {
-        frame.size.height = maxHeight;
-    }
-    
-    if ( frame.size.width > maxWidth ) {
-        frame.size.width = maxWidth;
-    }
-    
-    frame.size.width -= 25.0f;
-    frame.size.height -= 25.0f;
-    
-    self = [super initWithFrame:CGRectMake((trueScreenWidth - frame.size.width) / 2,
-                                           (trueScreenHeight - frame.size.height) / 2,
-                                           frame.size.width,
-                                           frame.size.height)];    self = [super initWithFrame:CGRectInset(frame, 25.0f, 25.0f)];
-    if (self) {
-        parentFrame = &(frame);
-        arbiter = arbiterInstance;
-        callback = handler;
-        
-        // TODO: try adding another view to this view for the background overlay
-        //          if that doesn't work, then use the arbiter.getTopApplicationWindow and add the overlay that way
-
-        
-        [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
-        [self.layer setCornerRadius:5.0f];
-        [self.layer setShadowColor:[UIColor blackColor].CGColor];
-        [self.layer setShadowOpacity:0.8f];
-        [self.layer setShadowRadius:3.0f];
-        [self.layer setShadowOffset:CGSizeMake(2.0f, 2.0f)];
-        
-        [self animateIn];
-        [self setupNextScreen];
-    }
-    return self;
-}
-
 
 # pragma mark UI Rendering Methods
 
@@ -101,9 +37,9 @@
     
     if ( selectedWithdrawAmount == 0.0f ) {
         [self setupWithdrawAmountLayout];
-    } else if ( [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"full_name"]].length == 0 && self.nameField == nil ) {
+    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"full_name"]].length == 0 && self.nameField == nil ) {
         [self setupGenericFieldLayoutWithTag:NAME_FIELD_TAG];
-    } else if ( [NSString stringWithFormat:@"%@", [arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
+    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
         [self setupGenericFieldLayoutWithTag:EMAIL_FIELD_TAG];
     } else if ( self.stripeView == nil ) {
         [self setupCardFieldUI];
@@ -112,10 +48,19 @@
     }
 }
 
+- (void)resetSubviewFrames
+{
+    [self hideNextButton];
+    [self hideCancelButton];
+    
+    [self renderNextButton];
+    [self renderCancelButton];
+}
+
 - (void)setupWithdrawAmountLayout
 {
-    BOOL nextButtonEnabled = true;
-    float walletBalance = [[[arbiter wallet] objectForKey:@"balance"] floatValue];
+    shouldEnableNextButton = YES;
+    float walletBalance = [[[self.arbiter wallet] objectForKey:@"balance"] floatValue];
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
     [title setText:@"Withdraw"];
@@ -135,7 +80,7 @@
     
     if ( walletBalance < 100 ) {
         [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
-        nextButtonEnabled = false;
+        shouldEnableNextButton = NO;
         CGRect frame = self.frame;
         frame.size.height = 160.0f;
         [self setFrame:frame];
@@ -168,14 +113,17 @@
     }
     
     [self renderCancelButton];
-    [self renderNextButton:nextButtonEnabled];
+    [self renderNextButton];
 }
 
 - (void)setupGenericFieldLayoutWithTag:(int)tag
 {
+    shouldEnableNextButton = NO;
+    float maxHeight = 190.0f;
     CGRect frame = self.frame;
-    frame.size.height = 140.0f;
+    frame.size.height = maxHeight;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setMaxHeight:maxHeight];
     [self setFrame:frame];
  
     UITextField *field;
@@ -186,13 +134,13 @@
     if ( tag == NAME_FIELD_TAG ) {
         messageBody = [NSString stringWithFormat:@"Full legal name"];
         placeHolderText = [NSString stringWithFormat:@"Must match name on debit card"];
-        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        self.nameField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, self.frame.size.width - 25.0f, 45.0f)];
         field = self.nameField;
         field.autocapitalizationType = UITextAutocapitalizationTypeWords;
     } else if ( tag == EMAIL_FIELD_TAG ) {
         messageBody = [NSString stringWithFormat:@"Email"];
         placeHolderText = [NSString stringWithFormat:@"Enter a valid email address" ];
-        self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, frame.size.width - 25.0f, 45.0f)];
+        self.emailField = [[UITextField alloc] initWithFrame:CGRectMake(20.0f, 40.0f, self.frame.size.width - 25.0f, 45.0f)];
         field = self.emailField;
         field.autocapitalizationType = UITextAutocapitalizationTypeNone;
     }
@@ -217,7 +165,7 @@
     [field setDelegate:self];
     [field setTag:tag];
     
-    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, frame.size.width - 10.0f, 45.0f)];
+    UIImageView *backgroundImageView = [[UIImageView alloc] initWithFrame:CGRectMake(5.0f, 40.0f, self.frame.size.width - 10.0f, 45.0f)];
     backgroundImageView.image = [[UIImage imageNamed:@"textfield"]
                                  resizableImageWithCapInsets:UIEdgeInsetsMake(0, 8, 0, 8)];
     [backgroundImageView setTag:tag];
@@ -227,27 +175,32 @@
     [field becomeFirstResponder];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
 - (void)setupCardFieldUI
 {
+    shouldEnableNextButton = NO;
     NSString *stripePublishableKey;
-    float cardFieldWidth = 290.0f;
-    
     CGRect frame = self.frame;
-    frame.size.height = 140.0f;
+    float maxHeight = 190.0f;
+
+    frame.size.height = maxHeight;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
+    [self setMaxHeight:maxHeight];
     [self setFrame:frame];
     
-    if ( [[[arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+    float cardFieldWidth = 290.0f;
+    float frameWidthPlusPadding = self.frame.size.width + 25.0f;
+    
+    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
     } else {
         stripePublishableKey = StripeTestPublishableKey;
     }
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
-                                                                self.frame.size.width, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((frameWidthPlusPadding - cardFieldWidth) / 2, 40.0f,
+                                                                 frameWidthPlusPadding, 40.0f)
                                               andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self.stripeView setTag:CARD_INFO_TAG];
@@ -263,10 +216,10 @@
     [self addSubview:message];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
-- (void)renderNextButton:(BOOL)enabled
+- (void)renderNextButton
 {
     self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
     [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
@@ -279,7 +232,7 @@
     topBorder.frame = CGRectMake(0, 0, self.nextButton.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
     [self.nextButton.layer addSublayer:topBorder];
-    [self.nextButton setEnabled:enabled];
+    [self.nextButton setEnabled:shouldEnableNextButton];
     [self addSubview:self.nextButton];
 }
 
@@ -288,7 +241,7 @@
     UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
     [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:AMOUNT_SELECT_TAG];
+    [button setTag:CANCEL_BUTTON_TAG];
     [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
     [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     
@@ -362,18 +315,9 @@
     }
 }
 
-- (void)cancelButtonClicked:(id)sender
-{
-    [self animateOut];
-}
-
-- (void)nextButtonClicked:(id)sender
-{
-    [self setupNextScreen];
-}
-
 - (void)getTokenAndSubmitWithdraw
 {
+    shouldEnableNextButton = NO;
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         NSDictionary *params;
         NSMutableDictionary *mutableParams;
@@ -381,14 +325,14 @@
         if (error) {
             [self handleError:[error localizedDescription]];
         } else {
-            responseHandler = [^(NSDictionary *responseDict) {
+            self.responseHandler = [^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
                     NSLog(@"withdraw.responseDict: %@", responseDict);
-                    arbiter.wallet = [responseDict objectForKey:@"wallet"];
-                    arbiter.user = [responseDict objectForKey:@"user"];
-                    callback();
+                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
+                    self.arbiter.user = [responseDict objectForKey:@"user"];
+                    self.callback();
                 }
             } copy];
             
@@ -405,12 +349,12 @@
             }
             
             params = [mutableParams copy];
-            [arbiter httpPost:APIWithdrawURL params:params handler:responseHandler];
+            [self.arbiter httpPost:APIWithdrawURL params:params handler:self.responseHandler];
         }
     }];
     
     [self renderCancelButton];
-    [self renderNextButton:false];
+    [self renderNextButton];
 }
 
 - (void)sliderAction:(id)sender
@@ -463,7 +407,7 @@
 {
     [UIView animateWithDuration:0.2f
                      animations:^{ [self setAlpha:0.0f]; }
-                     completion:^(BOOL finished) { callback(); }];
+                     completion:^(BOOL finished) { self.callback(); }];
 }
 
 
@@ -471,6 +415,7 @@
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
+    shouldEnableNextButton = YES;
     self.nextButton.enabled = true;
 }
 
@@ -483,36 +428,6 @@
                                             otherButtonTitles:nil];
     [message show];
 }
-
-# pragma mark NSURLConnection Delegate Methods
-
-- (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    responseData = [[NSMutableData alloc] init];
-}
-
-- (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    [responseData appendData:data];
-}
-
-- (NSCachedURLResponse *)connection:(NSURLConnection *)connection
-                  willCacheResponse:(NSCachedURLResponse*)cachedResponse {
-    return nil;
-}
-
-- (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    NSError *error = nil;
-    NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseData
-                                                         options:NSJSONReadingMutableLeaves
-                                                           error:&error];
-    responseHandler(dict);
-    responseData = nil;
-    
-}
-
-- (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    NSLog(@"Connection Error");
-}
-
 
 # pragma mark Helpers
 

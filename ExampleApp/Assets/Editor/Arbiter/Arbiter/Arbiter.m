@@ -276,7 +276,7 @@
         
         void (^populateThenShowAlert)(void) = [^(void) {
             NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-            NSString *message = [NSString stringWithFormat: @"Pending: %@ credits\nLogged in as: %@", [self.wallet objectForKey:@"pending_balance"], [self.user objectForKey:@"username"]];
+            NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
             [alert setTag:WALLET_ALERT_TAG];
             [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];

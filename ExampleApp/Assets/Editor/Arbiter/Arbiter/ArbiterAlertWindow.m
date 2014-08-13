@@ -11,6 +11,9 @@
 
 
 @implementation ArbiterAlertWindow
+{
+    BOOL spinnerIsOn;
+}
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow
 {
@@ -18,6 +21,8 @@
     if ( self ) {
         self.gameWindow = gameWindow;
         self.rootViewController = [[ArbiterAlertViewController alloc] init];
+        self.requestQueue = [[NSMutableDictionary alloc] init];
+        spinnerIsOn = false;
     }
     return self;
 }
@@ -41,20 +46,53 @@
     }
 }
 
+- (void)showSpinner
+{
+    if ( spinnerIsOn == false ) {
+        self.spinnerView = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+
+        // TODO: Make this an actually spinner instead of white screen
+        self.spinnerView.backgroundColor = [UIColor whiteColor];
+        
+        [[[UIApplication sharedApplication] keyWindow].rootViewController.view addSubview:self.spinnerView];
+        
+        spinnerIsOn = true;
+    }
+}
+
+- (void)hideSpinner
+{
+    if ( spinnerIsOn == true ) {
+        [self.spinnerView removeFromSuperview];
+        spinnerIsOn = false;
+    }
+}
+
 - (void)addRequestToQueue:(int)key
 {
-    NSLog(@"Adding %d to queue", key);
-    
-    // if the key is already in the queue
-    //  increment the key
-    // otherwise
-    //  set it to 1
-    // [self.requestQueue increment key]
+    NSString *stringKey = [NSString stringWithFormat:@"%d", key];
+    if ( [self.requestQueue objectForKey:stringKey] ) {
+        [self.requestQueue setObject:@([[self.requestQueue objectForKey:stringKey] intValue] + 1) forKey:stringKey];
+    } else {
+        [self.requestQueue setObject:@1 forKey:stringKey];
+    }
+    if ( [self.requestQueue count] > 0 ) {
+        [self showSpinner];
+    }
 }
 
 - (void)removeRequestFromQueue:(int)key
 {
-    NSLog(@"removing %d from queue", key);
+    NSString *stringKey = [NSString stringWithFormat:@"%d", key];
+    [self.requestQueue setObject:@([[self.requestQueue objectForKey:stringKey] intValue] - 1) forKey:stringKey];
+
+    if ( [[self.requestQueue objectForKey:stringKey] intValue] == 0 ) {
+        [self.requestQueue removeObjectForKey:stringKey];
+    }
+
+    if ( [self.requestQueue count] == 0 ) {
+        [self hideSpinner];
+    }
 }
 
 @end

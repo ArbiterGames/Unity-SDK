@@ -16,6 +16,8 @@
 #define EMAIL_FIELD_TAG 668
 #define NEXT_BUTTON_TAG 669
 #define CANCEL_BUTTON_TAG 670
+#define GET_BUNDLE_REQUEST_TAG 671
+#define POST_DEPOSIT_REQUEST_TAG 672
 
 @implementation ArbiterPaymentView
 {
@@ -161,13 +163,14 @@
 
 - (void)getTokenAndSubmitPayment
 {
+    [self.arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
+            [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
-            NSLog(@"Received token %@", token.tokenId);
-    
             self.responseHandler = [^(NSDictionary *responseDict) {
+                [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
@@ -187,7 +190,7 @@
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"bundle_sku": [selectedBundle objectForKey:@"sku"],
                                      @"email": receiptEmail};
-
+            
             [self.arbiter httpPost:APIDepositURL params:params handler:self.responseHandler];
         }
     }];
@@ -271,8 +274,10 @@
         selectedBundle = [dataArray objectAtIndex:selectedRow];
         
         [self addSubview: pickerView];
+        [self.arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
     } copy];
-    
+
+    [self.arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
     [self.arbiter httpGet:BundleURL handler:self.responseHandler];
 }
 

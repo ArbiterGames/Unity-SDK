@@ -15,7 +15,6 @@
 #import "ArbiterAlertWindow.h"
 #import "STPView.h"
 
-
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
@@ -24,8 +23,6 @@
 #define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
-
-#define GET_WALLET_REQUEST_TAG 340
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -270,7 +267,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [self.alertWindow addRequestToQueue:GET_WALLET_REQUEST_TAG];
+    [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
     [self getWallet:^(NSDictionary *responseDict) {
 
         void (^closeWalletHandler)(void) = [^(void) {
@@ -284,7 +281,7 @@
             [alert setTag:WALLET_ALERT_TAG];
             [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
             [alert show];
-            [self.alertWindow removeRequestFromQueue:GET_WALLET_REQUEST_TAG];
+            [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
         } copy];
         
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
@@ -305,7 +302,7 @@
     } copy];
     
     paymentView = [[ArbiterPaymentView alloc] initWithCallback:paymentCallback
-                                            arbiterInstance:self];
+                                               arbiterInstance:self];
     [self.alertWindow show:paymentView];
 }
 
@@ -354,7 +351,6 @@
 - (void)getTournament:(void(^)(NSDictionary*))handler tournamentId:(NSString *)tournamentId
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSLog(@"++ Arbiter.me getTournament.responseDict: %@", responseDict);
         NSDictionary *tournament = [responseDict objectForKey:@"tournament"];
         handler(tournament);
     } copy];
@@ -427,8 +423,10 @@
         [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
         [alert setTag:PREVIOUS_TOURNAMENTS_ALERT_TAG];
         [alert show];
+        [self.alertWindow removeRequestFromQueue:PREVIOUS_TOURNAMENTS_ALERT_TAG];
     } copy];
 
+    [self.alertWindow addRequestToQueue:PREVIOUS_TOURNAMENTS_ALERT_TAG];
     [self getTournaments:connectionHandler page:page];
 }
 
@@ -505,8 +503,10 @@
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
         [alert setTag:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
         [alert show];
+        [self.alertWindow removeRequestFromQueue:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
     } copy];
 
+    [self.alertWindow addRequestToQueue:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
     [self getIncompleteTournaments:connectionHandler page:page];
 }
 
@@ -717,6 +717,7 @@
 
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+            [self.alertWindow removeRequestFromQueue:VERIFICATION_ALERT_TAG];
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
                 self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
@@ -729,6 +730,7 @@
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         } else if (buttonIndex == 1) {
+            [self.alertWindow addRequestToQueue:VERIFICATION_ALERT_TAG];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];

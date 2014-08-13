@@ -16,6 +16,7 @@
 #define EMAIL_FIELD_TAG 770
 #define NEXT_BUTTON_TAG 771
 #define CANCEL_BUTTON_TAG 772
+#define POST_WITHDRAWAL_REQUEST_TAG 773
 
 @implementation ArbiterWithdrawView
 {
@@ -318,14 +319,17 @@
 - (void)getTokenAndSubmitWithdraw
 {
     shouldEnableNextButton = NO;
+    [self.arbiter.alertWindow addRequestToQueue:POST_WITHDRAWAL_REQUEST_TAG];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         NSDictionary *params;
         NSMutableDictionary *mutableParams;
         
         if (error) {
+            [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
             self.responseHandler = [^(NSDictionary *responseDict) {
+                [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {

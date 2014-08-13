@@ -497,13 +497,14 @@ namespace ArbiterInternal {
 			while( enumerator.MoveNext() ) {
 				JSONClass userNode = enumerator.Current as JSONClass;
 				string id = userNode["id"];
-				string paid = userNode["paid"];
+				bool paid = userNode["paid"].AsBool;
 				string score = userNode["score"];
+				
 				Arbiter.TournamentUser user = new Arbiter.TournamentUser( id );
-				if( paid != null && paid != "0" )
-					user.Paid = true;
+				user.Paid = paid;
 				if( score != null && score != "null" && score != "<null>" )                	
 					user.Score = int.Parse( score );
+				
 				rv.Add( user );
 			}
 			return rv;

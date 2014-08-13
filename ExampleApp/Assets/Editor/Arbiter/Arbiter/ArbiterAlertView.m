@@ -63,12 +63,6 @@
         frame.size.width = orientedWidth;
     }
     
-    NSLog(@"frame width: %f", frame.size.width);
-    NSLog(@"orientedWidth: %f", orientedWidth);
-    
-    NSLog(@"frame height: %f", frame.size.height);
-    NSLog(@"orientedHeight: %f", orientedHeight);
-    
     if ( frame.size.height > maxHeight ) {
         frame.size.height = maxHeight;
     }

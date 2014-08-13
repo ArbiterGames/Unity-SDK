@@ -11,18 +11,18 @@
 
 
 @implementation ArbiterAlertWindow
-{
-    BOOL spinnerIsOn;
-}
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow
 {
     self = [super initWithFrame:[[UIScreen mainScreen] bounds]];
     if ( self ) {
         self.gameWindow = gameWindow;
-        self.rootViewController = [[ArbiterAlertViewController alloc] init];
         self.requestQueue = [[NSMutableDictionary alloc] init];
-        spinnerIsOn = false;
+        self.rootViewController = [[ArbiterAlertViewController alloc] init];
+        self.rootViewController.view.autoresizesSubviews = YES;
+        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
     }
     return self;
 }
@@ -46,28 +46,6 @@
     }
 }
 
-- (void)showSpinner
-{
-    if ( spinnerIsOn == false ) {
-        self.spinnerView = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-
-        // TODO: Make this an actually spinner instead of white screen
-        self.spinnerView.backgroundColor = [UIColor whiteColor];
-        
-        [[[UIApplication sharedApplication] keyWindow].rootViewController.view addSubview:self.spinnerView];
-        
-        spinnerIsOn = true;
-    }
-}
-
-- (void)hideSpinner
-{
-    if ( spinnerIsOn == true ) {
-        [self.spinnerView removeFromSuperview];
-        spinnerIsOn = false;
-    }
-}
-
 - (void)addRequestToQueue:(int)key
 {
     NSString *stringKey = [NSString stringWithFormat:@"%d", key];
@@ -76,8 +54,12 @@
     } else {
         [self.requestQueue setObject:@1 forKey:stringKey];
     }
+    
     if ( [self.requestQueue count] > 0 ) {
-        [self showSpinner];
+        UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
+        [self.spinnerView setFrame:keyRVCV.bounds];
+        [keyRVCV addSubview:self.spinnerView];
+        [self.spinnerView startAnimating];
     }
 }
 
@@ -91,7 +73,8 @@
     }
 
     if ( [self.requestQueue count] == 0 ) {
-        [self hideSpinner];
+        [self.spinnerView stopAnimating];
+        [self.spinnerView removeFromSuperview];
     }
 }
 

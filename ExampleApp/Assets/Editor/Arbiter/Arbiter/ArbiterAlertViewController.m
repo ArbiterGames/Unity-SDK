@@ -16,8 +16,6 @@
     [super viewDidLoad];
     self.view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.view.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.3f];
-    
-    // TODO: Animate in
 }
 
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration

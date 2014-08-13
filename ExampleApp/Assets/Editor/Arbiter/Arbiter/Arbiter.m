@@ -279,8 +279,8 @@
             NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
             UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
             [alert setTag:WALLET_ALERT_TAG];
-            [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
             [alert show];
+            [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
             [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
         } copy];
         
@@ -701,11 +701,7 @@
         handler(@{});
     } else if ( alertView.tag == WALLET_ALERT_TAG ) {
         if ( [buttonTitle isEqualToString:@"Refresh"] ) {
-            void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-                [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-            } copy];
-
-            [self getWallet:connectionHandler];
+            [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
         } else if ( [buttonTitle isEqualToString:@"Deposit"] ) {
             [self showDepositPanel];
         } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {

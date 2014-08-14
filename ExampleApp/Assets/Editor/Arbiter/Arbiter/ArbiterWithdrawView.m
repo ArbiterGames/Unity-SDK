@@ -118,12 +118,7 @@
 - (void)setupGenericFieldLayoutWithTag:(int)tag
 {
     shouldEnableNextButton = NO;
-    float maxHeight = 190.0f;
-    CGRect frame = self.frame;
-    frame.size.height = maxHeight;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
-    [self setMaxHeight:maxHeight];
-    [self setFrame:frame];
+    [self setMaxHeight:190.0f];
  
     UITextField *field;
     NSString *messageBody;
@@ -178,16 +173,8 @@
 {
     shouldEnableNextButton = NO;
     NSString *stripePublishableKey;
-    CGRect frame = self.frame;
-    float maxHeight = 190.0f;
-
-    frame.size.height = maxHeight;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
-    [self setMaxHeight:maxHeight];
-    [self setFrame:frame];
-    
     float cardFieldWidth = 290.0f;
-    float frameWidthPlusPadding = self.frame.size.width + 25.0f;
+    [self setMaxHeight:190.0f];
     
     if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
@@ -195,8 +182,8 @@
         stripePublishableKey = StripeTestPublishableKey;
     }
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((frameWidthPlusPadding - cardFieldWidth) / 2, 40.0f,
-                                                                 frameWidthPlusPadding, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
+                                                                 self.frame.size.width, 40.0f)
                                               andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self.stripeView setTag:CARD_INFO_TAG];

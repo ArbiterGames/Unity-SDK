@@ -91,6 +91,43 @@
     NSLog(@"Override setupNextScreen in subclass");
 }
 
+- (void)renderNextButton:(BOOL)enabled
+{
+    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
+    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
+    [self.nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, self.nextButton.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [self.nextButton.layer addSublayer:topBorder];
+    [self.nextButton setEnabled:enabled];
+    [self addSubview:self.nextButton];
+}
+
+- (void)renderCancelButton
+{
+    self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.cancelButton setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
+    [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
+    [self.cancelButton.titleLabel setFont:[UIFont systemFontOfSize:17]];
+    [self.cancelButton addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0, 0, self.cancelButton.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [self.cancelButton.layer addSublayer:topBorder];
+    
+    CALayer *rightBorder = [CALayer layer];
+    rightBorder.frame = CGRectMake(self.cancelButton.frame.size.width - 0.5f, 0, 0.5f, self.cancelButton.frame.size.height);
+    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
+    [self.cancelButton.layer addSublayer:rightBorder];
+    
+    [self addSubview:self.cancelButton];
+}
+
 # pragma mark Click Handlers
 
 

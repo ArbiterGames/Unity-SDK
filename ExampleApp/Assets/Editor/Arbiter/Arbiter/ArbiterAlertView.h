@@ -21,6 +21,8 @@
 - (id)initWithCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)resetSubviewFrames;
 - (void)setupNextScreen;
+- (void)renderNextButton:(BOOL)enabled;
+- (void)renderCancelButton;
 - (void)animateIn;
 - (void)animateOut;
 - (void)nextButtonClicked:(id)sender;

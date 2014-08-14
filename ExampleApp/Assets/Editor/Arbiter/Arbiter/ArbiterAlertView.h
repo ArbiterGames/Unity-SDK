@@ -16,10 +16,13 @@
 @property (assign) void(^responseHandler)(NSDictionary *responseDict);
 @property (assign) void(^callback)(void);
 @property (strong, nonatomic) IBOutlet UIButton *nextButton;
+@property (strong, nonatomic) IBOutlet UIButton *cancelButton;
 
 - (id)initWithCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)resetSubviewFrames;
 - (void)setupNextScreen;
+- (void)renderNextButton:(BOOL)enabled;
+- (void)renderCancelButton;
 - (void)animateIn;
 - (void)animateOut;
 - (void)nextButtonClicked:(id)sender;

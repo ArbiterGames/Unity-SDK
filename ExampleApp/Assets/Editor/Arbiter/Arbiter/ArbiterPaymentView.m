@@ -14,11 +14,13 @@
 #define BUNDLE_SELECT_TAG 667
 #define PAYMENT_INFO_TAG 668
 #define EMAIL_FIELD_TAG 668
-#define NEXT_BUTTON_TAG 669
-#define CANCEL_BUTTON_TAG 670
+#define GET_BUNDLE_REQUEST_TAG 671
+#define POST_DEPOSIT_REQUEST_TAG 672
 
 @implementation ArbiterPaymentView
 {
+    BOOL shouldEnableNextButton;
+    
     // Picker View
     UIPickerView *pickerView;
     NSMutableArray *dataArray;
@@ -27,8 +29,8 @@
 
 - (void)setupNextScreen
 {
-    [self hideNextButton];
-    [self hideCancelButton];
+    [self.nextButton removeFromSuperview];
+    [self.cancelButton removeFromSuperview];
     
     [self hideBundleSelectUI];
     [self hideEmailFieldUI];
@@ -46,9 +48,9 @@
 
 - (void)resetSubviewFrames
 {
-    [self hideNextButton];
-    [self hideCancelButton];
-    [self renderNextButton];
+    [self.nextButton removeFromSuperview];
+    [self.cancelButton removeFromSuperview];
+    [self renderNextButton:shouldEnableNextButton];
     [self renderCancelButton];
 }
 
@@ -60,17 +62,18 @@
     [title setTextAlignment:NSTextAlignmentCenter];
     [title setTag:BUNDLE_SELECT_TAG];
     [self addSubview:title];
-    
+ 
+    shouldEnableNextButton = YES;
     [self renderBundleOptions];
     [self renderCancelButton];
-    [self renderNextButton];
+    [self renderNextButton:shouldEnableNextButton];
 }
 
 - (void)setupEmailFieldLayout
 {
     CGRect frame = self.frame;
     float maxHeight = 190.0f;
-
+    shouldEnableNextButton = YES;
     frame.size.height = maxHeight;
     [self setMaxHeight:maxHeight];
     [self setFrame:frame];
@@ -104,15 +107,13 @@
     [self addSubview:backgroundImageView];
     [self addSubview:self.emailField];
     [self.emailField becomeFirstResponder];
-    
-    [self renderNextButton];
-    [self renderCancelButton];
 }
 
 - (void)setupBillingInfoLayout
 {
     NSString *stripePublishableKey;
     CGRect frame = self.frame;
+    shouldEnableNextButton = NO;
     frame.size.height = 140.0f;
     frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
     [self setFrame:frame];
@@ -139,9 +140,6 @@
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:PAYMENT_INFO_TAG];
     [self addSubview:message];
-    
-    [self renderNextButton];
-    [self renderCancelButton];
 }
 
 
@@ -161,15 +159,19 @@
 
 - (void)getTokenAndSubmitPayment
 {
+    [self.arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
+    [self setHidden:YES];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
+            [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
+            [self setHidden:NO];
         } else {
-            NSLog(@"Received token %@", token.tokenId);
-    
             self.responseHandler = [^(NSDictionary *responseDict) {
+                [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                    [self setHidden:NO];
                 } else {
                     [self animateOut];
                 }
@@ -187,7 +189,7 @@
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"bundle_sku": [selectedBundle objectForKey:@"sku"],
                                      @"email": receiptEmail};
-
+            
             [self.arbiter httpPost:APIDepositURL params:params handler:self.responseHandler];
         }
     }];
@@ -195,63 +197,6 @@
 
 
 # pragma mark UI Rendering Methods
-
-- (void)renderNextButton
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
-    [button setTitle:@"Next" forState:UIControlStateNormal];
-    [button.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [button setTag:NEXT_BUTTON_TAG];
-    [button addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-
-    [self addSubview:button];
-}
-
-- (void)renderCancelButton
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50.0f)];
-    [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:CANCEL_BUTTON_TAG];
-    [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
-    [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-    
-    CALayer *rightBorder = [CALayer layer];
-    rightBorder.frame = CGRectMake(button.frame.size.width - 0.5f, 0, 0.5f, button.frame.size.height);
-    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:rightBorder];
-    
-    [self addSubview:button];
-}
-
-- (void)hideNextButton
-{
-    for (UIView *view in [self subviews]) {
-        if (view.tag == NEXT_BUTTON_TAG) {
-            [view removeFromSuperview];
-        }
-    }
-}
-
-- (void)hideCancelButton
-{
-    for (UIView *view in [self subviews]) {
-        if (view.tag == CANCEL_BUTTON_TAG) {
-            [view removeFromSuperview];
-        }
-    }
-}
 
 - (void)renderBundleOptions
 {
@@ -271,8 +216,10 @@
         selectedBundle = [dataArray objectAtIndex:selectedRow];
         
         [self addSubview: pickerView];
+        [self.arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
     } copy];
-    
+
+    [self.arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
     [self.arbiter httpGet:BundleURL handler:self.responseHandler];
 }
 
@@ -298,6 +245,7 @@
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
+    shouldEnableNextButton = YES;
     self.nextButton.enabled = true;
 }
 

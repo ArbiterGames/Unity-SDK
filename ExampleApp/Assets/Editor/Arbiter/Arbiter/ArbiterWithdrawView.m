@@ -14,8 +14,7 @@
 #define CARD_INFO_TAG 768
 #define NAME_FIELD_TAG 769
 #define EMAIL_FIELD_TAG 770
-#define NEXT_BUTTON_TAG 771
-#define CANCEL_BUTTON_TAG 772
+#define POST_WITHDRAWAL_REQUEST_TAG 773
 
 @implementation ArbiterWithdrawView
 {
@@ -29,8 +28,8 @@
 
 - (void)setupNextScreen
 {
-    [self hideNextButton];
-    [self hideCancelButton];
+    [self.nextButton removeFromSuperview];
+    [self.cancelButton removeFromSuperview];
     [self hideAmountSelectUI];
     [self hideNameFieldUI];
     [self hideEmailFieldUI];
@@ -50,10 +49,10 @@
 
 - (void)resetSubviewFrames
 {
-    [self hideNextButton];
-    [self hideCancelButton];
+    [self.nextButton removeFromSuperview];
+    [self.cancelButton removeFromSuperview];
     
-    [self renderNextButton];
+    [self renderNextButton:shouldEnableNextButton];
     [self renderCancelButton];
 }
 
@@ -113,7 +112,7 @@
     }
     
     [self renderCancelButton];
-    [self renderNextButton];
+    [self renderNextButton:shouldEnableNextButton];
 }
 
 - (void)setupGenericFieldLayoutWithTag:(int)tag
@@ -173,9 +172,6 @@
     [self addSubview:field];
     
     [field becomeFirstResponder];
-    
-    [self renderCancelButton];
-    [self renderNextButton];
 }
 
 - (void)setupCardFieldUI
@@ -214,67 +210,6 @@
     [message setBackgroundColor:[UIColor clearColor]];
     [message setTag:CARD_INFO_TAG];
     [self addSubview:message];
-    
-    [self renderCancelButton];
-    [self renderNextButton];
-}
-
-- (void)renderNextButton
-{
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
-    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
-    [self.nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    [self.nextButton setTag:NEXT_BUTTON_TAG];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, self.nextButton.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [self.nextButton.layer addSublayer:topBorder];
-    [self.nextButton setEnabled:shouldEnableNextButton];
-    [self addSubview:self.nextButton];
-}
-
-- (void)renderCancelButton
-{
-    UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-    [button setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
-    [button setTitle:@"Cancel" forState:UIControlStateNormal];
-    [button setTag:CANCEL_BUTTON_TAG];
-    [button.titleLabel setFont:[UIFont systemFontOfSize:17]];
-    [button addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, button.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:topBorder];
-    
-    CALayer *rightBorder = [CALayer layer];
-    rightBorder.frame = CGRectMake(button.frame.size.width - 0.5f, 0, 0.5f, button.frame.size.height);
-    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [button.layer addSublayer:rightBorder];
-    
-    
-    [self addSubview:button];
-}
-
-- (void)hideNextButton
-{
-    for (UIView *view in [self subviews]) {
-        if (view.tag == NEXT_BUTTON_TAG) {
-            [view removeFromSuperview];
-        }
-    }
-}
-
-- (void)hideCancelButton
-{
-    for (UIView *view in [self subviews]) {
-        if (view.tag == CANCEL_BUTTON_TAG) {
-            [view removeFromSuperview];
-        }
-    }
 }
 
 - (void)hideNameFieldUI
@@ -318,18 +253,23 @@
 - (void)getTokenAndSubmitWithdraw
 {
     shouldEnableNextButton = NO;
+    [self.arbiter.alertWindow addRequestToQueue:POST_WITHDRAWAL_REQUEST_TAG];
+    [self setHidden:YES];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         NSDictionary *params;
         NSMutableDictionary *mutableParams;
         
         if (error) {
+            [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
+            [self setHidden:NO];
         } else {
             self.responseHandler = [^(NSDictionary *responseDict) {
+                [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                    [self setHidden:NO];
                 } else {
-                    NSLog(@"withdraw.responseDict: %@", responseDict);
                     self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
                     self.arbiter.user = [responseDict objectForKey:@"user"];
                     self.callback();
@@ -354,7 +294,7 @@
     }];
     
     [self renderCancelButton];
-    [self renderNextButton];
+    [self renderNextButton:shouldEnableNextButton];
 }
 
 - (void)sliderAction:(id)sender

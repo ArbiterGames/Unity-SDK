@@ -65,6 +65,7 @@
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
+#if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
@@ -113,6 +114,9 @@
             }
         }];
     }
+#else
+    NSLog(@"Arbiter Error: Game Center not supported in < iOS 7");
+#endif
 }
 
 - (void)login:(void(^)(NSDictionary *))handler

@@ -7,6 +7,7 @@
 //
 
 #import "ArbiterAlertView.h"
+#import <QuartzCore/QuartzCore.h>
 
 
 
@@ -28,6 +29,7 @@
         
         [self setFrame:[[UIScreen mainScreen] bounds]];
         [self setBackgroundColor:[[UIColor whiteColor] colorWithAlphaComponent:0.95f]];
+
         [self.layer setCornerRadius:5.0f];
         [self.layer setShadowColor:[UIColor blackColor].CGColor];
         [self.layer setShadowOpacity:0.8];
@@ -93,7 +95,7 @@
 
 - (void)renderNextButton:(BOOL)enabled
 {
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.nextButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [self.nextButton setFrame:CGRectMake(self.bounds.size.width / 2, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
     [self.nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
@@ -109,7 +111,7 @@
 
 - (void)renderCancelButton
 {
-    self.cancelButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    self.cancelButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
     [self.cancelButton setFrame:CGRectMake(0, self.bounds.size.height - 50, self.bounds.size.width / 2, 50)];
     [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
     [self.cancelButton.titleLabel setFont:[UIFont systemFontOfSize:17]];

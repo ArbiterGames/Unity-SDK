@@ -71,12 +71,8 @@
 
 - (void)setupEmailFieldLayout
 {
-    CGRect frame = self.frame;
-    float maxHeight = 190.0f;
     shouldEnableNextButton = YES;
-    frame.size.height = maxHeight;
-    [self setMaxHeight:maxHeight];
-    [self setFrame:frame];
+    [self setMaxHeight:190.0f];
     
     UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 5.0f, self.bounds.size.width, 40.0f)];
     [message setText:@"Would you like a receipt?"];
@@ -112,14 +108,9 @@
 - (void)setupBillingInfoLayout
 {
     NSString *stripePublishableKey;
-    CGRect frame = self.frame;
-    shouldEnableNextButton = NO;
-    frame.size.height = 140.0f;
-    frame.origin.y = ([UIScreen mainScreen].bounds.size.height / 2 - frame.size.height) / 2;
-    [self setFrame:frame];
-
     float cardFieldWidth = 290.0f;  // taken from Stripe/Stripe/Vendor/PaymentKit/PaymentKit/PKView.m
-    float frameWidthPlusPadding = self.frame.size.width + 25.0f;
+    shouldEnableNextButton = NO;
+    [self setMaxHeight:190.0f];
     
     if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         stripePublishableKey = StripeLivePublishableKey;
@@ -127,8 +118,8 @@
         stripePublishableKey = StripeTestPublishableKey;
     }
     
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((frameWidthPlusPadding - cardFieldWidth) / 2, 40.0f,
-                                                                 frameWidthPlusPadding, 40.0f)
+    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width - cardFieldWidth) / 2, 40.0f,
+                                                                 self.frame.size.width, 40.0f)
                                               andKey:stripePublishableKey];
     self.stripeView.delegate = self;
     [self addSubview:self.stripeView];

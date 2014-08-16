@@ -212,8 +212,12 @@
     if ([self.user objectForKey:@"postal_code"] == (id)[NSNull null] ) {
         [self getDevicePostalCode:locationCallback];
     } else {
-        locationCallback(@{@"success": @"true",
+        if (self.user == nil) {
+            locationCallback(@{@"success": @"false"});
+        } else {
+            locationCallback(@{@"success": @"true",
                            @"postalCode": [self.user objectForKey:@"postal_code"]});
+        }
     }
 }
 

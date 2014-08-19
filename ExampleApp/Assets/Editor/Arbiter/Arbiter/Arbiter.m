@@ -191,10 +191,10 @@
                           @"success": @"true"});
             } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
+                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to Arbiter's terms of service."
                                                                delegate: self
-                                                      cancelButtonTitle:@"Cancel"
-                                                      otherButtonTitles:@"Agree", nil];
+                                                      cancelButtonTitle:@"Agree"
+                                                      otherButtonTitles:@"View Terms", @"Cancel", nil];
                 [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [alert show];
@@ -751,17 +751,25 @@
                 handler(responseDict);
             }
         } copy];
-
-        if (buttonIndex == 0) {
-            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-            connectionHandler(dict);
-        } else if (buttonIndex == 1) {
+        
+        // Agree
+        if ( buttonIndex == 0 ) {
             [self.alertWindow addRequestToQueue:VERIFICATION_ALERT_TAG];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
             [self httpPost:verificationUrl params:postParams handler:connectionHandler];
+
+        // View Terms
+        } else if ( buttonIndex == 1 ) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
+        }
+        
+        // Cancel
+        if (buttonIndex == 2) {
+            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
+            connectionHandler(dict);
         }
 
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {

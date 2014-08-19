@@ -27,8 +27,6 @@ char* AutonomousStringCopy(const char* string)
 
 void checkForArbiterGameObject()
 {
-    NSLog(@"ArbiterCWrapper.m checkForArbiterGameObject");
-    NSLog(@"ArbiterCWrapper.m arbiter: %@", arbiter);
     if (arbiter == nil) {
         NSLog(@"Arbiter Error: Missing Game API Key and Access Token. Make sure you have added the Arbiter Prefab to your loading scene and that you have entered your Game API Key and Access Token to the Arbiter Game Object using the Unity Inspector.");
     }
@@ -38,11 +36,8 @@ void checkForArbiterGameObject()
 
 void _init( const char* apiKey, const char* accessToken )
 {
-    NSLog(@"ArbiterCWrapper.m _init");
-    NSLog(@"apiKey: %s", apiKey);
     arbiter = [Arbiter alloc];
     [arbiter init:^(NSDictionary *jsonDict) {
-        NSLog(@"ArbiterCWrapper.m _init callback");
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -128,7 +123,6 @@ void _getWallet()
 
 void _showWalletPanel()
 {
-    NSLog(@"ArbiterCWrapper.m _showWalletPanel");
     checkForArbiterGameObject();
     [arbiter showWalletPanel:^(void) {
         const char* emptyString = AutonomousStringCopy([@"" UTF8String]);

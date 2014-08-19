@@ -11,7 +11,7 @@ public class Entrypoint : MonoBehaviour {
 	void Start () {
 		// Override default error handlers if you want
 		OptionallyOverrideDefaultArbiterErrorHandlers();
-
+		
 		if ( Arbiter.IsAuthenticated ) {
 			LoadNextScene();
 		} else {

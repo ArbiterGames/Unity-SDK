@@ -28,6 +28,13 @@
 
 
 @implementation Arbiter
+{
+    NSMutableDictionary *_alertViewHandlerRegistry;
+    NSMutableDictionary *_connectionHandlerRegistry;
+    NSMutableDictionary *_responseDataRegistry;
+    CLLocationManager *locationManager;
+    CLLocation *currentLocation;
+}
 
 
 #pragma mark User Methods
@@ -289,9 +296,10 @@
         } copy];
         
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-            [self verifyUser:^(NSDictionary *dict) {
+            void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
                 populateThenShowAlert();
-            }];
+            } copy];
+            [self verifyUser:verifyCallback];
         } else {
             populateThenShowAlert();
         }
@@ -342,11 +350,12 @@
     } copy];
     
     if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-        [self verifyUser:^(NSDictionary *dict) {
+        void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
             if ( [[dict objectForKey:@"success"] boolValue] == true ) {
                 [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
             }
-        }];
+        } copy];
+        [self verifyUser:verifyCallback];
     } else {
         [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
     }
@@ -740,10 +749,7 @@
 
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         if (buttonIndex == 1) {
-            void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
-            [self verifyUser:^(NSDictionary *dict) {
-                handler(dict);
-            }];
+            [self verifyUser:[_alertViewHandlerRegistry objectForKey:@"enableLocationServices"]];
         }
     } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];

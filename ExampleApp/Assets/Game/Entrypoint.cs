@@ -10,13 +10,14 @@ public class Entrypoint : MonoBehaviour {
 
 	void Start () {
 		// Override default error handlers if you want
-		OptionallyOverrideDefaultArbiterErrorHandlers();
-
-		if ( Arbiter.IsAuthenticated ) {
-			LoadNextScene();
-		} else {
-			StartAuthenticationFlow();
-		}
+//		OptionallyOverrideDefaultArbiterErrorHandlers();
+		Debug.Log("Entrypoint.cs Start");
+		Arbiter.DisplayWalletDashboard( null );
+//		if ( Arbiter.IsAuthenticated ) {
+//			LoadNextScene();
+//		} else {
+//			StartAuthenticationFlow();
+//		}
 	}
 	
 	void StartAuthenticationFlow() {

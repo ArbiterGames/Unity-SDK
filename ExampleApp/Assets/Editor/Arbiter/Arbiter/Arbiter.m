@@ -23,6 +23,7 @@
 #define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
+#define NO_ACTION_ALERT_TAG 339
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
@@ -205,14 +206,25 @@
                 [self httpPost:verificationUrl params:postParams handler:handler];
             }
         } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
-                                                            message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
-                                                           delegate: self
-                                                  cancelButtonTitle:@"Close"
-                                                  otherButtonTitles:@"Try again", nil];
-            [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
-            [alert setTag:ENABLE_LOCATION_ALERT_TAG];
-            [alert show];
+            if ( self.user == nil ) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Arbiter Error"
+                                                                message: @"No user is currently initalized. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Close"
+                                                      otherButtonTitles:nil];
+                [alert setTag:NO_ACTION_ALERT_TAG];
+                [alert show];
+            } else {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
+                                                                message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Close"
+                                                      otherButtonTitles:@"Try again", nil];
+                [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
+                [alert setTag:ENABLE_LOCATION_ALERT_TAG];
+                [alert show];
+            }
+            
         }
     };
     
@@ -220,6 +232,7 @@
         [self getDevicePostalCode:locationCallback];
     } else {
         if (self.user == nil) {
+            NSLog(@"Arbiter Error: No user is currently initalized. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
             locationCallback(@{@"success": @"false"});
         } else {
             locationCallback(@{@"success": @"true",
@@ -777,9 +790,12 @@
     } else if ( alertView.tag == TOURNAMENT_DETAILS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
         handler();
-        
+    } else if ( alertView.tag == NO_ACTION_ALERT_TAG ) {
+        // Don't do anything since no action is required
+    }
+    
     // Default to the main wallet screen
-    } else {
+    else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
     }
 

@@ -27,8 +27,6 @@ public partial class Arbiter : MonoBehaviour
 	public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
 	
 	void Awake() {
-		// TODO: Try replacing this with start
-		Debug.Log("Arbiter.cs Awake");
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
 			Debug.LogWarning( "Arbiter Error: Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
 		}

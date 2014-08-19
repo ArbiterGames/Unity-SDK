@@ -208,7 +208,7 @@
         } else {
             if ( self.user == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Arbiter Error"
-                                                                message: @"No user is currently initalized. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
+                                                                message: @"No user is currently logged in. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
                                                                delegate: self
                                                       cancelButtonTitle:@"Close"
                                                       otherButtonTitles:nil];
@@ -232,7 +232,7 @@
         [self getDevicePostalCode:locationCallback];
     } else {
         if (self.user == nil) {
-            NSLog(@"Arbiter Error: No user is currently initalized. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
+            NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
             locationCallback(@{@"success": @"false"});
         } else {
             locationCallback(@{@"success": @"true",
@@ -284,39 +284,43 @@
         [self httpGet:walletUrl handler:connectionHandler];
     } else {
         handler(@{@"success": @"false",
-                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenterPlayer, to get an Arbiter User."]
+                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
                  });
     }
 }
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
-    [self getWallet:^(NSDictionary *responseDict) {
-
-        void (^closeWalletHandler)(void) = [^(void) {
-            handler();
-        } copy];
-        
-        void (^populateThenShowAlert)(void) = [^(void) {
-            NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-            NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-            [alert setTag:WALLET_ALERT_TAG];
-            [alert show];
-            [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
-            [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
-        } copy];
-        
-        if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-            void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-                populateThenShowAlert();
+    if ( self.user ) {
+        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
+        [self getWallet:^(NSDictionary *responseDict) {
+            
+            void (^closeWalletHandler)(void) = [^(void) {
+                handler();
             } copy];
-            [self verifyUser:verifyCallback];
-        } else {
-            populateThenShowAlert();
-        }
-    }];
+            
+            void (^populateThenShowAlert)(void) = [^(void) {
+                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+                [alert setTag:WALLET_ALERT_TAG];
+                [alert show];
+                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
+            } copy];
+            
+            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+                void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
+                    populateThenShowAlert();
+                } copy];
+                [self verifyUser:verifyCallback];
+            } else {
+                populateThenShowAlert();
+            }
+        }];
+    } else {
+        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
+    }
 }
 
 - (void)showDepositPanel

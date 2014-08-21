@@ -179,6 +179,11 @@
     [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
+- (bool)isUserAuthenticated
+{
+    return self.user != nil;
+}
+
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
@@ -296,6 +301,19 @@
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
                  });
     }
+}
+
+- (NSString*)getWalletBalance
+{
+    /* ttt keep
+    if( self.wallet == nil ) {
+        NSLog(@"@Wallet is null");
+        return @"";
+    } else {
+        return [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"balance"]];
+    }
+    */
+    return [NSString stringWithFormat: @""];
 }
 
 - (void)showWalletPanel:(void(^)(void))handler

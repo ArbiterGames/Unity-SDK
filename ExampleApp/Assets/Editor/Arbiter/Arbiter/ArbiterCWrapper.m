@@ -97,6 +97,12 @@ void _logout()
     }];
 }
 
+bool _isUserAuthenticated()
+{
+    checkForArbiterGameObject();
+    return [arbiter isUserAuthenticated];
+}
+
 void _verifyUser()
 {
     checkForArbiterGameObject();
@@ -125,6 +131,12 @@ void _getWallet()
         const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetWalletHandler", jsonChar);
     }];
+}
+
+bool _getWalletBalance()
+{
+    checkForArbiterGameObject();
+    return [arbiter getWalletBalance];
 }
 
 void _showWalletPanel()

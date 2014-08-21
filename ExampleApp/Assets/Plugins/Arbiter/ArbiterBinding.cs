@@ -19,6 +19,18 @@ namespace ArbiterInternal {
 		public static bool IsUserVerified() {
 			return _isUserVerified();
 		}
+
+		[DllImport ("__Internal")]
+		private static extern bool _isUserAuthenticated();
+		public static bool IsUserAuthenticated() {
+			return _isUserAuthenticated();
+		}
+
+		[DllImport ("__Internal")]
+		private static extern string _getWalletBalance();  // ttt stepping stone to getting back the wallet as a dict?
+		public static string GetWalletBalance() {
+			return _getWalletBalance();
+		}
 		
 #endregion
 

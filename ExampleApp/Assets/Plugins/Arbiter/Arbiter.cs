@@ -13,18 +13,24 @@ public partial class Arbiter : MonoBehaviour
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
 	
-	public static bool		IsAuthenticated				{ get { return user!= null && user.Id != null; } }
+	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	public static string    UserId                      { get { return user.Id; } }
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
-	public static string    Balance                     { get { return wallet.Balance; } }
+	public static string    Balance                     { get { AssertWalletExists(); return ArbiterBinding.GetWalletBalance(); } }
+	/* ttt OLD
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
 	public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
 	public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
+	*/
+	public static string    PendingBalance              { get { return "ttt"; } }
+	public static string    DepositAddress              { get { return "ttt"; } }
+	public static string    DepositQrCode               { get { return "ttt"; } }
+	public static string    WithdrawAddress             { get { return "ttt"; } }
 	
 	void Awake() {
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
@@ -47,7 +53,7 @@ public partial class Arbiter : MonoBehaviour
 		abGO.AddComponent<ArbiterBinding>();
 		GameObject.DontDestroyOnLoad( abGO );
 		
-		wallet = new Wallet();
+// ttt OLD		wallet = new Wallet();
 		user = new User();
 		setupPollers();
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
@@ -94,7 +100,7 @@ public partial class Arbiter : MonoBehaviour
 			tournamentPoller = null;
 		}
 		
-		wallet = new Wallet();
+// ttt OLD		wallet = new Wallet();
 		user = new User();
 		
 		ArbiterBinding.LogoutCallback logoutHandler = () => {
@@ -121,6 +127,15 @@ public partial class Arbiter : MonoBehaviour
 		set { verifyUserErrorHandler = ( errors ) => value( errors ); }
 	}
 	
+
+	private static void AssertWalletExists() {
+		/* ttt Do something like this...
+		if( ArbiterBinding.GetWallet() == null ) {
+			walletErrorHandler( new List<string> {"Wallet does not exist. Ensure that UpdateWallet was successful."} );
+		}
+		*/
+	}
+
 	public static void AddWalletListener( Action listener ) {
 		if( !walletQueryListeners.Contains( listener ))
 			walletQueryListeners.Add( listener );
@@ -129,11 +144,9 @@ public partial class Arbiter : MonoBehaviour
 		walletQueryListeners.Remove( listener );
 	}
 	
-	public static void GetWallet() {
-		if( user == null )
+	public static void UpdateWallet() {
+		if( !IsAuthenticated )
 			Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in" );
-		else if( !IsVerified )
-			Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
 		
 		queryWalletIfAble( null );
 	}
@@ -141,17 +154,19 @@ public partial class Arbiter : MonoBehaviour
 	private static void queryWalletIfAble( Action callback ) {
 		walletSuccessCallback = callback;
 
+/* ttt OLD
 		if( user == null || !IsVerified ) {
 			if( walletSuccessCallback != null )
 				walletSuccessCallback();
 			return;
 		}
+		*/
 		
 		ArbiterBinding.GetWallet( walletSuccessHandler, walletErrorHandler );
 	}
 	
-	private static void walletSuccessHandler( Wallet responseWallet ) {
-		wallet = responseWallet;
+	private static void walletSuccessHandler( Wallet responseWallet ) { // ttt remove the responseWallet... just go down to the native ref
+//ttt kill		wallet = responseWallet;
 		walletQueryListeners.ForEach( listener => listener() );
 		if( walletSuccessCallback != null )
 			walletSuccessCallback();
@@ -299,9 +314,10 @@ public partial class Arbiter : MonoBehaviour
 		}
 	}
 	
+	// ttt think this will be unneeded once data sharing pass is complete
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
 		user = responseUser;
-		wallet = responseWallet != null? responseWallet : new Wallet();
+//ttt kill		wallet = responseWallet != null? responseWallet : new Wallet();
 		setupPollers();
 		walletPoller.SetAction( queryWalletIfAble );
 		done();
@@ -313,7 +329,7 @@ public partial class Arbiter : MonoBehaviour
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	private static User user;
-	private static Wallet wallet;
+//ttt kill	private static Wallet wallet;
 	private static List<Tournament> initializingTournaments;
 	private static List<Tournament> inProgressTournaments;
 	private static List<Tournament> completeTournaments;

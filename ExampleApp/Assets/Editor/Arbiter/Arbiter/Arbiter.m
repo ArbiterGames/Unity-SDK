@@ -23,11 +23,19 @@
 #define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
+#define NO_ACTION_ALERT_TAG 339
 
 #define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
 @implementation Arbiter
+{
+    NSMutableDictionary *_alertViewHandlerRegistry;
+    NSMutableDictionary *_connectionHandlerRegistry;
+    NSMutableDictionary *_responseDataRegistry;
+    CLLocationManager *locationManager;
+    CLLocation *currentLocation;
+}
 
 
 #pragma mark User Methods
@@ -162,15 +170,15 @@
             NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
             [self.user setObject:postalCode forKey:@"postal_code"];
             
-            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+            if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
             } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                message: @"By clicking confirm below, you are confirming that you are at least 18 years old and agree to the terms and conditions at https://www.arbiter.me/terms"
+                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to Arbiter's terms of service."
                                                                delegate: self
-                                                      cancelButtonTitle:@"Cancel"
-                                                      otherButtonTitles:@"Agree", nil];
+                                                      cancelButtonTitle:@"Agree"
+                                                      otherButtonTitles:@"View Terms", @"Cancel", nil];
                 [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [alert show];
@@ -182,22 +190,47 @@
                 [self httpPost:verificationUrl params:postParams handler:handler];
             }
         } else {
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
-                                                            message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
-                                                           delegate: self
-                                                  cancelButtonTitle:@"Close"
-                                                  otherButtonTitles:@"Try again", nil];
-            [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
-            [alert setTag:ENABLE_LOCATION_ALERT_TAG];
-            [alert show];
+            if ( self.user == nil ) {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Arbiter Error"
+                                                                message: @"No user is currently logged in. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Close"
+                                                      otherButtonTitles:nil];
+                [alert setTag:NO_ACTION_ALERT_TAG];
+                [alert show];
+            } else {
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
+                                                                message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Close"
+                                                      otherButtonTitles:@"Try again", nil];
+                [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
+                [alert setTag:ENABLE_LOCATION_ALERT_TAG];
+                [alert show];
+            }
+            
         }
     };
     
     if ([self.user objectForKey:@"postal_code"] == (id)[NSNull null] ) {
         [self getDevicePostalCode:locationCallback];
     } else {
-        locationCallback(@{@"success": @"true",
+        if (self.user == nil) {
+            NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
+            locationCallback(@{@"success": @"false"});
+        } else {
+            locationCallback(@{@"success": @"true",
                            @"postalCode": [self.user objectForKey:@"postal_code"]});
+        }
+    }
+}
+
+- (bool)isUserVerified
+{
+    if (self.user != nil && [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+        return true;
+    } else {
+        return false;
     }
 }
 
@@ -244,38 +277,43 @@
         [self httpGet:walletUrl handler:connectionHandler];
     } else {
         handler(@{@"success": @"false",
-                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenterPlayer, to get an Arbiter User."]
+                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
                  });
     }
 }
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
-    [self getWallet:^(NSDictionary *responseDict) {
-
-        void (^closeWalletHandler)(void) = [^(void) {
-            handler();
-        } copy];
-        
-        void (^populateThenShowAlert)(void) = [^(void) {
-            NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-            NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-            [alert setTag:WALLET_ALERT_TAG];
-            [alert show];
-            [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
-            [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
-        } copy];
-        
-        if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-            [self verifyUser:^(NSDictionary *dict) {
+    if ( self.user ) {
+        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
+        [self getWallet:^(NSDictionary *responseDict) {
+            
+            void (^closeWalletHandler)(void) = [^(void) {
+                handler();
+            } copy];
+            
+            void (^populateThenShowAlert)(void) = [^(void) {
+                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+                [alert setTag:WALLET_ALERT_TAG];
+                [alert show];
+                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
+            } copy];
+            
+            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+                void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
+                    populateThenShowAlert();
+                } copy];
+                [self verifyUser:verifyCallback];
+            } else {
                 populateThenShowAlert();
-            }];
-        } else {
-            populateThenShowAlert();
-        }
-    }];
+            }
+        }];
+    } else {
+        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
+    }
 }
 
 - (void)showDepositPanel
@@ -322,11 +360,12 @@
     } copy];
     
     if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-        [self verifyUser:^(NSDictionary *dict) {
+        void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
             if ( [[dict objectForKey:@"success"] boolValue] == true ) {
                 [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
             }
-        }];
+        } copy];
+        [self verifyUser:verifyCallback];
     } else {
         [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
     }
@@ -705,25 +744,30 @@
                 handler(responseDict);
             }
         } copy];
-
-        if (buttonIndex == 0) {
-            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-            connectionHandler(dict);
-        } else if (buttonIndex == 1) {
+        
+        // Agree
+        if ( buttonIndex == 0 ) {
             [self.alertWindow addRequestToQueue:VERIFICATION_ALERT_TAG];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
             [self httpPost:verificationUrl params:postParams handler:connectionHandler];
+
+        // View Terms
+        } else if ( buttonIndex == 1 ) {
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
+        }
+        
+        // Cancel
+        if (buttonIndex == 2) {
+            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
+            connectionHandler(dict);
         }
 
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         if (buttonIndex == 1) {
-            void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
-            [self verifyUser:^(NSDictionary *dict) {
-                handler(dict);
-            }];
+            [self verifyUser:[_alertViewHandlerRegistry objectForKey:@"enableLocationServices"]];
         }
     } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
@@ -751,9 +795,12 @@
     } else if ( alertView.tag == TOURNAMENT_DETAILS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
         handler();
-        
+    } else if ( alertView.tag == NO_ACTION_ALERT_TAG ) {
+        // Don't do anything since no action is required
+    }
+    
     // Default to the main wallet screen
-    } else {
+    else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
     }
 

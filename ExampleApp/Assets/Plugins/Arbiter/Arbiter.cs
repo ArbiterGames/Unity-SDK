@@ -17,7 +17,7 @@ public partial class Arbiter : MonoBehaviour
 	public static string    UserId                      { get { return user.Id; } }
 	public static string    Username                    { get { return user.Name; } }
 	public static string	AccessToken				  	{ get { return user.Token; }}
-	public static bool      IsVerified                  { get { return verified == VerificationStatus.Verified; } }
+	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
 	public static string    Balance                     { get { return wallet.Balance; } }
@@ -27,7 +27,6 @@ public partial class Arbiter : MonoBehaviour
 	public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
 	
 	void Awake() {
-		
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
 			Debug.LogWarning( "Arbiter Error: Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
 		}
@@ -120,14 +119,10 @@ public partial class Arbiter : MonoBehaviour
 	public static void VerifyUser( Action done ) {
 		ArbiterBinding.VerifyUserCallback parse = ( responseUser ) => {
 			user = responseUser;
-			if( responseUser.AgreedToTerms && responseUser.LocationApproved ) {
-				verified = VerificationStatus.Verified;
-			}
 			if( done != null ) {
 				done();
 			}
 		};
-		verified = VerificationStatus.Unverified;
 		ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
 	}
 	
@@ -145,8 +140,8 @@ public partial class Arbiter : MonoBehaviour
 	
 	public static void GetWallet() {
 		if( user == null )
-			Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in. Did you call Arbiter.Initialize()?" );
-		else if( verified == VerificationStatus.Unknown )
+			Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in" );
+		else if( !IsVerified )
 			Debug.LogWarning( "This user has not yet been verified and cannot query an Arbiter wallet. Did you call Arbiter.VerifyUser()?" );
 		
 		queryWalletIfAble( null );
@@ -154,8 +149,8 @@ public partial class Arbiter : MonoBehaviour
 	
 	private static void queryWalletIfAble( Action callback ) {
 		walletSuccessCallback = callback;
-		
-		if( user == null || verified != VerificationStatus.Verified ) {
+
+		if( user == null || !IsVerified ) {
 			if( walletSuccessCallback != null )
 				walletSuccessCallback();
 			return;
@@ -315,7 +310,6 @@ public partial class Arbiter : MonoBehaviour
 	
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
 		user = responseUser;
-		verified = responseVerified? VerificationStatus.Verified : VerificationStatus.Unknown;
 		wallet = responseWallet != null? responseWallet : new Wallet();
 		setupPollers();
 		walletPoller.SetAction( queryWalletIfAble );
@@ -328,8 +322,6 @@ public partial class Arbiter : MonoBehaviour
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	private static User user;
-	private enum VerificationStatus { Unknown, Unverified, Verified };
-	private static VerificationStatus verified = VerificationStatus.Unknown;
 	private static Wallet wallet;
 	private static List<Tournament> initializingTournaments;
 	private static List<Tournament> inProgressTournaments;
@@ -349,4 +341,5 @@ public partial class Arbiter : MonoBehaviour
 	#if UNITY_IOS
 	private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 	#endif
+
 }

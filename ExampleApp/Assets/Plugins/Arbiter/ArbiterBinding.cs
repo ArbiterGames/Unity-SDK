@@ -8,9 +8,21 @@ using SimpleJSON;
 
 
 namespace ArbiterInternal {
-	
+
 	public class ArbiterBinding : MonoBehaviour
 	{
+
+#region Shared data
+		
+		[DllImport ("__Internal")]
+		private static extern bool _isUserVerified();
+		public static bool IsUserVerified() {
+			return _isUserVerified();
+		}
+		
+#endregion
+
+
 		[DllImport ("__Internal")]
 		private static extern void _init( string gameApiKey, string accessToken );
 		private static ErrorHandler initErrorHandler;

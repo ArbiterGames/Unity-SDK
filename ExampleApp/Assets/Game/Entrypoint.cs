@@ -11,7 +11,7 @@ public class Entrypoint : MonoBehaviour {
 	void Start () {
 		// Override default error handlers if you want
 		OptionallyOverrideDefaultArbiterErrorHandlers();
-
+		
 		if ( Arbiter.IsAuthenticated ) {
 			LoadNextScene();
 		} else {
@@ -38,7 +38,8 @@ public class Entrypoint : MonoBehaviour {
 	}
 
     void VerificationStep() {
-    	Debug.Log ("Arbiter.IsAuthenticated" + Arbiter.IsAuthenticated);
+    
+    	Debug.Log ("Arbiter.IsAuthenticated? " + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );
 

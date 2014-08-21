@@ -9,14 +9,6 @@
 #import "ArbiterAlertWindow.h"
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
-{
-    NSMutableDictionary *_alertViewHandlerRegistry;
-    NSMutableDictionary *_connectionHandlerRegistry;
-    NSMutableDictionary *_responseDataRegistry;
-    CLLocationManager *locationManager;
-    CLLocation *currentLocation;
-    
-}
 
 @property (strong, atomic) NSMutableDictionary *wallet;
 @property (strong, atomic) NSMutableDictionary *user;

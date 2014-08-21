@@ -25,21 +25,26 @@ public class Entrypoint : MonoBehaviour {
 		Arbiter.LoginAsAnonymous( VerificationStep );
 #elif UNITY_IOS
 		if ( Arbiter.OSVersionSupportsGameCenter ) {
-			Action<bool> processAuth = ( success ) => {
+			Action<bool> processGcAuth = ( success ) => {
 				if( success ) {
 					Arbiter.LoginWithGameCenter( VerificationStep );
+				} else {
+					Arbiter.LoginAsAnonymous( VerificationStep );
 				}
+
 			};
-			Social.localUser.Authenticate( processAuth );
+			Social.localUser.Authenticate( processGcAuth );
 		} else {
 			Arbiter.LoginAsAnonymous( VerificationStep );
 		}
+#else
+		Debug.LogError( "Unknown platform!");
+		Arbiter.LoginAsAnonymous( VerificationStep );
 #endif	
 	}
 
     void VerificationStep() {
     
-    	Debug.Log ("Arbiter.IsAuthenticated? " + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );
 
@@ -70,7 +75,7 @@ public class Entrypoint : MonoBehaviour {
 
 
     void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
-        Arbiter.GetWallet();
+        Arbiter.UpdateWallet(); // ttt here on sharing data
     }
 
 

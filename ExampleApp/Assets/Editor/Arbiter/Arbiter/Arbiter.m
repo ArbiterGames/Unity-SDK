@@ -186,7 +186,7 @@
             NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
             [self.user setObject:postalCode forKey:@"postal_code"];
             
-            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+            if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
             } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
@@ -238,6 +238,15 @@
             locationCallback(@{@"success": @"true",
                            @"postalCode": [self.user objectForKey:@"postal_code"]});
         }
+    }
+}
+
+- (bool)isUserVerified
+{
+    if (self.user != nil && [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+        return true;
+    } else {
+        return false;
     }
 }
 

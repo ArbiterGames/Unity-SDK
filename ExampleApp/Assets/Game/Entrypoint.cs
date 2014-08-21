@@ -29,7 +29,6 @@ public class Entrypoint : MonoBehaviour {
 				Arbiter.LoginWithGameCenter( VerificationStep );
 			} else {
 				Debug.LogError( "Could not authenticate to Game Center! Calling Arbiter.Login()" );
-//				Arbiter.Login ( VerificationStep );
 				Arbiter.LoginAsAnonymous( VerificationStep );
 			}
 		};
@@ -39,7 +38,7 @@ public class Entrypoint : MonoBehaviour {
 
     void VerificationStep() {
     
-    	Debug.Log ("Arbiter.IsAuthenticated" + Arbiter.IsAuthenticated);
+    	Debug.Log ("Arbiter.IsAuthenticated? " + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );
 

@@ -24,21 +24,20 @@ public class Entrypoint : MonoBehaviour {
 		// Skip logging in since we're in editor
 		Arbiter.LoginAsAnonymous( VerificationStep );
 #elif UNITY_IOS
-		Action<bool> processAuth = ( success ) => {
-			if( success ) {
-				Arbiter.LoginWithGameCenter( VerificationStep );
-			} else {
-				Debug.LogError( "Could not authenticate to Game Center! Calling Arbiter.Login()" );
-//				Arbiter.Login ( VerificationStep );
-				Arbiter.LoginAsAnonymous( VerificationStep );
-			}
-		};
-		Social.localUser.Authenticate( processAuth );
+		if ( Arbiter.OSVersionSupportsGameCenter ) {
+			Action<bool> processAuth = ( success ) => {
+				if( success ) {
+					Arbiter.LoginWithGameCenter( VerificationStep );
+				}
+			};
+			Social.localUser.Authenticate( processAuth );
+		} else {
+			Arbiter.LoginAsAnonymous( VerificationStep );
+		}
 #endif	
 	}
 
     void VerificationStep() {
-    
     	Debug.Log ("Arbiter.IsAuthenticated" + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
         Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );

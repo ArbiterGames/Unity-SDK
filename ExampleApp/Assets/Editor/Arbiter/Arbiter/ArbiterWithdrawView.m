@@ -9,6 +9,7 @@
 #import "ArbiterWithdrawView.h"
 #import "ArbiterConstants.h"
 #import "STPView.h"
+#import <QuartzCore/QuartzCore.h>
 
 #define AMOUNT_SELECT_TAG 767
 #define CARD_INFO_TAG 768
@@ -36,9 +37,9 @@
     
     if ( selectedWithdrawAmount == 0.0f ) {
         [self setupWithdrawAmountLayout];
-    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"full_name"]].length == 0 && self.nameField == nil ) {
+    } else if ( [[NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"full_name"]] length] == 0 && self.nameField == nil ) {
         [self setupGenericFieldLayoutWithTag:NAME_FIELD_TAG];
-    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
+    } else if ( [[NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]] length] == 0 && self.emailField == nil ) {
         [self setupGenericFieldLayoutWithTag:EMAIL_FIELD_TAG];
     } else if ( self.stripeView == nil ) {
         [self setupCardFieldUI];

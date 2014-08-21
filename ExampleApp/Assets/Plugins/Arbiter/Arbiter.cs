@@ -70,6 +70,15 @@ public partial class Arbiter : MonoBehaviour
 	
 	
 	#if UNITY_IOS
+	public static bool OSVersionSupportsGameCenter { 
+		get {
+			// SystemInfo.operatingSystem returns something like iPhone OS 6.1
+			float osVersion = -1f;
+			string versionString = SystemInfo.operatingSystem.Replace("iPhone OS ", "");
+			float.TryParse(versionString.Substring(0, 1), out osVersion);
+			return osVersion >= 7;
+		}
+	}
 	public static void LoginWithGameCenter( Action done ) {
 		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
 			parseLoginResponse( responseUser, responseVerified, responseWallet, done );

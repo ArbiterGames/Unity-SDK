@@ -37,7 +37,7 @@
     
     if ( [selectedBundle count] == 0 ) {
         [self setupBundleSelectLayout];
-    } else if ( [NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]].length == 0 && self.emailField == nil ) {
+    } else if ( [[NSString stringWithFormat:@"%@", [self.arbiter.user objectForKey:@"email"]] length] == 0 && self.emailField == nil ) {
         [self setupEmailFieldLayout];
     } else if ( self.stripeView == nil ) {
         [self setupBillingInfoLayout];

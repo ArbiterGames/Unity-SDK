@@ -21,25 +21,27 @@ public class Entrypoint : MonoBehaviour {
 	
 	void StartAuthenticationFlow() {
 #if UNITY_EDITOR
-		// Stay anonymous in the editor
+		// Skip logging in since we're in editor
 		Arbiter.LoginAsAnonymous( VerificationStep );
 #elif UNITY_IOS
-		Action<bool> processGcAuth = ( success ) => {
-			if( success ) {
-				Arbiter.LoginWithGameCenter( VerificationStep );
-			} else {
-				Debug.LogError( "Could not authenticate to Game Center! Logging into Arbiter anonymously." );
-				Arbiter.LoginAsAnonymous( VerificationStep );
-			}
-		};
-		Social.localUser.Authenticate( processGcAuth );
+		if ( Arbiter.OSVersionSupportsGameCenter ) {
+			Action<bool> processAuth = ( success ) => {
+				if( success ) {
+					Arbiter.LoginWithGameCenter( VerificationStep );
+				}
+			};
+			Social.localUser.Authenticate( processAuth );
+		} else {
+			Arbiter.LoginAsAnonymous( VerificationStep );
+		}
 #endif	
 	}
 
     void VerificationStep() {
     
+    	Debug.Log ("Arbiter.IsAuthenticated? " + Arbiter.IsAuthenticated);
         Debug.Log( "Hello, " + Arbiter.Username + "!" );
-        Debug.Log( "Are you verified as able to bet? " + Arbiter.IsVerified );
+        Debug.Log( "Have you verified your age & location yet? " + Arbiter.IsVerified );
 
         // You can choose to verify later if you prefer. But most of the Arbiter features won't let this user do anything until s/he is verified
         if( Arbiter.IsVerified )
@@ -68,7 +70,7 @@ public class Entrypoint : MonoBehaviour {
 
 
     void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
-        Arbiter.UpdateWallet();  /// ttt sharing up to here
+        Arbiter.GetWallet();
     }
 
 

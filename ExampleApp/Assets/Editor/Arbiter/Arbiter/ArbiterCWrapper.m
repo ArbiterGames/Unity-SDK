@@ -109,6 +109,12 @@ void _verifyUser()
     }];
 }
 
+bool _isUserVerified()
+{
+    checkForArbiterGameObject();
+    return [arbiter isUserVerified];
+}
+
 void _getWallet()
 {
     checkForArbiterGameObject();

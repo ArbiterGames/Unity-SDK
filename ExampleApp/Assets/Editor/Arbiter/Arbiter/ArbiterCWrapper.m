@@ -133,10 +133,12 @@ void _getWallet()
     }];
 }
 
-bool _getWalletBalance()
+const char* _getWalletBalance()
 {
     checkForArbiterGameObject();
-    return [arbiter getWalletBalance];
+//ttt    return [arbiter getWalletBalance];
+    const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+    return AutonomousStringCopy(emptyString);
 }
 
 void _showWalletPanel()

@@ -346,6 +346,13 @@
     [alert show];
 }
 
+- (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
+{
+    [self httpPostAsDeveloper:APISendPromoCreditsURL
+            params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
+           handler:handler];
+}
+
 #pragma mark Tournament Methods
 
 /**
@@ -658,6 +665,39 @@
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
 
+        [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
+        [NSURLConnection connectionWithRequest:request delegate:self];
+    }
+}
+
+-(void)httpPostAsDeveloper:(NSString *)url params:(NSDictionary *)params handler:(void (^)(NSDictionary *))handler
+{
+    NSLog( @"ArbiterSDK POST %@", url );
+    NSError *error = nil;
+    NSData *paramsData;
+    NSString *paramsStr;
+    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
+    
+    if( params == nil ) {
+        params = @{};
+    }
+    paramsData = [NSJSONSerialization dataWithJSONObject:params
+                                                 options:0
+                                                   error:&error];
+    paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+    
+    if( error != nil ) {
+        NSLog(@"ERROR: %@", error);
+        handler( @{@"success": @"false",
+                   @"errors": @[error]});
+    } else {
+        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
+                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                                           timeoutInterval:60.0];
+        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
+        [request setHTTPMethod:@"POST"];
+        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
         [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }

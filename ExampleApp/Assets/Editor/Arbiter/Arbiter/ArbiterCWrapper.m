@@ -14,12 +14,12 @@ Arbiter *arbiter = nil;
 
 // TODO: Replace boilerplate with macros
 
-char* AutonomousStringCopy(const char* string)
+char *AutonomousStringCopy(const char *string)
 {
     if (string == NULL)
         return NULL;
     
-    char* res = (char*)malloc(strlen(string) + 1);
+    char *res = (char*)malloc(strlen(string) + 1);
     strcpy(res, string);
     return res;
 }
@@ -34,14 +34,14 @@ void checkForArbiterGameObject()
 
 
 
-void _init( const char* apiKey, const char* accessToken )
+void _init( const char *apiKey, const char *accessToken )
 {
     arbiter = [Arbiter alloc];
     [arbiter init:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "InitHandler", jsonChar);
     }
            apiKey:[[NSString alloc] initWithUTF8String:apiKey]
@@ -56,7 +56,7 @@ void _loginAsAnonymous()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", jsonChar);
     }];
 }
@@ -68,7 +68,7 @@ void _loginWithGameCenterPlayer()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "LoginWithGameCenterHandler", jsonChar);
     }];
 }
@@ -80,7 +80,7 @@ void _login()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage( "ArbiterBinding", "LoginHandler", jsonChar );
     }];
 }
@@ -92,7 +92,7 @@ void _logout()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", jsonChar );
     }];
 }
@@ -104,7 +104,7 @@ void _verifyUser()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "VerifyUserHandler", jsonChar);
     }];
 }
@@ -122,7 +122,7 @@ void _getWallet()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetWalletHandler", jsonChar);
     }];
 }
@@ -131,19 +131,34 @@ void _showWalletPanel()
 {
     checkForArbiterGameObject();
     [arbiter showWalletPanel:^(void) {
-        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", emptyString );
     }];
 }
 
-void _requestTournament( const char* buyIn, const char* filters )
+void _sendPromoCredits( const char *amount )
+{
+    checkForArbiterGameObject();
+    [arbiter sendPromoCredits:^(NSDictionary *jsonDict) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
+        UnitySendMessage( "ArbiterBinding", "GetWalletHandler", jsonChar );
+        UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", emptyString );
+    }
+                       amount:[[NSString alloc] initWithUTF8String:amount]];
+}
+
+void _requestTournament( const char *buyIn, const char *filters )
 {
     checkForArbiterGameObject();
     [arbiter requestTournament:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "RequestTournamentHandler", jsonChar );
     }
                          buyIn:[[NSString alloc] initWithUTF8String:buyIn]
@@ -158,7 +173,7 @@ void _getTournaments()
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "GetTournamentsHandler", jsonChar);
     } page:nil];
 }
@@ -167,7 +182,7 @@ void _viewPreviousTournaments()
 {
     checkForArbiterGameObject();
     [arbiter viewPreviousTournaments:^(void) {
-        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", emptyString );
     } page:nil];
 }
@@ -176,19 +191,19 @@ void _viewIncompleteTournaments()
 {
     checkForArbiterGameObject();
     [arbiter viewIncompleteTournaments:^(NSString *tournamentId) {
-        const char* jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
         UnitySendMessage("ArbiterBinding", "ViewIncompleteTournamentsHandler", jsonChar );
     } page:nil];
 }
 
-void _reportScore( const char* tournamentId, const char* score )
+void _reportScore( const char *tournamentId, const char *score )
 {
     checkForArbiterGameObject();
     [arbiter reportScore:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char* jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "ReportScoreHandler", jsonChar );
     }
             tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
@@ -196,11 +211,11 @@ void _reportScore( const char* tournamentId, const char* score )
      ];
 }
 
-void _showTournamentDetailsPanel( const char* tournamentId )
+void _showTournamentDetailsPanel( const char *tournamentId )
 {
     checkForArbiterGameObject();
     [arbiter showTournamentDetailsPanel:^(void) {
-        const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
+        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", emptyString );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
 }

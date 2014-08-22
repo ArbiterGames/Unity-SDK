@@ -167,6 +167,20 @@ namespace ArbiterInternal {
 #endif
 		}
 		
+		[DllImport ("__Internal")]
+		private static extern void _sendPromoCredits( string amount );
+		private static Action sendPromoCreditsCalback;
+		public static void SendPromoCredits( string amount, Action callback ) {
+			sendPromoCreditsCalback = callback;
+			#if UNITY_EDITOR
+			ReportIgnore( "SendPromoCredits" );
+			if( sendPromoCreditsCalback != null )
+				sendPromoCreditsCalback();
+			#elif UNITY_IOS
+			_sendPromoCredits( amount );
+			#endif
+		}
+		
 		
 		[DllImport ("__Internal")]
 		private static extern void _requestTournament( string buyIn, string filters );
@@ -341,6 +355,12 @@ namespace ArbiterInternal {
 		public void ShowWalletPanelHandler( string emptyString ) {
 			if ( showWalletCallback != null ) {
 				showWalletCallback();
+			}
+		}
+		
+		public void SendPromoCreditsHandler( string emptyString ) {
+			if ( sendPromoCreditsCalback != null ) {
+				sendPromoCreditsCalback();
 			}
 		}
 		

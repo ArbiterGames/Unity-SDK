@@ -29,6 +29,7 @@
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
+- (bool)isUserVerified;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
 - (void)getWallet:(void(^)(NSDictionary *))handler;

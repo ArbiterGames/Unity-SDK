@@ -18,7 +18,7 @@
     if ( self ) {
         self.gameWindow = gameWindow;
         self.requestQueue = [[NSMutableDictionary alloc] init];
-        self.rootViewController = [[ArbiterAlertViewController alloc] init];
+        self.rootViewController = [[ArbiterAlertViewController alloc] initWithSupportedOrientations:[[gameWindow rootViewController] supportedInterfaceOrientations]];
         self.rootViewController.view.autoresizesSubviews = YES;
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;

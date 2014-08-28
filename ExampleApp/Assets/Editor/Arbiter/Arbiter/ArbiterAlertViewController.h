@@ -10,4 +10,7 @@
 
 @interface ArbiterAlertViewController : UIViewController
 
+- (id)initWithSupportedOrientations:(NSUInteger)orientations;
+@property (assign) NSUInteger *orientations;
+
 @end

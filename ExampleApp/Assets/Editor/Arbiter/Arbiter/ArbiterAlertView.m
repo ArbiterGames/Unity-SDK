@@ -75,7 +75,6 @@
     
     frame.size.width -= 25.0f;
     frame.size.height -= 25.0f;
-    
     frame.origin.x = (orientedWidth - frame.size.width) / 2;
     frame.origin.y = (orientedHeight - frame.size.height) / 2;
     

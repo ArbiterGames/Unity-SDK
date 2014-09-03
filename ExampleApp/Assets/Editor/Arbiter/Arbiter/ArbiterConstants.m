@@ -10,6 +10,7 @@
 
 NSString *const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";
 NSString *const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
+NSString *const APISendPromoCreditsURL = @"https://www.arbiter.me/api/v1/promo-credits/send";
 NSString *const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString *const APIUserLogoutURL = @"https://www.arbiter.me/api/v1/user/logout";
 NSString *const APILinkWithGameCenterURL = @"https://www.arbiter.me/api/v1/user/link-with-game-center";

@@ -185,6 +185,11 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.ShowWalletPanel( callback );
 	}
 	
+
+	public static void SendPromoCredits( string amount, Action callback ) {
+		ArbiterBinding.SendPromoCredits( amount, callback );
+	}
+	
 	public delegate void JoinTournamentCallback( Tournament tournament );
 	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback callback ) {
 		

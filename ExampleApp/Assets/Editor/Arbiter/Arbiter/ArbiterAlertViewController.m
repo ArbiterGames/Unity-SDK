@@ -11,6 +11,15 @@
 
 @implementation ArbiterAlertViewController
 
+- (id)initWithSupportedOrientations:(NSUInteger)orientations
+{
+    self = [super init];
+    if (self) {
+        self.orientations = orientations;
+    }
+    return self;
+}
+
 - (void)viewDidLoad
 {
     [super viewDidLoad];
@@ -28,6 +37,11 @@
 - (BOOL)prefersStatusBarHidden
 {
     return YES;
+}
+
+- (NSUInteger)supportedInterfaceOrientations
+{
+    return self.orientations;
 }
 
 - (BOOL)shouldAutorotate

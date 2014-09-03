@@ -29,13 +29,15 @@
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
+- (bool)isUserVerified;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
 - (void)getWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
+- (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
-- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString *)filters;
+- (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString *)buyIn filters:(NSString *)filters;
 - (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 
@@ -47,5 +49,6 @@
 
 - (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
+- (void)httpPostAsDeveloper:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 
 @end

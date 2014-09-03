@@ -179,6 +179,20 @@ namespace ArbiterInternal {
 #endif
 		}
 		
+		[DllImport ("__Internal")]
+		private static extern void _sendPromoCredits( string amount );
+		private static Action sendPromoCreditsCallback;
+		public static void SendPromoCredits( string amount, Action callback ) {
+			sendPromoCreditsCallback = callback;
+			#if UNITY_EDITOR
+			ReportIgnore( "SendPromoCredits" );
+			if( sendPromoCreditsCallback != null )
+				sendPromoCreditsCallback();
+			#elif UNITY_IOS
+			_sendPromoCredits( amount );
+			#endif
+		}
+		
 		
 		[DllImport ("__Internal")]
 		private static extern void _requestTournament( string buyIn, string filters );
@@ -342,10 +356,14 @@ namespace ArbiterInternal {
 		
 		public void GetWalletHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				getWalletCallback( parseWallet( json["wallet"] ));
+			if( wasSuccess( json ) ) {
+				if ( getWalletCallback != null ) {
+					getWalletCallback( parseWallet( json["wallet"] ));
+				}
 			} else {
-				getWalletErrorHandler( getErrors( json ));
+				if ( getWalletErrorHandler != null ) {
+					getWalletErrorHandler( getErrors( json ));
+				}
 			}
 		}
 		
@@ -353,6 +371,12 @@ namespace ArbiterInternal {
 		public void ShowWalletPanelHandler( string emptyString ) {
 			if ( showWalletCallback != null ) {
 				showWalletCallback();
+			}
+		}
+		
+		public void SendPromoCreditsHandler( string emptyString ) {
+			if ( sendPromoCreditsCallback != null ) {
+				sendPromoCreditsCallback();
 			}
 		}
 		

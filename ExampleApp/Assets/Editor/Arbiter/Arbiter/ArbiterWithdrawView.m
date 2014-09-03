@@ -59,32 +59,46 @@
 
 - (void)setupWithdrawAmountLayout
 {
-    shouldEnableNextButton = YES;
     float walletBalance = [[[self.arbiter wallet] objectForKey:@"balance"] floatValue];
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
-    [title setText:@"Withdraw"];
-    [title setFont:[UIFont boldSystemFontOfSize:17]];
-    [title setTextAlignment:NSTextAlignmentCenter];
-    [title setTag:AMOUNT_SELECT_TAG];
-    [self addSubview:title];
-    
-    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 30.0f, self.bounds.size.width - 20.0f, 50.0f)];
-    [message setNumberOfLines:0];
-    [message setText:@"Select the amount of credits you would like to withdraw."];
-    [message setFont:[UIFont systemFontOfSize:14]];
-    [message setTextAlignment:NSTextAlignmentCenter];
-    [message setTag:AMOUNT_SELECT_TAG];
-    [message setBackgroundColor:[UIColor clearColor]];
-    [self addSubview:message];
-    
     if ( walletBalance < 100 ) {
-        [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
         shouldEnableNextButton = NO;
-        CGRect frame = self.frame;
-        frame.size.height = 160.0f;
-        [self setFrame:frame];
+        [self setMaxHeight:190.0f];
+        [self setFrame:[[UIScreen mainScreen] bounds]];
+        
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.frame.size.width, 40.0f)];
+        [title setText:@"Unable to make withdraw"];
+        [title setFont:[UIFont boldSystemFontOfSize:17]];
+        [title setTextAlignment:NSTextAlignmentCenter];
+        [title setTag:AMOUNT_SELECT_TAG];
+        [self addSubview:title];
+        
+        UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 30.0f, self.frame.size.width - 20.0f, 50.0f)];
+        [message setNumberOfLines:0];
+        [message setFont:[UIFont systemFontOfSize:14]];
+        [message setTextAlignment:NSTextAlignmentCenter];
+        [message setTag:AMOUNT_SELECT_TAG];
+        [message setBackgroundColor:[UIColor clearColor]];
+        [message setText:[NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance]];
+        [self addSubview:message];
     } else {
+        shouldEnableNextButton = YES;
+        UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.bounds.size.width, 40.0f)];
+        [title setFont:[UIFont boldSystemFontOfSize:17]];
+        [title setText:@"Withdraw"];
+        [title setTextAlignment:NSTextAlignmentCenter];
+        [title setTag:AMOUNT_SELECT_TAG];
+        [self addSubview:title];
+        
+        UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(10.0f, 30.0f, self.bounds.size.width - 20.0f, 50.0f)];
+        [message setNumberOfLines:0];
+        [message setText:@"Select the amount of credits you would like to withdraw."];
+        [message setFont:[UIFont systemFontOfSize:14]];
+        [message setTextAlignment:NSTextAlignmentCenter];
+        [message setTag:AMOUNT_SELECT_TAG];
+        [message setBackgroundColor:[UIColor clearColor]];
+        [self addSubview:message];
+        
         UISlider *slider = [[UISlider alloc] initWithFrame:CGRectMake(5.0f, 120.0f, self.bounds.size.width - 10.0f, 100.0f)];
         [slider addTarget:self action:@selector(sliderAction:) forControlEvents:UIControlEventValueChanged];
         [slider setBackgroundColor:[UIColor clearColor]];
@@ -108,12 +122,12 @@
         [withdrawValueLabel setTextAlignment:NSTextAlignmentCenter];
         [withdrawValueLabel setFont:[UIFont systemFontOfSize:14]];
         [withdrawValueLabel setTag:AMOUNT_SELECT_TAG];
+        
         [self addSubview:withdrawValueLabel];
         [self updateWithdrawValueLabel];
+        [self renderCancelButton];
+        [self renderNextButton:shouldEnableNextButton];
     }
-    
-    [self renderCancelButton];
-    [self renderNextButton:shouldEnableNextButton];
 }
 
 - (void)setupGenericFieldLayoutWithTag:(int)tag

@@ -13,6 +13,7 @@
 #import "ArbiterPaymentView.h"
 #import "ArbiterWithdrawView.h"
 #import "ArbiterAlertWindow.h"
+#import "ArbiterTournamentResultsView.h"
 #import "STPView.h"
 
 #define LOGIN_ALERT_TAG 329
@@ -563,11 +564,6 @@
         NSString *title;
         NSMutableString *message = [[NSMutableString alloc] init];
         NSString *status = [tournament objectForKey:@"status"];
-        NSString *createdOn = [tournament objectForKey:@"created_on"];
-        NSTimeInterval seconds = [createdOn doubleValue] / 1000;
-        NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"EEE, MMM d"];
         
         if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
             title = @"Waiting for opponent";
@@ -575,29 +571,25 @@
                                    [self getPlayerScoreFromTournament:tournament],
                                    [tournament objectForKey:@"buy_in"],
                                    [tournament objectForKey:@"payout"]]];
+            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                            message:message
+                                                           delegate:self
+                                                  cancelButtonTitle:@"Close"
+                                                  otherButtonTitles:nil];
+            
+            [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
+            [alert show];
+            [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
         } else {
-            if ( [[tournament objectForKey:@"winners"] containsObject:[self.user objectForKey:@"id"]] ) {
-                title = [NSString stringWithFormat:@"You won %@ credits!", [tournament objectForKey:@"payout"]];
-            } else {
-                title = @"You have been defeated";
-            }
-            [message appendString:[NSString stringWithFormat:@"Your score: %@\nOpponent score: %@\nDate: %@\nBuy-in: %@\nPayout: %@",
-                                   [self getPlayerScoreFromTournament:tournament],
-                                   [self getOpponentScoreFromTournament:tournament],
-                                   [dateFormatter stringFromDate:unFormattedDate],
-                                   [tournament objectForKey:@"buy_in"],
-                                   [tournament objectForKey:@"payout"]]];
+            ArbiterTournamentResultsView *resultsView;
+            void (^resultsCallback)(void) = [^(void) {
+                [self.alertWindow hide];
+            } copy];
+            resultsView = [[ArbiterTournamentResultsView alloc] initWithCallback:resultsCallback
+                                                                 arbiterInstance:self
+                                                                   andTournament:tournament];
+            [self.alertWindow show:resultsView];
         }
-        
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                        message:message
-                                                       delegate:self
-                                              cancelButtonTitle:@"Close"
-                                              otherButtonTitles:nil];
-
-        [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
-        [alert show];
-        [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
     } copy];
     
     [self getTournament:getTournamentHandler tournamentId:tournamentId];

@@ -51,4 +51,7 @@
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 - (void)httpPostAsDeveloper:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 
+- (NSString*)getPlayerScoreFromTournament:(NSDictionary *)tournament;
+- (NSString*)getOpponentScoreFromTournament:(NSDictionary *)tournament;
+
 @end

@@ -27,6 +27,7 @@
 
 - (void)renderLayout
 {
+    [self setBackgroundColor:[UIColor clearColor]];
     [self renderCloseButton];
     [self renderPoweredBy];
 }
@@ -34,7 +35,7 @@
 - (void)renderCloseButton
 {
     UIButton *closeButton = [UIButton buttonWithType:UIButtonTypeCustom];
-    [closeButton setFrame:CGRectMake((self.bounds.size.width - 74.0) / 2, self.bounds.size.height - 30.0, 74.0, 23.0)];
+    [closeButton setFrame:CGRectMake(self.bounds.size.width - 74.0, 0.0, 74.0, 23.0)];
     [closeButton setBackgroundColor:[UIColor colorWithPatternImage:[UIImage imageNamed:@"close_arrow"]]];
     [closeButton addTarget:self action:@selector(closeButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:closeButton];
@@ -42,7 +43,7 @@
 
 - (void)renderPoweredBy
 {
-    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake(10.0, self.bounds.size.height - 20.0, 100.0, 20.0f)];
+    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake((self.bounds.size.width - 100) / 2, self.bounds.size.height - 20.0, 100.0, 20.0f)];
     [poweredBy setText:@"powered by Arbiter"];
     [poweredBy setFont:[UIFont systemFontOfSize:11.0f]];
     [poweredBy setTextColor:[UIColor whiteColor]];

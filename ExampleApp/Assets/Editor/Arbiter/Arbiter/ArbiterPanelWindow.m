@@ -35,13 +35,12 @@
     UIGraphicsEndImageContext();
     
     view.parentWindow = self;
-    self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyDarkEffect]];
+    self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyLightEffect]];
     [self.rootViewController.view addSubview:view];
 }
 
 - (void)hide
 {
-    NSLog(@"window.hide!!!!!");
     for ( UIView *view in [self.rootViewController.view subviews] ) {
         [view removeFromSuperview];
     }

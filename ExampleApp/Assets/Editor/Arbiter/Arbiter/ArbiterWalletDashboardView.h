@@ -11,4 +11,6 @@
 
 @interface ArbiterWalletDashboardView : ArbiterPanelView
 
+- (void)depositOrWithdrawClicked:(UISegmentedControl *)segment;
+
 @end

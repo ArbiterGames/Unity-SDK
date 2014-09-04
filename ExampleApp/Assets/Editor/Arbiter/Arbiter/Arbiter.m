@@ -288,11 +288,13 @@
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( self.user ) {
+        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
         [self getWallet:^(NSDictionary *responseDict) {
 
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
                 [self.panelWindow show:walletDashboard];
+                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
             } copy];
 
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {

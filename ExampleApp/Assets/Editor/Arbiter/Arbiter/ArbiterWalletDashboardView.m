@@ -29,6 +29,8 @@
     if ( tableFrame.size.width > 400.0f ) {
         tableFrame.size.width = 400.0f;
         tableFrame.origin.x = (self.frame.size.width - tableFrame.size.width) / 2;
+        tableFrame.origin.y = 60.0;
+        tableFrame.size.height = 140.0;
     }
     UITableView *tableView = [[UITableView alloc] initWithFrame:tableFrame style:UITableViewStyleGrouped];
     [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
@@ -38,10 +40,28 @@
     [tableView setBackgroundView:nil];
     [tableView setSeparatorColor:[UIColor clearColor]];
     [tableView reloadData];
+    [tableView setScrollEnabled:false];
+    [tableView setAllowsSelection:false];
     [self addSubview:tableView];
     
     // TODO:
     //  add deposit / withdraw
+    UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Deposit", @"Withdraw", nil]];
+    [segmentedControl setFrame:CGRectMake(tableFrame.origin.x + 20.0, self.frame.size.height - 120.0, tableFrame.size.width - 40.0, 50.0)];
+    [segmentedControl addTarget:self action:@selector(depositOrWithdrawClicked:) forControlEvents: UIControlEventValueChanged];
+    [segmentedControl setTintColor:[UIColor whiteColor]];
+    [self addSubview:segmentedControl];
+}
+
+# pragma mark click handlers
+
+- (void)depositOrWithdrawClicked:(UISegmentedControl *)segment
+{
+    NSLog(@"CLICKED");
+    if(segment.selectedSegmentIndex == 0)
+    {
+        // code for the first button
+    }
 }
 
 # pragma mark TableView Delegate Methods

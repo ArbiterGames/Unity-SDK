@@ -161,18 +161,20 @@ namespace ArbiterInternal {
 		
 		[DllImport ("__Internal")]
 		private static extern void _fetchWallet();
-		public delegate void GetWalletCallback( Wallet wallet );
+		public delegate void GetWalletCallback( Wallet wallet ); // ttt rename??
 		private static GetWalletCallback getWalletCallback;
 		private static ErrorHandler getWalletErrorHandler;
 		public static void GetWallet( GetWalletCallback callback, ErrorHandler errorHandler ) {
 			getWalletCallback = callback;
 			getWalletErrorHandler = errorHandler;
+			Debug.Log ("ttt ArbiterBinding.GetWallet()...");
 #if UNITY_EDITOR
 			ReportIgnore( "GetWallet" );
 			getWalletCallback( Wallet.CreateMockWallet() );
 #elif UNITY_IOS
 			_fetchWallet();
 #endif
+			Debug.Log ("ttt returning from ArbiterBinding.GetWallet()");
 		}
 		
 		
@@ -317,7 +319,8 @@ namespace ArbiterInternal {
 			if( wasSuccess( json )) {
 				User user = parseUser( json["user"] );
 				bool verified = isVerified( json["user"] );
-				loginAsAnonymousCallback( user, verified, null );
+				Wallet wallet = parseWallet( json["wallet"] );
+				loginAsAnonymousCallback( user, verified, wallet );
 			} else {
 				loginAsAnonymousErrorHandler( getErrors( json ));
 			}
@@ -329,7 +332,8 @@ namespace ArbiterInternal {
 			if( wasSuccess( json )) {
 				User user = parseUser( json["user"] );
 				bool verified = isVerified( json["user"] );
-				loginWithGameCenterCallback( user, verified, null );
+				Wallet wallet = parseWallet( json["wallet"] );
+				loginWithGameCenterCallback( user, verified, wallet );
 			} else {
 				loginWithGameCenterErrorHandler( getErrors( json ));
 			}
@@ -340,7 +344,8 @@ namespace ArbiterInternal {
 			if( wasSuccess( json )) {
 				User user = parseUser( json["user"] );
 				bool verified = isVerified( json["user"] );
-				loginCallback( user, verified, null );
+				Wallet wallet = parseWallet( json["wallet"] );
+				loginCallback( user, verified, wallet );
 			} else {
 				loginErrorHandler( getErrors( json ));
 			}
@@ -491,10 +496,6 @@ namespace ArbiterInternal {
 		private Wallet parseWallet( JSONNode walletNode ) {
 			Wallet rv = new Wallet();
 			rv.Balance = walletNode["balance"].Value;
-			rv.PendingBalance = walletNode["pending_balance"].Value;
-			rv.DepositAddress = walletNode["deposit_address"].Value;
-			rv.DepositQrCode = walletNode["deposit_address_qr_code"].Value;
-			rv.WithdrawAddress = walletNode["withdraw_address"].Value;
 			return rv;
 		}
 		

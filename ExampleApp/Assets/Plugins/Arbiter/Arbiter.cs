@@ -20,7 +20,7 @@ public partial class Arbiter : MonoBehaviour
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
-	public static string    Balance                     { get { AssertWalletExists(); return wallet.Balance; } }
+	public static string    Balance                     { get {Debug.Log ("ttt Arbiter.cs.Balance;"); if( AssertWalletExists() ) return wallet.Balance; else return ""; } }
 	/* ttt OLD
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
@@ -53,8 +53,8 @@ public partial class Arbiter : MonoBehaviour
 		abGO.AddComponent<ArbiterBinding>();
 		GameObject.DontDestroyOnLoad( abGO );
 		
-// ttt OLD		wallet = new Wallet();
-		user = new User();
+		wallet = null;
+		user = null;
 		setupPollers();
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
 	}
@@ -137,12 +137,12 @@ public partial class Arbiter : MonoBehaviour
 	}
 	
 
-	private static void AssertWalletExists() {
-		/* ttt Do something like this...
-		if( ArbiterBinding.GetWallet() == null ) {
-			walletErrorHandler( new List<string> {"Wallet does not exist. Ensure that UpdateWallet was successful."} );
+	private static bool AssertWalletExists() {
+		if( wallet == null ) {
+			walletErrorHandler( new List<string>{ "Wallet does not exist. Ensure that UpdateWallet was successful." });
+			return false;
 		}
-		*/
+		return true;
 	}
 
 	public static void AddWalletListener( Action listener ) {
@@ -329,11 +329,10 @@ public partial class Arbiter : MonoBehaviour
 			tournamentPoller.Verbose = true;
 		}
 	}
-	
-	// ttt think this will be unneeded once data sharing pass is complete
+
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
 		user = responseUser;
-//ttt kill		wallet = responseWallet != null? responseWallet : new Wallet();
+		wallet = responseWallet != null? responseWallet : null;
 		setupPollers();
 		done();
 	}

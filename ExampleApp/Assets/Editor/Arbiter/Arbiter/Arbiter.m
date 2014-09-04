@@ -315,7 +315,7 @@
 {
     if ( self.user ) {
         [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
-        [self getWallet:^(NSDictionary *responseDict) {
+        [self fetchWallet:^(NSDictionary *responseDict) {
             
             void (^closeWalletHandler)(void) = [^(void) {
                 handler();

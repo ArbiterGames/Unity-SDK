@@ -32,7 +32,7 @@
 - (bool)isUserVerified;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
-- (void)getWallet:(void(^)(NSDictionary *))handler;
+- (void)fetchWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;

@@ -12,8 +12,6 @@
 // TODO: Since this wrapper isn't a full on class, think about how we should be storing the single arbiter instance here.
 Arbiter *arbiter = nil;
 
-// TODO: Replace boilerplate with macros
-
 char *AutonomousStringCopy(const char *string)
 {
     if (string == NULL)
@@ -25,7 +23,7 @@ char *AutonomousStringCopy(const char *string)
 }
 
 
-void checkForArbiterGameObject()
+void CheckForArbiterGameObject()
 {
     if (arbiter == nil) {
         NSLog(@"Arbiter Error: Missing Game API Key and Access Token. Make sure you have added the Arbiter Prefab to your loading scene and that you have entered your Game API Key and Access Token to the Arbiter Game Object using the Unity Inspector.");
@@ -33,7 +31,18 @@ void checkForArbiterGameObject()
 }
 
 
-void clientCallbackUserUpdated()
+const char* ProcessParams( NSDictionary *jsonDict )
+{
+    CheckForArbiterGameObject();
+    NSError *error;
+    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+    const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+    return jsonChar;
+}
+
+
+void ClientCallbackUserUpdated()
 {
     [arbiter getCachedUser:^(NSDictionary *jsonDict) {
         NSError *error;
@@ -63,26 +72,14 @@ void _init( const char *apiKey, const char *accessToken )
 
 void _loginAsAnonymous()
 {
-    checkForArbiterGameObject();
-    // ttt reduce this boilerplate...
     [arbiter loginAsAnonymous:^(NSDictionary *jsonDict) {
-        NSError *error;
-        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
-        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-        UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", jsonChar);
+        UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", ProcessParams( jsonDict ));
     }];
-/* ttt NEW but wrong
-    [arbiter loginAsAnonymous:^(void) {
-        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
-        UnitySendMessage( "ArbiterBinding", "LoginAsAnonymousHandler", emptyString );
-    }];
-    */
 }
 
 void _loginWithGameCenterPlayer()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -94,7 +91,7 @@ void _loginWithGameCenterPlayer()
 
 void _login()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter login:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -106,7 +103,7 @@ void _login()
 
 void _logout()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter logout:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -118,13 +115,13 @@ void _logout()
 
 bool _isUserAuthenticated()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     return [arbiter isUserAuthenticated];
 }
 
 void _verifyUser()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter verifyUser:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -136,13 +133,13 @@ void _verifyUser()
 
 bool _isUserVerified()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     return [arbiter isUserVerified];
 }
 
 void _fetchWallet()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter fetchWallet:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -177,7 +174,7 @@ const char* _getWalletBalance()
 
 void _showWalletPanel()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter showWalletPanel:^(void) {
         const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", emptyString );
@@ -186,7 +183,7 @@ void _showWalletPanel()
 
 void _sendPromoCredits( const char *amount )
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter sendPromoCredits:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -201,7 +198,7 @@ void _sendPromoCredits( const char *amount )
 
 void _requestTournament( const char *buyIn, const char *filters )
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter requestTournament:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -216,7 +213,7 @@ void _requestTournament( const char *buyIn, const char *filters )
 
 void _getTournaments() // ttt rename?
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter getTournaments:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -228,7 +225,7 @@ void _getTournaments() // ttt rename?
 
 void _viewPreviousTournaments()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter viewPreviousTournaments:^(void) {
         const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", emptyString );
@@ -237,7 +234,7 @@ void _viewPreviousTournaments()
 
 void _viewIncompleteTournaments()
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter viewIncompleteTournaments:^(NSString *tournamentId) {
         const char *jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
         UnitySendMessage("ArbiterBinding", "ViewIncompleteTournamentsHandler", jsonChar );
@@ -246,7 +243,7 @@ void _viewIncompleteTournaments()
 
 void _reportScore( const char *tournamentId, const char *score )
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter reportScore:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -261,7 +258,7 @@ void _reportScore( const char *tournamentId, const char *score )
 
 void _showTournamentDetailsPanel( const char *tournamentId )
 {
-    checkForArbiterGameObject();
+    CheckForArbiterGameObject();
     [arbiter showTournamentDetailsPanel:^(void) {
         const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", emptyString );

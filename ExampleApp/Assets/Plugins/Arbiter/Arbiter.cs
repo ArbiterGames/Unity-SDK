@@ -20,22 +20,12 @@ public partial class Arbiter : MonoBehaviour
 	
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
-	public static string    UserId                      { get { if( !UserExists ) return null;  return user.Id; } }
-	public static string    Username                    { get { if( !UserExists ) return null; 	return user.Name; } }
-	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  return user.Token; } }
-	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
-	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
-	public static string    Balance                     { get { if( !WalletExists ) return "";	return wallet.Balance; } }
-	/* ttt OLD
-	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
-	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
-	public static string    DepositQrCode               { get { return wallet.DepositQrCode; } }
-	public static string    WithdrawAddress             { get { return wallet.WithdrawAddress; } }
-	*/
-	public static string    PendingBalance              { get { return "ttt"; } }
-	public static string    DepositAddress              { get { return "ttt"; } }
-	public static string    DepositQrCode               { get { return "ttt"; } }
-	public static string    WithdrawAddress             { get { return "ttt"; } }
+	public static string    UserId                      { get { if( !UserExists ) return null;  	return user.Id; } }
+	public static string    Username                    { get { if( !UserExists ) return null; 		return user.Name; } }
+	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  	return user.Token; } }
+	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  	return user.AgreedToTerms; } }
+	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  	return user.LocationApproved; } }
+	public static string    Balance                     { get { if( !WalletExists ) return null;	return wallet.Balance; } }
 
 
 
@@ -63,10 +53,14 @@ public partial class Arbiter : MonoBehaviour
 		wallet = null;
 		user = null;
 		setupPollers();
+
+		ErrorHandler initializeErrorHandler = ( errors ) => {
+			Debug.LogError( "Cannot initialize Arbiter. Resolve errors below:" );
+			errors.ForEach( e => Debug.LogError( e ));
+		};
+
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
 	}
-	public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
-
 
 	
 #if UNITY_IOS
@@ -94,7 +88,7 @@ public partial class Arbiter : MonoBehaviour
 	}
 	public static Action<List<string>> LoginErrorHandler { set { loginErrorHandler = ( errors ) => value( errors ); } }
 	
-	
+	// ttt mimic format of LoginAsGC...
 	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
 		ArbiterBinding.LoginAsAnonymous( success, failure );
 	}
@@ -103,15 +97,8 @@ public partial class Arbiter : MonoBehaviour
 
 #if UNITY_IOS
 	public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
-		/* ttt implement something like this:
-		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
-			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
-		};
-		ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
-		*/
 		ArbiterBinding.LoginWithGameCenter( success, failure );
 	}
-	public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
 
 

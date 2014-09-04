@@ -123,16 +123,18 @@ public class Entrypoint : MonoBehaviour {
 	/**
 		Method to demo overriding the default Arbiter error handlers
 	*/
-	// ttt old way??
+	// ttt old way?? kill these?
 	void OptionallyOverrideDefaultArbiterErrorHandlers() {
+		/*
 		Action<List<string>> criticalErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
 			errors.ForEach( e => Debug.LogError( e ));
 		};
-		Arbiter.InitializeErrorHandler = criticalErrorHandler;
+		*/
+//		Arbiter.InitializeErrorHandler = criticalErrorHandler;
 
 #if UNITY_IOS
-		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
+//		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
 #endif
 
 		Arbiter.VerifyUserErrorHandler = ( errors ) => {

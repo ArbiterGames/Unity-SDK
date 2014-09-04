@@ -44,7 +44,7 @@
 {
 //ttt    self.user = user;
     self._user = user;
-    clientCallbackUserUpdated();
+    ClientCallbackUserUpdated();
 }
 
 - (NSMutableDictionary *)user
@@ -82,7 +82,6 @@
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         [self setWallet: [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        // ttt TODO: call user updater
         handler(responseDict);
     } copy];
     

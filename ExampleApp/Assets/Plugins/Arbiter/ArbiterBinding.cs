@@ -106,15 +106,18 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		
+
+		const string LOGIN_GAME_CENTER = "login_game_center";
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
-		public delegate void LoginWithGameCenterCallback( User user, bool isVerified, Wallet wallet );
+		/* ttt kill
 		private static SuccessHandler loginWithGameCenterSuccessCallback;
 		private static ErrorHandler loginWithGameCenterErrorCallback;
+		*/
 		public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
-			loginWithGameCenterSuccessCallback = success;
-			loginWithGameCenterErrorCallback = failure;
+			callbacks[ LOGIN_GAME_CENTER ] = new CallbackTuple( success, failure );
+//ttt			loginWithGameCenterSuccessCallback = success;
+//			loginWithGameCenterErrorCallback = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "Login:GameCenter" );
 			User user = new User();
@@ -326,8 +329,16 @@ namespace ArbiterInternal {
 		
 		
 		
-		// Response handlers for APIs
-		//////////////////////////////
+#region Plugin response handling
+
+		private void Callback( string callKey, string pluginResponse ) {
+			JSONNode json = JSON.Parse( pluginResponse );
+			if( wasSuccess( json )) {
+				callbacks[ callKey ].Success();
+			} else {
+				callbacks[ callKey ].Failure( getErrors( json ));
+			}
+		}
 		
 		public void InitHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
@@ -357,12 +368,7 @@ namespace ArbiterInternal {
 
 
 		public void LoginWithGameCenterHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				loginWithGameCenterSuccessCallback();
-			} else {
-				loginWithGameCenterErrorCallback( getErrors( json ));
-			}
+			Callback( LOGIN_GAME_CENTER, jsonString );
 		}
 
 
@@ -479,6 +485,19 @@ namespace ArbiterInternal {
 				reportScoreErrorHandler( getErrors( json ));
 			}
 		}
+
+
+		public struct CallbackTuple {
+			public CallbackTuple( SuccessHandler success, ErrorHandler failure ) {
+				Success = success;
+				Failure = failure;
+			}
+			public SuccessHandler Success;
+			public ErrorHandler Failure;
+		}
+		private static Dictionary<string,CallbackTuple> callbacks = new Dictionary<string,CallbackTuple>();
+#endregion
+
 		
 		
 #if UNITY_EDITOR

@@ -22,10 +22,10 @@ public partial class Arbiter : MonoBehaviour
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  return user.Id; } }
 	public static string    Username                    { get { if( !UserExists ) return null; 	return user.Name; } }
-	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  return user.Token; }}
+	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  return user.Token; } }
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
-	public static string    Balance                     { get {Debug.Log ("ttt Arbiter.cs.Balance...."); if( AssertWalletExists() ) return wallet.Balance; else return ""; } }
+	public static string    Balance                     { get { if( !WalletExists ) return "";	return wallet.Balance; } }
 	/* ttt OLD
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
@@ -83,7 +83,7 @@ public partial class Arbiter : MonoBehaviour
 
 
 	// ttt mimic format of LoginAsAnoymous...
-	public static void Login( Action callback ) {
+	public static void Login( SuccessHandler success, ErrorHandler failure ) {
 		/* ttt implement something like this:
 		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    
 			parseLoginResponse( responseUser, responseVerified, responseWallet, callback );
@@ -96,25 +96,20 @@ public partial class Arbiter : MonoBehaviour
 	
 	
 	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-		/* ttt OLD
-		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
-			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
-		};
-		ArbiterBinding.LoginAsAnonymous( parse, loginAsAnonymousErrorHandler );
-		*/
 		ArbiterBinding.LoginAsAnonymous( success, failure );
 	}
 	public static Action<List<string>> LoginAsAnonymousErrorHandler { set { loginAsAnonymousErrorHandler = ( errors ) => value( errors ); } }
 
 
 #if UNITY_IOS
-	public static void LoginWithGameCenter( Action done ) {
+	public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
 		/* ttt implement something like this:
 		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
 			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
 		};
 		ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
 		*/
+		ArbiterBinding.LoginWithGameCenter( success, failure );
 	}
 	public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
 #endif
@@ -182,13 +177,14 @@ public partial class Arbiter : MonoBehaviour
 	}
 
 
-	private static bool AssertWalletExists() {
+	private static bool WalletExists { get {
 		if( wallet == null ) {
-			walletErrorHandler( new List<string>{ "Wallet does not exist. Ensure that UpdateWallet was successful." });
+			Debug.LogWarning( "Wallet does not exist. Ensure that UpdateWallet was successful." );
 			return false;
 		}
 		return true;
-	}
+	} }
+
 
 	public static void AddWalletListener( Action listener ) {
 		if( !walletQueryListeners.Contains( listener ))

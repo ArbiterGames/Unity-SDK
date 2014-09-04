@@ -6,20 +6,22 @@ using System.Collections.Generic;
 
 
 [RequireComponent (typeof (GUIText))]
-public class UserIdPoller : MonoBehaviour {
+public class UserIdField : MonoBehaviour {
 	
 
     void Start() {
         textField = gameObject.GetComponent<GUIText>();
+		textField.text = "<log in first>";
+		if( Arbiter.IsAuthenticated )
+			UpdateField();
+
+		Arbiter.AddNewUserListener( UpdateField );
     }
     private GUIText textField;
 
 
-	void OnGUI () {
-		if( Arbiter.IsAuthenticated )
-        	textField.text = Arbiter.UserId;
-		else
-			textField.text = "<log in first>";
+	void UpdateField () {
+        textField.text = Arbiter.UserId;
     }
 
 

@@ -13,7 +13,6 @@ namespace ArbiterInternal {
 	{
 
 
-
 #region Shared data
 		
 		[DllImport ("__Internal")]
@@ -39,8 +38,11 @@ namespace ArbiterInternal {
 
 
 		// Handler for native to call whenever it updates its user
-		public void OnUpdatedUser( string jsonString ) {
+		public void OnUserUpdated( string jsonString ) {
+			Debug.Log ("ttt ArbiterBinding.OnuserUpdated!");
 			JSONNode jsonNode = JSON.Parse( jsonString );
+			Debug.Log ( jsonNode );
+			Debug.Log ( Arbiter.user );
 			if( UserProtocol.Update( ref Arbiter.user, jsonNode )) {
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
@@ -82,18 +84,23 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginAsAnonymous();
 //ttt OLD		public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
-		public static SuccessHandler LoginAsAnonymousSuccessHandler;
-		public static ErrorHandler LoginAsAnonymousErrorHandler;
+		private static SuccessHandler loginAsAnonymousSuccessCallback;
+		/* ttt NEW but wrong
+		public void LoginAsAnonymousSuccessHandler( string message ) {
+			loginAsAnonymousSuccessCallback();
+		}
+		*/
+		private static ErrorHandler loginAsAnonymousErrorCallback;
 		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-			LoginAsAnonymousSuccessHandler = success;
-			LoginAsAnonymousErrorHandler = failure;
+			loginAsAnonymousSuccessCallback = success;
+			loginAsAnonymousErrorCallback = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "Login:Anonymous" );
 			User user = new User();
-			user.Id = "0";
-			user.Name = "AnonymousMcMockison";
+			user.Id = "FakeId123";
+			user.Name = "Anonymock";
 			Arbiter.user = user;
-			LoginAsAnonymousSuccessHandler();
+			success();
 #elif UNITY_IOS
 			_loginAsAnonymous();
 #endif
@@ -103,17 +110,18 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
 		public delegate void LoginWithGameCenterCallback( User user, bool isVerified, Wallet wallet );
-		private static SuccessHandler loginWithGameCenterCallback;
-		private static ErrorHandler loginWithGameCenterErrorHandler;
-		public static void LoginWithGameCenter( SuccessHandler callback, ErrorHandler errorHandler ) {
-			loginWithGameCenterCallback = callback;
-			loginWithGameCenterErrorHandler = errorHandler;
+		private static SuccessHandler loginWithGameCenterSuccessCallback;
+		private static ErrorHandler loginWithGameCenterErrorCallback;
+		public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
+			loginWithGameCenterSuccessCallback = success;
+			loginWithGameCenterErrorCallback = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "Login:GameCenter" );
 			User user = new User();
-			user.Id = "0";
-			user.Name = "McMockison";
-//ttt td			loginWithGameCenterCallback( user, false, null );
+			user.Id = "FakeGcId";
+			user.Name = "GameOckUser";
+			Arbiter.user = user;
+			success();
 #elif UNITY_IOS
 			_loginWithGameCenterPlayer();
 #endif
@@ -165,7 +173,7 @@ namespace ArbiterInternal {
 #if UNITY_EDITOR
 			ReportIgnore( "VerifyUser" );
 			User user = new User();
-			user.Id = "0";
+			user.Id = "FakeId123";
 			user.Name = "McMockison";
 			user.LocationApproved = true;
 			user.AgreedToTerms = true;
@@ -331,32 +339,34 @@ namespace ArbiterInternal {
 		}
 		
 
-		/* ttt OLD
 		public void LoginAsAnonymousHandler( string jsonString ) {
+			// ttt reduce this boilerpate!
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
-				User user = parseUser( json["user"] );
+				/* ttt use the updated/new user handlers instead!
+				User user = UserProtocol.Parse( json );
 				bool verified = isVerified( json["user"] );
 				Wallet wallet = parseWallet( json["wallet"] );
-				loginAsAnonymousCallback( user, verified, wallet );
+				*/
+				loginAsAnonymousSuccessCallback();
 			} else {
-				loginAsAnonymousErrorHandler( getErrors( json ));
+				loginAsAnonymousErrorCallback( getErrors( json ));
 			}
 		}
 		
-		
+
+
 		public void LoginWithGameCenterHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
-				User user = parseUser( json["user"] );
-				bool verified = isVerified( json["user"] );
-				Wallet wallet = parseWallet( json["wallet"] );
-				loginWithGameCenterCallback( user, verified, wallet );
+				loginWithGameCenterSuccessCallback();
 			} else {
-				loginWithGameCenterErrorHandler( getErrors( json ));
+				loginWithGameCenterErrorCallback( getErrors( json ));
 			}
 		}
-		
+
+
+		/* ttt implement this in same manner as anon...
 		public void LoginHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
@@ -369,7 +379,6 @@ namespace ArbiterInternal {
 			}
 		}
 		*/
-		
 		
 		public void LogoutHandler( string emptyString ) {
 			if ( logoutCallback != null ) {

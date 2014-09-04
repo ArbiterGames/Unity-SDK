@@ -11,7 +11,7 @@
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
 @property (strong, atomic) NSMutableDictionary *wallet;
-@property (strong, atomic) NSMutableDictionary *user;
+//ttt @property (strong, atomic) NSMutableDictionary *user;
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
@@ -23,6 +23,9 @@
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
 @property (copy) NSString *currentIncompleteTournamentId;
 
+@property (strong, atomic) NSMutableDictionary* _user;
+- (void)setUser:(NSMutableDictionary *)user;
+- (NSMutableDictionary *)user;
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;

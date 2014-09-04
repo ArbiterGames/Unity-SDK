@@ -21,27 +21,36 @@ public class Entrypoint : MonoBehaviour {
 	
 	void StartAuthenticationFlow() {
 #if UNITY_EDITOR
-		// Just log in as anon since we're in the editor (and assume no errors will occur)
-		Arbiter.LoginAsAnonymous( VerificationStep, null );
+		// Just log in as anon since we're in the editor
+		Arbiter.LoginAsAnonymous( VerificationStep, FatalError );
 #elif UNITY_IOS
 		if ( Arbiter.OSVersionSupportsGameCenter ) {
 			Action<bool> processGcAuth = ( success ) => {
 				if( success ) {
-					Arbiter.LoginWithGameCenter( VerificationStep );
+					Arbiter.LoginWithGameCenter( VerificationStep, FatalError );
 				} else {
-					Arbiter.LoginAsAnonymous( VerificationStep );
+					Arbiter.LoginAsAnonymous( VerificationStep, FatalError );
 				}
 
 			};
 			Social.localUser.Authenticate( processGcAuth );
 		} else {
-			Arbiter.LoginAsAnonymous( VerificationStep );
+			Arbiter.LoginAsAnonymous( VerificationStep, FatalError );
 		}
 #else
 		Debug.LogError( "Unknown platform!");
-		Arbiter.LoginAsAnonymous( VerificationStep );
+		Arbiter.LoginAsAnonymous( VerificationStep, FatalError );
 #endif	
 	}
+
+
+	void FatalError( List<string> errors ) {
+		Debug.LogError( "Encountered fatal errors. Cannot continue until they are resolved." );
+		errors.ForEach( error => {
+			Debug.LogError( error );
+		});
+	}
+
 
     void VerificationStep() {
     
@@ -65,6 +74,7 @@ public class Entrypoint : MonoBehaviour {
 
         LoadNextScene();
     }
+
 
 	void LoadNextScene() {
         // Since these listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
@@ -113,6 +123,7 @@ public class Entrypoint : MonoBehaviour {
 	/**
 		Method to demo overriding the default Arbiter error handlers
 	*/
+	// ttt old way??
 	void OptionallyOverrideDefaultArbiterErrorHandlers() {
 		Action<List<string>> criticalErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
@@ -120,9 +131,9 @@ public class Entrypoint : MonoBehaviour {
 		};
 		Arbiter.InitializeErrorHandler = criticalErrorHandler;
 
-		#if UNITY_IOS
+#if UNITY_IOS
 		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
-		#endif
+#endif
 
 		Arbiter.VerifyUserErrorHandler = ( errors ) => {
 			Debug.LogError( "Problem with verification. Not all features will be available!" );

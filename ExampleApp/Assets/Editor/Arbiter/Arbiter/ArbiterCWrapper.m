@@ -33,6 +33,18 @@ void checkForArbiterGameObject()
 }
 
 
+void clientCallbackUserUpdated()
+{
+    [arbiter getCachedUser:^(NSDictionary *jsonDict) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage("ArbiterBinding", "OnUserUpdated", jsonChar);
+    }];
+}
+
+
 
 void _init( const char *apiKey, const char *accessToken )
 {
@@ -52,7 +64,7 @@ void _init( const char *apiKey, const char *accessToken )
 void _loginAsAnonymous()
 {
     checkForArbiterGameObject();
-    /* ttt OLD
+    // ttt reduce this boilerplate...
     [arbiter loginAsAnonymous:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -60,10 +72,12 @@ void _loginAsAnonymous()
         const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", jsonChar);
     }];
-    */
+/* ttt NEW but wrong
     [arbiter loginAsAnonymous:^(void) {
-        UnitySendMessage("ArbiterBinding", "LoginAsAnonymousSuccessHandler", nil);
+        const char *emptyString = AutonomousStringCopy([@"" UTF8String]);
+        UnitySendMessage( "ArbiterBinding", "LoginAsAnonymousHandler", emptyString );
     }];
+    */
 }
 
 void _loginWithGameCenterPlayer()

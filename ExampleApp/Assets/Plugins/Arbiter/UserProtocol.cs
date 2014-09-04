@@ -12,9 +12,10 @@ namespace ArbiterInternal {
 		}
 
 
+		// ttt pass in a string instead??
 		public static bool Update( ref User user, JSONNode userNode ) {
 			string rawId = userNode["id"].Value;
-			if( user.Id == rawId ) {
+			if( user != null && user.Id == rawId ) {
 				fillUser( ref user, userNode );
 				return true;
 			} else {

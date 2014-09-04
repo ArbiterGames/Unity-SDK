@@ -17,14 +17,15 @@ public class Game : MonoBehaviour {
     
     private Arbiter arbiter;
 
+
 	void Start() {
-		GameObject arbiterGO = GameObject.Find ("Arbiter");
+		GameObject arbiterGO = GameObject.Find( "Arbiter" );
 		arbiter = arbiterGO.GetComponent<Arbiter>();
 		
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more money first.";
         } else {
-			if ( arbiter.SelectedUnfinishedTournamentId == null || arbiter.SelectedUnfinishedTournamentId == "" ) {
+			if( arbiter.SelectedUnfinishedTournamentId == null || arbiter.SelectedUnfinishedTournamentId == "" ) {
 				GetTournament();
 			} else {
 				PlayGame();

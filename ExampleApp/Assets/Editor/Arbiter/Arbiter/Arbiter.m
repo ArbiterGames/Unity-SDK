@@ -40,6 +40,23 @@
 
 #pragma mark User Methods
 
+- (void)setUser:(NSMutableDictionary*)user
+{
+//ttt    self.user = user;
+    self._user = user;
+    clientCallbackUserUpdated();
+}
+
+- (NSMutableDictionary *)user
+{
+    return self._user;
+}
+
+- (void)getCachedUser:(void(^)(NSDictionary *))handler
+{
+    handler(self.user);   
+}
+
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];
@@ -63,11 +80,10 @@
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-        // ttt TODO: call wallet updater
+        [self setWallet: [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
         // ttt TODO: call user updater
-        handler();
+        handler(responseDict);
     } copy];
     
     [self httpGet:APIUserInitializeURL handler:connectionHandler];
@@ -272,6 +288,13 @@
 
 #pragma mark Wallet Methods
 
+/* ttt keep?
+- (void)setWallet:(NSDictionary*)value
+{
+    NSLog(@"ttt synthesizing?? %@", self.wallet);
+    // ttt TODO: call wallet updater
+}
+ */
 
 - (void)fetchWallet:(void(^)(NSDictionary *))handler
 {
@@ -301,7 +324,7 @@
 /*
 - (NSString*)getWalletBalance
 {
-    /* ttt keep
+    // ttt keep
     if( self.wallet == nil ) {
         NSLog(@"@Wallet is null");
         return @"";

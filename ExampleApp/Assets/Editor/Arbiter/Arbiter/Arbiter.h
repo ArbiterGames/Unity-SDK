@@ -7,6 +7,7 @@
 
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterAlertWindow.h"
+#import "ArbiterPanelWindow.h"
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
@@ -16,6 +17,7 @@
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
 @property (retain) ArbiterAlertWindow *alertWindow;
+@property (retain) ArbiterPanelWindow *panelWindow;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageTournamentsUrl;
 @property (copy) NSString *previousPageTournamentsUrl;

@@ -10,6 +10,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
+#import "ArbiterWalletDashboardView.h"
 #import "ArbiterPaymentView.h"
 #import "ArbiterWithdrawView.h"
 #import "ArbiterAlertWindow.h"
@@ -49,6 +50,7 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self.alertWindow = [[ArbiterAlertWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -286,35 +288,57 @@
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( self.user ) {
-        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
         [self getWallet:^(NSDictionary *responseDict) {
-            
-            void (^closeWalletHandler)(void) = [^(void) {
-                handler();
+
+            void (^populateThenShowPanel)(void) = [^(void) {
+                ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+                [self.panelWindow show:walletDashboard];
             } copy];
-            
-            void (^populateThenShowAlert)(void) = [^(void) {
-                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-                [alert setTag:WALLET_ALERT_TAG];
-                [alert show];
-                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
-                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
-            } copy];
-            
+
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                 void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-                    populateThenShowAlert();
+                    populateThenShowPanel();
                 } copy];
                 [self verifyUser:verifyCallback];
             } else {
-                populateThenShowAlert();
+                populateThenShowPanel();
             }
         }];
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
+    
+// TODO: Commenting out while I work on the ArbiterPanelView
+//    if ( self.user ) {
+//        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
+//        [self getWallet:^(NSDictionary *responseDict) {
+//            
+//            void (^closeWalletHandler)(void) = [^(void) {
+//                handler();
+//            } copy];
+//            
+//            void (^populateThenShowAlert)(void) = [^(void) {
+//                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
+//                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
+//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
+//                [alert setTag:WALLET_ALERT_TAG];
+//                [alert show];
+//                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+//                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
+//            } copy];
+//            
+//            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+//                void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
+//                    populateThenShowAlert();
+//                } copy];
+//                [self verifyUser:verifyCallback];
+//            } else {
+//                populateThenShowAlert();
+//            }
+//        }];
+//    } else {
+//        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
+//    }
 }
 
 - (void)showDepositPanel

@@ -12,6 +12,8 @@ namespace ArbiterInternal {
 	public class ArbiterBinding : MonoBehaviour
 	{
 
+
+
 #region Shared data
 		
 		[DllImport ("__Internal")]
@@ -24,15 +26,29 @@ namespace ArbiterInternal {
 #endif
 		}
 
+		// ttt rethink this part...
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
 #if UNITY_EDITOR
-			return true;
+			return Arbiter.UserId != null;
 #elif UNITY_IOS
 			return _isUserAuthenticated();
 #endif
 		}
+
+
+		// Handler for native to call whenever it updates its user
+		public void OnUpdatedUser( string jsonString ) {
+			JSONNode jsonNode = JSON.Parse( jsonString );
+			if( UserProtocol.Update( ref Arbiter.user, jsonNode )) {
+				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
+			} else {
+				Arbiter.user = UserProtocol.Parse( jsonNode );
+				Arbiter.newUserListeners.ForEach( listener => listener() );
+			}
+		}
+
 
 		/* ttt kill
 
@@ -50,7 +66,7 @@ namespace ArbiterInternal {
 		private static extern void _init( string gameApiKey, string accessToken );
 		private static ErrorHandler initErrorHandler;
 		private static void initCallback() {
-			Debug.Log ("Arbiter successfully initialized.");
+			Debug.Log ("Arbiter initialized.");
 		}
 		public static void Init( string gameApiKey, string accessToken, ErrorHandler errorHandler ) {
 			initErrorHandler = errorHandler;
@@ -65,18 +81,19 @@ namespace ArbiterInternal {
 		
 		[DllImport ("__Internal")]
 		private static extern void _loginAsAnonymous();
-		public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
-		private static LoginCallback loginAsAnonymousCallback;
-		private static ErrorHandler loginAsAnonymousErrorHandler;
-		public static void LoginAsAnonymous( LoginCallback callback, ErrorHandler errorHandler ) {
-			loginAsAnonymousCallback = callback;
-			loginAsAnonymousErrorHandler = errorHandler;
+//ttt OLD		public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
+		public static SuccessHandler LoginAsAnonymousSuccessHandler;
+		public static ErrorHandler LoginAsAnonymousErrorHandler;
+		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
+			LoginAsAnonymousSuccessHandler = success;
+			LoginAsAnonymousErrorHandler = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "Login:Anonymous" );
 			User user = new User();
 			user.Id = "0";
 			user.Name = "AnonymousMcMockison";
-			loginAsAnonymousCallback( user, false, null );
+			Arbiter.user = user;
+			LoginAsAnonymousSuccessHandler();
 #elif UNITY_IOS
 			_loginAsAnonymous();
 #endif
@@ -86,9 +103,9 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
 		public delegate void LoginWithGameCenterCallback( User user, bool isVerified, Wallet wallet );
-		private static LoginCallback loginWithGameCenterCallback;
+		private static SuccessHandler loginWithGameCenterCallback;
 		private static ErrorHandler loginWithGameCenterErrorHandler;
-		public static void LoginWithGameCenter( LoginCallback callback, ErrorHandler errorHandler ) {
+		public static void LoginWithGameCenter( SuccessHandler callback, ErrorHandler errorHandler ) {
 			loginWithGameCenterCallback = callback;
 			loginWithGameCenterErrorHandler = errorHandler;
 #if UNITY_EDITOR
@@ -96,7 +113,7 @@ namespace ArbiterInternal {
 			User user = new User();
 			user.Id = "0";
 			user.Name = "McMockison";
-			loginWithGameCenterCallback( user, false, null );
+//ttt td			loginWithGameCenterCallback( user, false, null );
 #elif UNITY_IOS
 			_loginWithGameCenterPlayer();
 #endif
@@ -105,9 +122,9 @@ namespace ArbiterInternal {
 		
 		[DllImport ("__Internal")]
 		private static extern void _login();
-		private static LoginCallback loginCallback;
+		private static SuccessHandler loginCallback;
 		private static ErrorHandler loginErrorHandler;
-		public static void Login( LoginCallback callback, ErrorHandler errorHandler ) {
+		public static void Login( SuccessHandler callback, ErrorHandler errorHandler ) {
 			loginCallback = callback;
 			loginErrorHandler = errorHandler;
 #if UNITY_EDITOR
@@ -115,7 +132,7 @@ namespace ArbiterInternal {
 			User user = new User();
 			user.Id = "0";
 			user.Name = "McMockison";
-			loginCallback( user, false, null );
+//ttt td			loginCallback( user, false, null );
 #elif UNITY_IOS
 			_login();
 #endif
@@ -313,7 +330,8 @@ namespace ArbiterInternal {
 			}
 		}
 		
-		
+
+		/* ttt OLD
 		public void LoginAsAnonymousHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
@@ -350,17 +368,7 @@ namespace ArbiterInternal {
 				loginErrorHandler( getErrors( json ));
 			}
 		}
-		
-		
-		public void VerifyUserHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				User user = parseUser( json["user"] );
-				verifyUserCallback( user );
-			} else {
-				verifyUserErrorHandler( getErrors( json ));
-			}
-		}
+		*/
 		
 		
 		public void LogoutHandler( string emptyString ) {
@@ -368,7 +376,23 @@ namespace ArbiterInternal {
 				logoutCallback();
 			}
 		}
+
+
 		
+		
+		public void VerifyUserHandler( string jsonString ) {
+			/* ttt OLD
+			JSONNode json = JSON.Parse( jsonString );
+			if( wasSuccess( json )) {
+				User user = parseUser( json["user"] );
+				verifyUserCallback( user );
+			} else {
+				verifyUserErrorHandler( getErrors( json ));
+			}
+			*/
+		}
+
+
 		
 		public void GetWalletHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
@@ -450,7 +474,7 @@ namespace ArbiterInternal {
 		
 #if UNITY_EDITOR
 		private static void ReportIgnore( string functionName ) {
-			Debug.Log( "Ignoring call to Arbiter::"+functionName+" since this is running in editor. Will return default params to callbacks instead." );
+			Debug.Log( "Shorting call to Arbiter::"+functionName+" since this is running in editor. Will return default params to callbacks instead." );
 		}
 #endif
 		
@@ -464,7 +488,7 @@ namespace ArbiterInternal {
 		}
 		
 		
-		public delegate void ErrorHandler( List<string> errors );
+///ttt moved		public delegate void ErrorHandler( List<string> errors );
 		private List<string> getErrors( JSONNode json ) {
 			List<string> rv = new List<string>();
 			JSONArray errors = json["errors"].AsArray;
@@ -482,14 +506,6 @@ namespace ArbiterInternal {
 			                          string.Format( "\"{0}\": \"{1}\" ", kvp.Key, kvp.Value )
 			                          ).ToArray();
 			return "{" + string.Join( ",", entries ) + "}";
-		}
-		private User parseUser( JSONNode userNode ) {
-			User rv = new User();
-			rv.Id = userNode["id"].Value;
-			rv.Name = userNode["username"].Value;
-			rv.LocationApproved = userNode["location_approved"].Value.Equals("true");
-			rv.AgreedToTerms = userNode["agreed_to_terms"].Value.Equals("true");
-			return rv;
 		}
 		
 		
@@ -550,6 +566,7 @@ namespace ArbiterInternal {
 		}
 		
 		// Parses the Tournament.Users JSON array returned from the server and converts each item into a c# TournamentUser
+		// ttt is this still used? if so, clean it up
 		private List<Arbiter.TournamentUser> parseUsers( JSONNode usersNode ) {
 			List<Arbiter.TournamentUser> rv = new List<Arbiter.TournamentUser>();
 			JSONArray rawUsers = usersNode.AsArray;

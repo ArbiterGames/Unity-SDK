@@ -5,8 +5,13 @@ using System.Linq;
 using ArbiterInternal;
 
 
+public delegate void SuccessHandler();
+public delegate void ErrorHandler( List<string> errors );
+
 public partial class Arbiter : MonoBehaviour
 {
+
+
 	public string accessToken;
 	public string gameApiKey;
 	
@@ -14,13 +19,13 @@ public partial class Arbiter : MonoBehaviour
 	public string SelectedUnfinishedTournamentId;
 	
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
-	public static string    UserId                      { get { return user.Id; } }
-	public static string    Username                    { get { return user.Name; } }
-	public static string	AccessToken				  	{ get { return user.Token; }}
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
+	public static string    UserId                      { get { if( !UserExists ) return null;  return user.Id; } }
+	public static string    Username                    { get { if( !UserExists ) return null; 	return user.Name; } }
+	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  return user.Token; }}
 	public static bool		AgreedToTerms				{ get { return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { return user.LocationApproved; } }
-	public static string    Balance                     { get {Debug.Log ("ttt Arbiter.cs.Balance;"); if( AssertWalletExists() ) return wallet.Balance; else return ""; } }
+	public static string    Balance                     { get {Debug.Log ("ttt Arbiter.cs.Balance...."); if( AssertWalletExists() ) return wallet.Balance; else return ""; } }
 	/* ttt OLD
 	public static string    PendingBalance              { get { return wallet.PendingBalance; } }
 	public static string    DepositAddress              { get { return wallet.DepositAddress; } }
@@ -31,7 +36,9 @@ public partial class Arbiter : MonoBehaviour
 	public static string    DepositAddress              { get { return "ttt"; } }
 	public static string    DepositQrCode               { get { return "ttt"; } }
 	public static string    WithdrawAddress             { get { return "ttt"; } }
-	
+
+
+
 	void Awake() {
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
 			Debug.LogWarning( "Arbiter Error: Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
@@ -59,17 +66,10 @@ public partial class Arbiter : MonoBehaviour
 		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
 	}
 	public static Action<List<string>> InitializeErrorHandler { set { initializeErrorHandler = ( errors ) => value( errors ); } }
+
+
 	
-	public static void LoginAsAnonymous( Action done ) {
-		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
-			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
-		};
-		ArbiterBinding.LoginAsAnonymous( parse, loginAsAnonymousErrorHandler );
-	}
-	public static Action<List<string>> LoginAsAnonymousErrorHandler { set { loginAsAnonymousErrorHandler = ( errors ) => value( errors ); } }
-	
-	
-	#if UNITY_IOS
+#if UNITY_IOS
 	public static bool OSVersionSupportsGameCenter { 
 		get {
 			// SystemInfo.operatingSystem returns something like iPhone OS 6.1
@@ -79,25 +79,47 @@ public partial class Arbiter : MonoBehaviour
 			return osVersion >= 7;
 		}
 	}
-	public static void LoginWithGameCenter( Action done ) {
-		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
-			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
-		};
-		ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
-	}
-	public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
-	#endif
-	
+#endif
+
+
+	// ttt mimic format of LoginAsAnoymous...
 	public static void Login( Action callback ) {
+		/* ttt implement something like this:
 		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {    
 			parseLoginResponse( responseUser, responseVerified, responseWallet, callback );
 		};
 		
 		ArbiterBinding.Login( parse, loginErrorHandler );
+		*/
 	}
 	public static Action<List<string>> LoginErrorHandler { set { loginErrorHandler = ( errors ) => value( errors ); } }
 	
 	
+	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
+		/* ttt OLD
+		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
+		};
+		ArbiterBinding.LoginAsAnonymous( parse, loginAsAnonymousErrorHandler );
+		*/
+		ArbiterBinding.LoginAsAnonymous( success, failure );
+	}
+	public static Action<List<string>> LoginAsAnonymousErrorHandler { set { loginAsAnonymousErrorHandler = ( errors ) => value( errors ); } }
+
+
+#if UNITY_IOS
+	public static void LoginWithGameCenter( Action done ) {
+		/* ttt implement something like this:
+		ArbiterBinding.LoginCallback parse = ( responseUser, responseVerified, responseWallet ) => {
+			parseLoginResponse( responseUser, responseVerified, responseWallet, done );
+		};
+		ArbiterBinding.LoginWithGameCenter( parse, loginWithGameCenterErrorHandler );
+		*/
+	}
+	public static Action<List<string>> LoginWithGameCenterErrorHandler { set { loginWithGameCenterErrorHandler = ( errors ) => value( errors ); } }
+#endif
+
+
 	public static void Logout( Action callback ) {
 		if ( walletPoller ) {
 			walletPoller.Stop();
@@ -119,8 +141,8 @@ public partial class Arbiter : MonoBehaviour
 		};
 		ArbiterBinding.Logout( logoutHandler );
 	}
-	
-	
+
+
 	
 	public static void VerifyUser( Action done ) {
 		ArbiterBinding.VerifyUserCallback parse = ( responseUser ) => {
@@ -136,6 +158,29 @@ public partial class Arbiter : MonoBehaviour
 		set { verifyUserErrorHandler = ( errors ) => value( errors ); }
 	}
 	
+
+	private static bool UserExists { get {
+		if( user == null ) {
+			return false;
+		}
+		return true;
+	} }
+
+	public static void AddUserUpdatedListener( Action listener ) {
+		if( !userUpdatedListeners.Contains( listener ))
+			userUpdatedListeners.Add( listener );
+	}
+	public static void RemoveUserUpdatedListener( Action listener ) {
+		userUpdatedListeners.Remove( listener );
+	}
+	public static void AddNewUserListener( Action listener ) {
+		if( !newUserListeners.Contains( listener ))
+			newUserListeners.Add( listener );
+	}
+	public static void RemoveNewUserListener( Action listener ) {
+		newUserListeners.Remove( listener );
+	}
+
 
 	private static bool AssertWalletExists() {
 		if( wallet == null ) {
@@ -342,25 +387,26 @@ public partial class Arbiter : MonoBehaviour
 	private static string _accessToken;
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
-	private static User user;
+	internal static User user;
 	private static Wallet wallet;
 	private static List<Tournament> initializingTournaments;
 	private static List<Tournament> inProgressTournaments;
 	private static List<Tournament> completeTournaments;
 	
-	private static ArbiterBinding.ErrorHandler initializeErrorHandler = defaultErrorHandler;
-	private static ArbiterBinding.ErrorHandler loginErrorHandler = defaultErrorHandler;
-	private static ArbiterBinding.ErrorHandler loginAsAnonymousErrorHandler = defaultErrorHandler;
+	private static ErrorHandler initializeErrorHandler = defaultErrorHandler;
+	private static ErrorHandler loginErrorHandler = defaultErrorHandler;
+	private static ErrorHandler loginAsAnonymousErrorHandler = defaultErrorHandler;
+	internal static List<Action> userUpdatedListeners = new List<Action>();
+	internal static List<Action> newUserListeners = new List<Action>();
 	private static Action walletSuccessCallback;
 	private static List<Action> walletQueryListeners = new List<Action>();
-	private static ArbiterBinding.ErrorHandler walletErrorHandler = defaultErrorHandler;
-	private static ArbiterBinding.ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
+	private static ErrorHandler walletErrorHandler = defaultErrorHandler;
+	private static ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 	private static Action getTournamentsCallback;
-	private static ArbiterBinding.ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;
-	private static ArbiterBinding.ErrorHandler requestTournamentErrorHandler = defaultErrorHandler;
-	private static Action viewIncompleteTournamentsCallback;
+	private static ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;
+	private static ErrorHandler requestTournamentErrorHandler = defaultErrorHandler;
 	#if UNITY_IOS
-	private static ArbiterBinding.ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
+	private static ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
 	#endif
 
 }

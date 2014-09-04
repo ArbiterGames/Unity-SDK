@@ -52,12 +52,17 @@ void _init( const char *apiKey, const char *accessToken )
 void _loginAsAnonymous()
 {
     checkForArbiterGameObject();
+    /* ttt OLD
     [arbiter loginAsAnonymous:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
         const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", jsonChar);
+    }];
+    */
+    [arbiter loginAsAnonymous:^(void) {
+        UnitySendMessage("ArbiterBinding", "LoginAsAnonymousSuccessHandler", nil);
     }];
 }
 

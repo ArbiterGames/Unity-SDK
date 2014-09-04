@@ -21,8 +21,8 @@ public class Entrypoint : MonoBehaviour {
 	
 	void StartAuthenticationFlow() {
 #if UNITY_EDITOR
-		// Skip logging in since we're in editor
-		Arbiter.LoginAsAnonymous( VerificationStep );
+		// Just log in as anon since we're in the editor (and assume no errors will occur)
+		Arbiter.LoginAsAnonymous( VerificationStep, null );
 #elif UNITY_IOS
 		if ( Arbiter.OSVersionSupportsGameCenter ) {
 			Action<bool> processGcAuth = ( success ) => {
@@ -57,6 +57,8 @@ public class Entrypoint : MonoBehaviour {
 
 
 	void SetupListenersExample() {
+		Arbiter.AddUserUpdatedListener( UpdateUserElements );
+		Arbiter.AddNewUserListener( UpdateUserElements );
         Arbiter.AddWalletListener( UpdateWalletElements );
 		Arbiter.AddWalletListener( WalletListenerExample );
 		ArbiterDoTheseAsOftenAsYouWant();
@@ -65,8 +67,10 @@ public class Entrypoint : MonoBehaviour {
     }
 
 	void LoadNextScene() {
-        // Since the 2 listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
+        // Since these listeners won't persist across level load, remove them or the game will crash when they are called  TODO: Re-assess this ... is this actually true??
         // (if you setup listeners on persistent objects you should be fine)
+		Arbiter.RemoveUserUpdatedListener( UpdateUserElements );
+		Arbiter.RemoveNewUserListener( UpdateUserElements );
         Arbiter.RemoveWalletListener( UpdateWalletElements );
 		Arbiter.RemoveWalletListener( WalletListenerExample );
 		Application.LoadLevel( "SecondScene" );
@@ -80,22 +84,21 @@ public class Entrypoint : MonoBehaviour {
 
 
 
-    void UpdateWalletElements() {
-        bool verified = Arbiter.IsVerified;
-        string balance = Arbiter.Balance;
-		string pendingBalance = Arbiter.PendingBalance;
-        string depositAddress = Arbiter.DepositAddress;
-        string depositQrCode = Arbiter.DepositQrCode;
-        string withdrawAddress = Arbiter.WithdrawAddress;
+	void UpdateUserElements() {
+		string name = Arbiter.Username;
+		bool verified = Arbiter.IsVerified;
+		
+		Debug.Log( "Update elements if needed...\n"+
+		          "username="+name+"\n"+
+		          "verified="+verified);
+	}
 
-        Debug.Log( "Update elements if needed.\n"+
-            "verified="+verified+"\n"+
-            "balance="+balance+"\n"+
-            "pending balance="+pendingBalance+"\n"+
-            "deposit="+depositAddress+"\n"+
-            "depositQr="+depositQrCode+"\n"+
-            "withdraw="+withdrawAddress
-        );
+
+    void UpdateWalletElements() {    
+        string balance = Arbiter.Balance;
+
+        Debug.Log( "Update elements if needed...\n"+
+			"balance="+balance+"\n");
     }
 
 

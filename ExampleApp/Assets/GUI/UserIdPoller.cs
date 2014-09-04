@@ -16,7 +16,10 @@ public class UserIdPoller : MonoBehaviour {
 
 
 	void OnGUI () {
-        textField.text = Arbiter.UserId;
+		if( Arbiter.IsAuthenticated )
+        	textField.text = Arbiter.UserId;
+		else
+			textField.text = "<log in first>";
     }
 
 

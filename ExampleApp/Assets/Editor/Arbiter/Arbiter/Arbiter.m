@@ -64,8 +64,10 @@
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+        // ttt TODO: call wallet updater
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        handler(responseDict);
+        // ttt TODO: call user updater
+        handler();
     } copy];
     
     [self httpGet:APIUserInitializeURL handler:connectionHandler];

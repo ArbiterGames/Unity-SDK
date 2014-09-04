@@ -121,10 +121,10 @@ bool _isUserVerified()
     return [arbiter isUserVerified];
 }
 
-void _getWallet()
+void _fetchWallet()
 {
     checkForArbiterGameObject();
-    [arbiter getWallet:^(NSDictionary *jsonDict) {
+    [arbiter fetchWallet:^(NSDictionary *jsonDict) {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
@@ -133,6 +133,19 @@ void _getWallet()
     }];
 }
 
+// ttt this isn't needed....?
+void _updateClientWallet()
+{
+    [arbiter getCachedWallet:^(NSDictionary *jsonDict) {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        UnitySendMessage("ArbiterBinding", "GetWalletHandler", jsonChar);
+    }];
+}
+
+/* ttt kill
 const char* _getWalletBalance()
 {
     checkForArbiterGameObject();
@@ -140,6 +153,8 @@ const char* _getWalletBalance()
     const char* emptyString = AutonomousStringCopy([@"" UTF8String]);
     return AutonomousStringCopy(emptyString);
 }
+*/
+
 
 void _showWalletPanel()
 {
@@ -180,7 +195,7 @@ void _requestTournament( const char *buyIn, const char *filters )
      ];
 }
 
-void _getTournaments()
+void _getTournaments() // ttt rename?
 {
     checkForArbiterGameObject();
     [arbiter getTournaments:^(NSDictionary *jsonDict) {

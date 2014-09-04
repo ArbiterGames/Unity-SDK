@@ -27,14 +27,21 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
+#if UNITY_EDITOR
+			return true;
+#elif UNITY_IOS
 			return _isUserAuthenticated();
+#endif
 		}
+
+		/* ttt kill
 
 		[DllImport ("__Internal")]
 		private static extern string _getWalletBalance();  // ttt stepping stone to getting back the wallet as a dict?
 		public static string GetWalletBalance() {
 			return _getWalletBalance();
 		}
+		*/
 		
 #endregion
 
@@ -153,7 +160,7 @@ namespace ArbiterInternal {
 		
 		
 		[DllImport ("__Internal")]
-		private static extern void _getWallet();
+		private static extern void _fetchWallet();
 		public delegate void GetWalletCallback( Wallet wallet );
 		private static GetWalletCallback getWalletCallback;
 		private static ErrorHandler getWalletErrorHandler;
@@ -164,7 +171,7 @@ namespace ArbiterInternal {
 			ReportIgnore( "GetWallet" );
 			getWalletCallback( Wallet.CreateMockWallet() );
 #elif UNITY_IOS
-			_getWallet();
+			_fetchWallet();
 #endif
 		}
 		

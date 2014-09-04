@@ -270,10 +270,12 @@
 
 #pragma mark Wallet Methods
 
-- (void)getWallet:(void(^)(NSDictionary *))handler
+
+- (void)fetchWallet:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+        // ttt Need to send to client on each assignment of self.wallet...
         handler(responseDict);
     } copy];
     
@@ -287,6 +289,14 @@
     }
 }
 
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler
+{
+    // ttt TODO: only use callback if this is dirty??
+    //NSDictionary* copy = [NSDictionary dictionaryWithDictionary:[self.wallet]];
+    handler(self.wallet);   
+}
+
+/*
 - (NSString*)getWalletBalance
 {
     /* ttt keep
@@ -296,9 +306,10 @@
     } else {
         return [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"balance"]];
     }
-    */
+//
     return [NSString stringWithFormat: @""];
 }
+*/
 
 - (void)showWalletPanel:(void(^)(void))handler
 {

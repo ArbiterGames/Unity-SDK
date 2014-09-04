@@ -17,7 +17,11 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserVerified();
 		public static bool IsUserVerified() {
+#if UNITY_EDITOR
+			return true;
+#elif UNITY_IOS
 			return _isUserVerified();
+#endif
 		}
 		
 #endregion

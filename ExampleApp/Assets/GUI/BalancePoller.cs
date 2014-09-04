@@ -16,7 +16,6 @@ public class BalancePoller : MonoBehaviour {
 
 
 	void OnGUI () {
-		Debug.Log ("ttt BalancePoller.OnGUI. ArbiterBalance="+Arbiter.Balance);
         textField.text = Arbiter.Balance;
     }
 

@@ -332,7 +332,10 @@ public partial class Arbiter : MonoBehaviour
 			walletPoller = Poller.Create( "ArbiterWalletPoller" );
 			DontDestroyOnLoad( walletPoller.gameObject );
 			walletPoller.Verbose = false;
-			walletPoller.SetAction( () => tryFetchWallet( null, null ));
+			walletPoller.SetAction( () => tryFetchWallet( 
+				() => {}, 
+				(errors) => errors.ForEach( e=>Debug.Log(e) ) )
+			);
 		}
 		if ( !tournamentPoller ) {
 			tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );

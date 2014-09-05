@@ -286,13 +286,21 @@
 
 #pragma mark Wallet Methods
 
-/* ttt keep?
-- (void)setWallet:(NSDictionary*)value
+- (void)setWallet:(NSMutableDictionary*)wallet
 {
-    NSLog(@"ttt synthesizing?? %@", self.wallet);
-    // ttt TODO: call wallet updater
+    self._wallet = wallet;
+    ClientCallbackWalletUpdated();
 }
- */
+
+- (NSMutableDictionary *)wallet
+{
+    return self._wallet;
+}
+
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler
+{
+    handler(self.wallet);   
+}
 
 - (void)fetchWallet:(void(^)(NSDictionary *))handler
 {
@@ -309,13 +317,6 @@
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
                  });
     }
-}
-
-- (void)getCachedWallet:(void(^)(NSDictionary *))handler
-{
-    // ttt TODO: only use callback if this is dirty??
-    //NSDictionary* copy = [NSDictionary dictionaryWithDictionary:[self.wallet]];
-    handler(self.wallet);   
 }
 
 /*

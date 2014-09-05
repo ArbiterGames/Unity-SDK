@@ -13,6 +13,7 @@ namespace ArbiterInternal {
         public string Token;
         public bool AgreedToTerms;
         public bool LocationApproved;
+		public bool Verified;
 
 
         public override string ToString() {

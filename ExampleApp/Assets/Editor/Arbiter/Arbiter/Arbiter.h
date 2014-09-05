@@ -10,8 +10,6 @@
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
-@property (strong, atomic) NSMutableDictionary *wallet;
-@property (strong, atomic) NSMutableDictionary *user;
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
@@ -23,6 +21,13 @@
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
 @property (copy) NSString *currentIncompleteTournamentId;
 
+@property (strong, atomic) NSMutableDictionary* _user;
+- (void)setUser:(NSMutableDictionary *)user;
+- (NSMutableDictionary *)user;
+
+@property (strong, atomic) NSMutableDictionary* _wallet;
+- (void)setWallet:(NSMutableDictionary *)wallet;
+- (NSMutableDictionary *)wallet;
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;
@@ -32,7 +37,7 @@
 - (bool)isUserVerified;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
-- (void)getWallet:(void(^)(NSDictionary *))handler;
+- (void)fetchWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;

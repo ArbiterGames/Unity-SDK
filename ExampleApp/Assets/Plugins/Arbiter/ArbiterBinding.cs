@@ -320,8 +320,8 @@ namespace ArbiterInternal {
 			SimpleCallback( LOGIN, jsonString );
 		}
 		
-		public void LogoutHandler( string jsonString ) {
-			SimpleCallback( LOGOUT, jsonString );
+		public void LogoutHandler( string emptyString ) {
+			SimpleCallback( LOGOUT );
 		}
 
 		public void VerifyUserHandler( string jsonString ) {
@@ -350,7 +350,7 @@ namespace ArbiterInternal {
 			
 			if( wasSuccess( json )) {
 				JSONNode tournamentsNode = json["tournaments"];
-				fetchTournamentsSuccessHandler( parseTournaments( tournamentsNode["results"] )); // ttt use protocol
+				fetchTournamentsSuccessHandler( TournamentProtocol.ParseTournaments( tournamentsNode["results"] ));
 			} else {
 				fetchTournamentsErrorHandler( getErrors( json ));
 			}
@@ -375,7 +375,7 @@ namespace ArbiterInternal {
 			if( wasSuccess( json )) {
 				JSONClass tournamentNode = json["tournament"] as JSONClass;
 				if( reportScoreSuccessHandler != null )
-					reportScoreSuccessHandler( parseTournament( tournamentNode ));
+					reportScoreSuccessHandler( TournamentProtocol.ParseTournament( tournamentNode ));
 			} else {
 				reportScoreErrorHandler( getErrors( json ));
 			}
@@ -412,7 +412,6 @@ namespace ArbiterInternal {
 			}
 		}
 		private void SimpleCallback( string callKey ) {
-			Debug.Log ("ttt calling SimpleCallback for key: "+callKey+"\n value="+simpleCallbacks[callKey]);
 			simpleCallbacks[ callKey ].Success();
 		}
 #endregion
@@ -454,79 +453,5 @@ namespace ArbiterInternal {
 			return "{" + string.Join( ",", entries ) + "}";
 		}
 		
-
-		// ttt make this a protocol
-		private List<Arbiter.Tournament> parseTournaments( JSONNode tournamentsNode ) {
-			List<Arbiter.Tournament> rv = new List<Arbiter.Tournament>();
-			JSONArray rawTournaments = tournamentsNode.AsArray;
-			IEnumerator enumerator = rawTournaments.GetEnumerator();
-			while( enumerator.MoveNext() ) {
-				JSONClass tournament = enumerator.Current as JSONClass;
-				rv.Add( parseTournament( tournament ));
-			}
-			return rv;
-		}
-		private Arbiter.Tournament parseTournament( JSONClass tournamentNode ) { // ttt make this a protocol
-			Arbiter.Tournament.StatusType status = Arbiter.Tournament.StatusType.Unknown;
-			
-			switch( tournamentNode["status"] ) {
-			case "initializing":
-				status = Arbiter.Tournament.StatusType.Initializing;
-				break;
-			case "inprogress":
-				status = Arbiter.Tournament.StatusType.InProgress;
-				break;
-			case "complete":
-				status = Arbiter.Tournament.StatusType.Complete;
-				break;
-			default:
-				Debug.LogError( "Unknown status encountered: " + tournamentNode["status"] );
-				break;
-			}
-			
-			List<Arbiter.TournamentUser> users = parseUsers( tournamentNode["users"] );
-			List<string> winners = parseWinners( tournamentNode["winners"] );
-			Arbiter.Tournament rv = new Arbiter.Tournament( tournamentNode["id"], status, users, winners );
-
-			return rv;
-		}
-		
-		// I'm sure the is a more elegant way of converting items in the JSON array in a c# list of strings, but this solves the type casting issue for now
-		private List<string> parseWinners( JSONNode winnersNode ) {
-			List<string> winners = new List<string>();
-			if ( winnersNode != null ) {
-				JSONArray rawNode = winnersNode.AsArray;
-				IEnumerator enumerator = rawNode.GetEnumerator();
-				while( enumerator.MoveNext() ) {
-					JSONData winnerId = enumerator.Current as JSONData;
-					winners.Add( winnerId.Value );
-				}
-			}	
-			return winners;
-		}
-		
-		// Parses the Tournament.Users JSON array returned from the server and converts each item into a c# TournamentUser
-		private List<Arbiter.TournamentUser> parseUsers( JSONNode usersNode ) {
-			List<Arbiter.TournamentUser> rv = new List<Arbiter.TournamentUser>();
-			JSONArray rawUsers = usersNode.AsArray;
-			IEnumerator enumerator = rawUsers.GetEnumerator();
-			while( enumerator.MoveNext() ) {
-				JSONClass userNode = enumerator.Current as JSONClass;
-				string id = userNode["id"];
-				bool paid = userNode["paid"].AsBool;
-				string score = userNode["score"];
-				
-				Arbiter.TournamentUser user = new Arbiter.TournamentUser( id );
-				user.Paid = paid;
-				if( score != null && score != "null" && score != "<null>" )                	
-					user.Score = int.Parse( score );
-				
-				rv.Add( user );
-			}
-			return rv;
-		}
-		
 	}
-	
-	
 }

@@ -6,6 +6,9 @@ namespace ArbiterInternal {
 
 
 		public static User Parse( string jsonString ) {
+			if( jsonString == null || jsonString == "" )
+				return null;
+
 			User rv = new User();
 			fillUser( ref rv, JSON.Parse( jsonString ));
 			return rv;
@@ -13,13 +16,18 @@ namespace ArbiterInternal {
 
 
 		public static bool Update( ref User user, string jsonString ) {
-			JSONNode jsonNode = JSON.Parse( jsonString );
-			string rawId = jsonNode["id"].Value;
-			if( user != null && user.Id == rawId ) {
-				fillUser( ref user, jsonNode );
-				return true;
-			} else {
+			if( jsonString == null || jsonString == "" ) {
+				user = null;
 				return false;
+			} else {
+				JSONNode jsonNode = JSON.Parse( jsonString );
+				string rawId = jsonNode["id"].Value;
+				if( user != null && user.Id == rawId ) {
+					fillUser( ref user, jsonNode );
+					return true;
+				} else {
+					return false;
+				}
 			}
 		}
 

@@ -34,11 +34,15 @@ const char* EMPTY_STRING = (char*)@"";
 
 const char* ProcessDictionaryParams( NSDictionary *jsonDict )
 {
-    NSError *error;
-    NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
-    NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-    const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
-    return jsonChar;
+    if( jsonDict == nil ) {
+        return EMPTY_STRING;
+    } else {
+        NSError *error;
+        NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
+        NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
+        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        return jsonChar;
+    }
 }
 
 
@@ -98,7 +102,7 @@ void _login()
 void _logout()
 {
     [ArbiterInstance() logout:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "LogoutHandler", ProcessDictionaryParams( jsonDict ) );
+        UnitySendMessage( "ArbiterBinding", "LogoutHandler", EMPTY_STRING );
     }];
 }
 

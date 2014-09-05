@@ -319,20 +319,6 @@
     }
 }
 
-/*
-- (NSString*)getWalletBalance
-{
-    // ttt keep
-    if( self.wallet == nil ) {
-        NSLog(@"@Wallet is null");
-        return @"";
-    } else {
-        return [NSString stringWithFormat: @"%@", [self.wallet objectForKey:@"balance"]];
-    }
-//
-    return [NSString stringWithFormat: @""];
-}
-*/
 
 - (void)showWalletPanel:(void(^)(void))handler
 {

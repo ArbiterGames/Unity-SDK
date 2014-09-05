@@ -9,9 +9,6 @@ using System.Collections.Generic;
 public class Entrypoint : MonoBehaviour {
 
 	void Start () {
-		// Override default error handlers if you want
-		OptionallyOverrideDefaultArbiterErrorHandlers();
-		
 		if ( Arbiter.IsAuthenticated ) {
 			LoadNextScene();
 		} else {
@@ -61,7 +58,7 @@ public class Entrypoint : MonoBehaviour {
         if( Arbiter.IsVerified )
             SetupListenersExample();
         else
-			Arbiter.VerifyUser( SetupListenersExample );
+			Arbiter.VerifyUser( SetupListenersExample, FatalError );
 	}
 
 
@@ -69,8 +66,6 @@ public class Entrypoint : MonoBehaviour {
 		Arbiter.AddUserUpdatedListener( UpdateUserElements );
 		Arbiter.AddNewUserListener( UpdateUserElements );
         Arbiter.AddWalletListener( UpdateWalletElements );
-		Arbiter.AddWalletListener( WalletListenerExample );
-		ArbiterDoTheseAsOftenAsYouWant();
 
         LoadNextScene();
     }
@@ -82,14 +77,7 @@ public class Entrypoint : MonoBehaviour {
 		Arbiter.RemoveUserUpdatedListener( UpdateUserElements );
 		Arbiter.RemoveNewUserListener( UpdateUserElements );
         Arbiter.RemoveWalletListener( UpdateWalletElements );
-		Arbiter.RemoveWalletListener( WalletListenerExample );
 		Application.LoadLevel( "SecondScene" );
-    }
-
-
-
-    void ArbiterDoTheseAsOftenAsYouWant() { // But only after initialization is complete!
-        Arbiter.UpdateWallet(); // ttt here on sharing data
     }
 
 
@@ -112,35 +100,4 @@ public class Entrypoint : MonoBehaviour {
     }
 
 
-	/**
-		Method to demo setting up a wallet listener
-	*/
-    void WalletListenerExample() {
-        Debug.Log( "Example of other wallet listeners triggering." );
-    }
-
-
-	/**
-		Method to demo overriding the default Arbiter error handlers
-	*/
-	// ttt old way?? kill these?
-	void OptionallyOverrideDefaultArbiterErrorHandlers() {
-		/*
-		Action<List<string>> criticalErrorHandler = ( errors ) => {
-			Debug.LogError( "Cannot continue betting flow unless these login errors are fixed!" );
-			errors.ForEach( e => Debug.LogError( e ));
-		};
-		*/
-//		Arbiter.InitializeErrorHandler = criticalErrorHandler;
-
-#if UNITY_IOS
-//		Arbiter.LoginWithGameCenterErrorHandler = criticalErrorHandler;
-#endif
-
-		Arbiter.VerifyUserErrorHandler = ( errors ) => {
-			Debug.LogError( "Problem with verification. Not all features will be available!" );
-			errors.ForEach( e => Debug.LogError( e ));
-			SetupListenersExample();
-		};
-	}
 }

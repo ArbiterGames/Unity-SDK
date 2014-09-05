@@ -59,7 +59,7 @@ public partial class Arbiter : MonoBehaviour
 			errors.ForEach( e => Debug.LogError( e ));
 		};
 
-		ArbiterBinding.Init( _gameApiKey, _accessToken, initializeErrorHandler );
+		ArbiterBinding.Init( _gameApiKey, _accessToken, () => {}, initializeErrorHandler );
 	}
 
 	
@@ -100,7 +100,7 @@ public partial class Arbiter : MonoBehaviour
 #endif
 
 
-	public static void Logout( Action callback ) {
+	public static void Logout( SuccessHandler success, ErrorHandler failure ) {
 		if ( walletPoller ) {
 			walletPoller.Stop();
 			walletPoller = null;
@@ -113,25 +113,14 @@ public partial class Arbiter : MonoBehaviour
 		
 		wallet = null;
 		user = null;
-		
-		ArbiterBinding.LogoutCallback logoutHandler = () => {
-			if ( callback != null ) {
-				callback();			
-			}
-		};
-		ArbiterBinding.Logout( logoutHandler );
+
+		ArbiterBinding.Logout( success, failure );
 	}
 
 
 	
-	public static void VerifyUser( Action done ) {
-		ArbiterBinding.VerifyUserCallback parse = ( responseUser ) => {
-			user = responseUser;
-			if( done != null ) {
-				done();
-			}
-		};
-		ArbiterBinding.VerifyUser( parse, verifyUserErrorHandler );
+	public static void VerifyUser( SuccessHandler success, ErrorHandler failure ) {
+		ArbiterBinding.VerifyUser( success, failure );
 	}
 	
 	public static Action<List<string>> VerifyUserErrorHandler {
@@ -193,13 +182,14 @@ public partial class Arbiter : MonoBehaviour
 	}
 
 
-	public static void DisplayWalletDashboard( Action callback ) {
+	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
+		walletPoller.Reset();
 	}
 	
 
-	public static void SendPromoCredits( string amount, Action callback ) {
-		ArbiterBinding.SendPromoCredits( amount, callback );
+	public static void SendPromoCredits( string amount, SuccessHandler success, ErrorHandler failure ) {
+		ArbiterBinding.SendPromoCredits( amount, success, failure );
 	}
 	
 	public delegate void JoinTournamentCallback( Tournament tournament );
@@ -211,7 +201,7 @@ public partial class Arbiter : MonoBehaviour
 			tournament.UserCanReportScore( user.Id );
 		};
 		
-		GetTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
+		FetchTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
 			
 			if( joinableTournaments.Count > 0 ) {
@@ -231,15 +221,15 @@ public partial class Arbiter : MonoBehaviour
 				getTournamentsErrorHandler( errors );
 				tournamentPoller.Stop();
 			} else {
-				ArbiterBinding.GetTournaments( gotTournamentsPollHelper, getTournamentsErrorHandler );
+				ArbiterBinding.FetchTournaments( gotTournamentsPollHelper, getTournamentsErrorHandler );
 			}
 		};
 		
-		RequestTournamentCallback gotRequestResponse = () => {
+		SuccessHandler gotRequestResponse = () => {
 			tournamentPoller.SetAction( askAgain );
 		};
 		
-		GetTournamentsCallback gotTournamentsFirstTimeHelper = ( tournaments ) => {
+		FetchTournamentsCallback gotTournamentsFirstTimeHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
 			if( joinableTournaments.Count > 0 ) {
 				callback( joinableTournaments[0] );
@@ -248,13 +238,12 @@ public partial class Arbiter : MonoBehaviour
 			}
 		};
 		
-		ArbiterBinding.GetTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
+		ArbiterBinding.FetchTournaments( gotTournamentsFirstTimeHelper, getTournamentsErrorHandler );
 	}
 	public static Action<List<string>> JoinTournamentErrorHandler { set { getTournamentsErrorHandler = ( errors ) => value( errors ); } }
 	
-	
-	public delegate void RequestTournamentCallback();
-	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, RequestTournamentCallback callback ) {
+
+	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler callback ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
 		}
@@ -263,20 +252,20 @@ public partial class Arbiter : MonoBehaviour
 	public static Action<List<string>> RequestTournamentErrorHandler { set { requestTournamentErrorHandler = ( errors ) => value( errors ); } }
 	
 	
-	public static void GetTournaments( Action callback ) {
+	public static void FetchTournaments( Action callback ) {
 		getTournamentsCallback = callback;
-		ArbiterBinding.GetTournaments( GetTournamentsSuccessHandler, getTournamentsErrorHandler );
+		ArbiterBinding.FetchTournaments( FetchTournamentsSuccessHandler, getTournamentsErrorHandler );
 	}
 	
-	public delegate void GetTournamentsCallback( List<Tournament> tournaments );
-	public static void GetTournamentsSuccessHandler( List<Tournament> tournaments ) {
+	public delegate void FetchTournamentsCallback( List<Tournament> tournaments );
+	public static void FetchTournamentsSuccessHandler( List<Tournament> tournaments ) {
 		initializingTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Initializing ).ToList();
 		inProgressTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.InProgress ).ToList();
 		completeTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Complete ).ToList();
 		getTournamentsCallback();
 	}
 	
-	public static void DisplayTournamentDetails( string tournamentId, Action callback ) {
+	public static void DisplayTournamentDetails( string tournamentId, SuccessHandler callback ) {
 		ArbiterBinding.ShowTournamentDetailsPanel( tournamentId, callback );
 	}
 	
@@ -297,12 +286,11 @@ public partial class Arbiter : MonoBehaviour
 			return completeTournaments;
 		}
 	}
-	
-	public delegate void ViewPreviousTournamentsCallback();
-	public static void ViewPreviousTournaments( ViewPreviousTournamentsCallback callback ) {
+
+	public static void ViewPreviousTournaments( SuccessHandler callback ) {
 		if( callback == null )
-		callback = () => {};
-		ArbiterBinding.ViewPreviousTournaments( callback );
+			callback = () => {};
+		ArbiterBinding.ViewPreviousTournaments( callback, defaultErrorHandler );
 	}
 	
 	
@@ -344,13 +332,15 @@ public partial class Arbiter : MonoBehaviour
 		}
 	}
 
+	// ttt kill
 	private static void parseLoginResponse( User responseUser, bool responseVerified, Wallet responseWallet, Action done ) {
 		user = responseUser;
 		wallet = responseWallet != null? responseWallet : null;
 		setupPollers();
 		done();
 	}
-	
+
+
 	
 	private static string _gameApiKey;
 	private static string _accessToken;
@@ -362,7 +352,7 @@ public partial class Arbiter : MonoBehaviour
 	private static List<Tournament> inProgressTournaments;
 	private static List<Tournament> completeTournaments;
 	
-	private static ErrorHandler initializeErrorHandler = defaultErrorHandler; // ttt kill the unused handlers!
+//	private static ErrorHandler initializeErrorHandler = defaultErrorHandler; // ttt kill the unused handlers!
 	private static ErrorHandler loginErrorHandler = defaultErrorHandler;
 	private static ErrorHandler loginAsAnonymousErrorHandler = defaultErrorHandler;
 	internal static List<Action> userUpdatedListeners = new List<Action>();

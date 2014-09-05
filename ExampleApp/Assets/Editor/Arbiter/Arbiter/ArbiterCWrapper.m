@@ -126,14 +126,6 @@ void _fetchWallet()
     }];
 }
 
-// ttt this isn't needed....?
-void _updateClientWallet()
-{
-    [ArbiterInstance() getCachedWallet:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "GetWalletHandler", ProcessDictionaryParams( jsonDict ));
-    }];
-}
-
 
 void _showWalletPanel()
 {
@@ -145,7 +137,7 @@ void _showWalletPanel()
 void _sendPromoCredits( const char *amount )
 {
     [ArbiterInstance() sendPromoCredits:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "GetWalletHandler", ProcessDictionaryParams( jsonDict ) );
+        UnitySendMessage( "ArbiterBinding", "FetchWalletHandler", ProcessDictionaryParams( jsonDict ) ); // ttt try removing this and see if it still works...
         UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", EMPTY_STRING );
     }
                        amount:[[NSString alloc] initWithUTF8String:amount]];
@@ -161,10 +153,10 @@ void _requestTournament( const char *buyIn, const char *filters )
      ];
 }
 
-void _getTournaments() // ttt rename?
+void _fetchTournaments()
 {
     [ArbiterInstance() getTournaments:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "GetTournamentsHandler", ProcessDictionaryParams( jsonDict ));
+        UnitySendMessage("ArbiterBinding", "FetchTournamentsHandler", ProcessDictionaryParams( jsonDict ));
     } page:nil];
 }
 

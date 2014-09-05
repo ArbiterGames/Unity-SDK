@@ -25,7 +25,7 @@ namespace ArbiterInternal {
 #endif
 		}
 
-		// ttt rethink this part...
+
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
@@ -59,50 +59,29 @@ namespace ArbiterInternal {
 			WalletProtocol.Update( ref Arbiter.wallet, jsonString );
 			Arbiter.walletUpdatedListeners.ForEach( listener => listener() );
 		}
-
-
-		/* ttt kill
-
-		[DllImport ("__Internal")]
-		private static extern string _getWalletBalance();  // ttt stepping stone to getting back the wallet as a dict?
-		public static string GetWalletBalance() {
-			return _getWalletBalance();
-		}
-		*/
 		
 #endregion
 
 
+		const string INIT = "init";
 		[DllImport ("__Internal")]
 		private static extern void _init( string gameApiKey, string accessToken );
-		private static ErrorHandler initErrorHandler;
-		private static void initCallback() {
-			Debug.Log ("Arbiter initialized.");
-		}
-		public static void Init( string gameApiKey, string accessToken, ErrorHandler errorHandler ) {
-			initErrorHandler = errorHandler;
+		public static void Init( string gameApiKey, string accessToken, SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( INIT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Initialize" );
-			initCallback();
+			success();
 #elif UNITY_IOS
 			_init( gameApiKey, accessToken );
 #endif
 		}
 		
-		
+
+		const string LOGIN_ANONYMOUS = "login_anon";
 		[DllImport ("__Internal")]
 		private static extern void _loginAsAnonymous();
-//ttt OLD		public delegate void LoginCallback( User user, bool isVerified, Wallet wallet );
-		private static SuccessHandler loginAsAnonymousSuccessCallback;
-		/* ttt NEW but wrong
-		public void LoginAsAnonymousSuccessHandler( string message ) {
-			loginAsAnonymousSuccessCallback();
-		}
-		*/
-		private static ErrorHandler loginAsAnonymousErrorCallback;
 		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-			loginAsAnonymousSuccessCallback = success;
-			loginAsAnonymousErrorCallback = failure;
+			SetSimpleCallbacks( LOGIN_ANONYMOUS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:Anonymous" );
 			User user = new User();
@@ -120,7 +99,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
 		public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
-			callbacks[ LOGIN_GAME_CENTER ] = new CallbackTuple( success, failure );
+			SetSimpleCallbacks( LOGIN_GAME_CENTER, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:GameCenter" );
 			User user = new User();
@@ -138,7 +117,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _login();
 		public static void Login( SuccessHandler success, ErrorHandler failure ) {
-			callbacks[ LOGIN ] = new CallbackTuple( success, failure );
+			SetSimpleCallbacks( LOGIN, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:BasicAuth" );
 			User user = new User();
@@ -150,30 +129,26 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		
+
+		const string LOGOUT = "logout";
 		[DllImport ("__Internal")]
 		private static extern void _logout();
-		public delegate void LogoutCallback();
-		private static LogoutCallback logoutCallback;
-		public static void Logout( LogoutCallback callback ) {
-			logoutCallback = callback;
+		public static void Logout( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( LOGOUT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Logout" );
-			logoutCallback();
+			success();
 #elif UNITY_IOS
 			_logout();
 #endif
 		}
 		
-		
+
+		const string VERIFY = "verify";
 		[DllImport ("__Internal")]
 		private static extern void _verifyUser();
-		public delegate void VerifyUserCallback( User user );    
-		private static VerifyUserCallback verifyUserCallback;
-		private static ErrorHandler verifyUserErrorHandler;
-		public static void VerifyUser( VerifyUserCallback callback, ErrorHandler errorHandler ) {
-			verifyUserCallback = callback;
-			verifyUserErrorHandler = errorHandler;
+		public static void VerifyUser( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( VERIFY, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "VerifyUser" );
 			User user = new User();
@@ -181,18 +156,18 @@ namespace ArbiterInternal {
 			user.Name = "McMockison";
 			user.LocationApproved = true;
 			user.AgreedToTerms = true;
-			verifyUserCallback( user );
+			success();
 #elif UNITY_IOS
 			_verifyUser();
 #endif
 		}
 		
-		
+
+		const string FETCH_WALLET = "fetch_wallet";
 		[DllImport ("__Internal")]
 		private static extern void _fetchWallet();
-		const string FETCH_WALLET = "fetch_wallet";
 		public static void FetchWallet( SuccessHandler success, ErrorHandler failure ) {
-			callbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure );
+			simpleCallbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "FetchWallet" );
 			Arbiter.wallet = new Wallet();
@@ -202,92 +177,93 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		
+
+		const string SHOW_WALLET_PANEL = "wallet_panel";
 		[DllImport ("__Internal")]
 		private static extern void _showWalletPanel();
-		private static Action showWalletCallback;
-		public static void ShowWalletPanel( Action callback ) {
-			showWalletCallback = callback;
+		public static void ShowWalletPanel( SuccessHandler callback ) {
+			SetSimpleCallback( SHOW_WALLET_PANEL, callback );
 #if UNITY_EDITOR
 			ReportIgnore( "ShowWallet" );
-			if( showWalletCallback != null )
-				showWalletCallback();
+			if( callback != null )
+				callback();
 #elif UNITY_IOS
 			_showWalletPanel();
 #endif
 		}
-		
+
+
+		const string SEND_PROMO_CREDITS = "send_promo";
 		[DllImport ("__Internal")]
 		private static extern void _sendPromoCredits( string amount );
-		private static Action sendPromoCreditsCallback;
-		public static void SendPromoCredits( string amount, Action callback ) {
-			sendPromoCreditsCallback = callback;
-			#if UNITY_EDITOR
+		public static void SendPromoCredits( string amount, SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( SEND_PROMO_CREDITS, success, failure );
+#if UNITY_EDITOR
 			ReportIgnore( "SendPromoCredits" );
-			if( sendPromoCreditsCallback != null )
-				sendPromoCreditsCallback();
-			#elif UNITY_IOS
+			if( success != null )
+				success();
+#elif UNITY_IOS
 			_sendPromoCredits( amount );
-			#endif
+#endif
 		}
 		
-		
+
+		const string REQUEST_TOURNAMENT = "request_tournament";
 		[DllImport ("__Internal")]
 		private static extern void _requestTournament( string buyIn, string filters );
-		private static Arbiter.RequestTournamentCallback requestTournamentCallback;
-		private static ErrorHandler requestTournamentErrorHandler;
-		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, Arbiter.RequestTournamentCallback callback, ErrorHandler errorHandler ) {
-			requestTournamentCallback = callback;
-			requestTournamentErrorHandler = errorHandler;
+		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( REQUEST_TOURNAMENT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "RequestTournament" );
-			if( requestTournamentCallback != null )
-				requestTournamentCallback();
+			if( success != null )
+				success();
 #elif UNITY_IOS
 			_requestTournament( buyIn, SerializeDictionary(filters) );
 #endif
 		}
-		
+
+
+		const string SHOW_TOURNAMENT_PANEL = "show_tournament_panel";
 		[DllImport ("__Internal")]
 		private static extern void _showTournamentDetailsPanel( string tournamentId);
-		private static Action showTournamentDetailsPanelCallback;
-		public static void ShowTournamentDetailsPanel( string tournamentId, Action callback ) {
-			showTournamentDetailsPanelCallback = callback;
-			#if UNITY_EDITOR
-			ReportIgnore( "ShowTournamentDetailsPanel" );
-			if( showTournamentDetailsPanelCallback != null )
-				showTournamentDetailsPanelCallback();
-			#elif UNITY_IOS
-			_showTournamentDetailsPanel( tournamentId );
-			#endif
-		}
-		
-		
-		[DllImport ("__Internal")]
-		private static extern void _getTournaments();
-		private static Arbiter.GetTournamentsCallback getTournamentsCallback;
-		private static ErrorHandler getTournamentsErrorHandler;
-		public static void GetTournaments( Arbiter.GetTournamentsCallback callback, ErrorHandler errorHandler ) {
-			getTournamentsCallback = callback;
-			getTournamentsErrorHandler = errorHandler;
+		public static void ShowTournamentDetailsPanel( string tournamentId, SuccessHandler callback ) {
+			SetSimpleCallback( SHOW_TOURNAMENT_PANEL, callback );
 #if UNITY_EDITOR
-			ReportIgnore( "GetTournaments" );
-			List<Arbiter.Tournament> fakeTournaments = new List<Arbiter.Tournament>();
-			getTournamentsCallback( fakeTournaments );
+			ReportIgnore( "ShowTournamentDetailsPanel" );
+			if( callback != null )
+				callback();
 #elif UNITY_IOS
-			_getTournaments();
+			_showTournamentDetailsPanel( tournamentId );
 #endif
 		}
 		
+
+		const string FETCH_TOURNAMENTS = "fetch_tourn";
+		[DllImport ("__Internal")]
+		private static extern void _fetchTournaments();
+		private static Arbiter.FetchTournamentsCallback fetchTournamentsSuccessHandler;
+		private static ErrorHandler fetchTournamentsErrorHandler;
+		public static void FetchTournaments( Arbiter.FetchTournamentsCallback success, ErrorHandler failure ) {
+			fetchTournamentsSuccessHandler = success;
+			fetchTournamentsErrorHandler = failure;
+#if UNITY_EDITOR
+			ReportIgnore( "FetchTournaments" );
+			List<Arbiter.Tournament> fakeTournaments = new List<Arbiter.Tournament>();
+			fetchTournamentsSuccessHandler( fakeTournaments );
+#elif UNITY_IOS
+			_fetchTournaments();
+#endif
+		}
 		
+
+		const string VIEW_PREIVOUS_TOURNAMENTS = "view_prev_tourn";
 		[DllImport ("__Internal")]
 		private static extern void _viewPreviousTournaments();
-		private static Arbiter.ViewPreviousTournamentsCallback viewPreviousTournamentsCallback;
-		public static void ViewPreviousTournaments( Arbiter.ViewPreviousTournamentsCallback callback ) {
-			viewPreviousTournamentsCallback = callback;
+		public static void ViewPreviousTournaments( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( VIEW_PREIVOUS_TOURNAMENTS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "ViewPreviousTournaments" );
-			viewPreviousTournamentsCallback();
+			success();
 #elif UNITY_IOS
 			_viewPreviousTournaments();
 #endif
@@ -307,18 +283,18 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		
+
+		const string REPORT_SCORE = "report_score";
 		[DllImport ("__Internal")]
 		private static extern void _reportScore( string tournamentId, string score );
-		private static Arbiter.ReportScoreCallback reportScoreCallback;
+		private static Arbiter.ReportScoreCallback reportScoreSuccessHandler;
 		private static ErrorHandler reportScoreErrorHandler;
-		public static void ReportScore( string tournamentId, int score, Arbiter.ReportScoreCallback callback, ErrorHandler errorHandler ) {
-			reportScoreCallback = callback;
-			reportScoreErrorHandler = errorHandler;
-			
+		public static void ReportScore( string tournamentId, int score, Arbiter.ReportScoreCallback success, ErrorHandler failure ) {
+			reportScoreSuccessHandler = success;
+			reportScoreErrorHandler = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "ReportScore" );
-			reportScoreCallback( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.TournamentUser>(), new List<string>() ));
+			reportScoreSuccessHandler( new Arbiter.Tournament( "1234", Arbiter.Tournament.StatusType.Initializing, new List<Arbiter.TournamentUser>(), new List<string>() ));
 #elif UNITY_IOS
 			_reportScore( tournamentId, score.ToString() );
 #endif
@@ -328,135 +304,66 @@ namespace ArbiterInternal {
 		
 #region Plugin response handling
 
-		private void Callback( string callKey, string pluginResponse ) {
-			JSONNode json = JSON.Parse( pluginResponse );
-			if( wasSuccess( json )) {
-				callbacks[ callKey ].Success();
-			} else {
-				callbacks[ callKey ].Failure( getErrors( json ));
-			}
-		}
-		
 		public void InitHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				initCallback();
-			} else {
-				initErrorHandler( getErrors( json ));
-			}
+			SimpleCallback( INIT, jsonString );
 		}
-		
 
 		public void LoginAsAnonymousHandler( string jsonString ) {
-			// ttt reduce this boilerpate!
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				/* ttt use the updated/new user handlers instead!
-				User user = UserProtocol.Parse( json );
-				bool verified = isVerified( json["user"] );
-				Wallet wallet = parseWallet( json["wallet"] );
-				*/
-				loginAsAnonymousSuccessCallback();
-			} else {
-				loginAsAnonymousErrorCallback( getErrors( json ));
-			}
+			SimpleCallback( LOGIN_ANONYMOUS, jsonString );
 		}
-		
-
 
 		public void LoginWithGameCenterHandler( string jsonString ) {
-			Callback( LOGIN_GAME_CENTER, jsonString );
+			SimpleCallback( LOGIN_GAME_CENTER, jsonString );
 		}
 
-
-		/* ttt implement this in same manner as anon...
 		public void LoginHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				User user = parseUser( json["user"] );
-				bool verified = isVerified( json["user"] );
-				Wallet wallet = parseWallet( json["wallet"] );
-				loginCallback( user, verified, wallet );
-			} else {
-				loginErrorHandler( getErrors( json ));
-			}
+			SimpleCallback( LOGIN, jsonString );
 		}
-		*/
 		
-		public void LogoutHandler( string emptyString ) {
-			if ( logoutCallback != null ) {
-				logoutCallback();
-			}
+		public void LogoutHandler( string jsonString ) {
+			SimpleCallback( LOGOUT, jsonString );
 		}
 
-
-		
-		
 		public void VerifyUserHandler( string jsonString ) {
-			/* ttt OLD
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				User user = parseUser( json["user"] );
-				verifyUserCallback( user );
-			} else {
-				verifyUserErrorHandler( getErrors( json ));
-			}
-			*/
+			SimpleCallback( VERIFY, jsonString );
 		}
-
-
 		
 		public void FetchWalletHandler( string jsonString ) {
-			Callback( FETCH_WALLET, jsonString );
+			SimpleCallback( FETCH_WALLET, jsonString );
 		}
-		
-		
+
 		public void ShowWalletPanelHandler( string emptyString ) {
-			if ( showWalletCallback != null ) {
-				showWalletCallback();
-			}
+			SimpleCallback( SHOW_WALLET_PANEL );
 		}
 		
 		public void SendPromoCreditsHandler( string emptyString ) {
-			if ( sendPromoCreditsCallback != null ) {
-				sendPromoCreditsCallback();
-			}
+			SimpleCallback( SEND_PROMO_CREDITS );
 		}
-		
 		
 		public void RequestTournamentHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json )) {
-				if( requestTournamentCallback != null )
-					requestTournamentCallback();
-			} else {
-				requestTournamentErrorHandler( getErrors( json ));
-			}
+			SimpleCallback( REQUEST_TOURNAMENT, jsonString );
 		}
 		
 		
-		public void GetTournamentsHandler( string jsonString ) {
+		public void FetchTournamentsHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			
 			if( wasSuccess( json )) {
 				JSONNode tournamentsNode = json["tournaments"];
-				getTournamentsCallback( parseTournaments( tournamentsNode["results"] ));
+				fetchTournamentsSuccessHandler( parseTournaments( tournamentsNode["results"] )); // ttt use protocol
 			} else {
-				getTournamentsErrorHandler( getErrors( json ));
+				fetchTournamentsErrorHandler( getErrors( json ));
 			}
 		}
-		
+
+
 		public void ShowTournamentDetailsPanelHandler( string emptyString ) {
-			if ( showTournamentDetailsPanelCallback != null ) {
-				showTournamentDetailsPanelCallback();
-			}
+			SimpleCallback( SHOW_TOURNAMENT_PANEL );
 		}
-		
 		
 		public void ViewPreviousTournamentsHandler( string emptyString ) {
-			viewPreviousTournamentsCallback();
+			SimpleCallback( VIEW_PREIVOUS_TOURNAMENTS );
 		}
-		
 		
 		public void ViewIncompleteTournamentsHandler( string tournamentId ) {
 			viewIncompleteTournamentsCallback( tournamentId );
@@ -467,8 +374,8 @@ namespace ArbiterInternal {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
 				JSONClass tournamentNode = json["tournament"] as JSONClass;
-				if( reportScoreCallback != null )
-					reportScoreCallback( parseTournament( tournamentNode ));
+				if( reportScoreSuccessHandler != null )
+					reportScoreSuccessHandler( parseTournament( tournamentNode ));
 			} else {
 				reportScoreErrorHandler( getErrors( json ));
 			}
@@ -483,7 +390,31 @@ namespace ArbiterInternal {
 			public SuccessHandler Success;
 			public ErrorHandler Failure;
 		}
-		private static Dictionary<string,CallbackTuple> callbacks = new Dictionary<string,CallbackTuple>();
+		private static Dictionary<string,CallbackTuple> simpleCallbacks = new Dictionary<string,CallbackTuple>();
+		private static void SetSimpleCallbacks( string key, SuccessHandler success, ErrorHandler failure ) {
+			if( success == null )
+				success = () => {};
+			if( failure == null )
+				failure = (e) => {};
+			simpleCallbacks[ key ] = new CallbackTuple( success, failure );
+		}
+		private static void SetSimpleCallback( string key, SuccessHandler callback ) {
+			if( callback == null )
+				callback = () => {};
+			simpleCallbacks[ key ] = new CallbackTuple( callback, ( e ) => {} );
+		}
+		private void SimpleCallback( string callKey, string pluginResponse ) {
+			JSONNode json = JSON.Parse( pluginResponse );
+			if( wasSuccess( json )) {
+				simpleCallbacks[ callKey ].Success();
+			} else {
+				simpleCallbacks[ callKey ].Failure( getErrors( json ));
+			}
+		}
+		private void SimpleCallback( string callKey ) {
+			Debug.Log ("ttt calling SimpleCallback for key: "+callKey+"\n value="+simpleCallbacks[callKey]);
+			simpleCallbacks[ callKey ].Success();
+		}
 #endregion
 
 		
@@ -503,8 +434,7 @@ namespace ArbiterInternal {
 			return string.Equals( userNode["agreed_to_terms"].Value, "true" ) && string.Equals( userNode["location_approved"].Value, "true");
 		}
 		
-		
-///ttt moved		public delegate void ErrorHandler( List<string> errors );
+
 		private List<string> getErrors( JSONNode json ) {
 			List<string> rv = new List<string>();
 			JSONArray errors = json["errors"].AsArray;
@@ -524,15 +454,8 @@ namespace ArbiterInternal {
 			return "{" + string.Join( ",", entries ) + "}";
 		}
 		
-		/* tttkill
-		private Wallet parseWallet( JSONNode walletNode ) {
-			Wallet rv = new Wallet();
-			rv.Balance = walletNode["balance"].Value;
-			return rv;
-		}
-		*/
-		
-		
+
+		// ttt make this a protocol
 		private List<Arbiter.Tournament> parseTournaments( JSONNode tournamentsNode ) {
 			List<Arbiter.Tournament> rv = new List<Arbiter.Tournament>();
 			JSONArray rawTournaments = tournamentsNode.AsArray;
@@ -543,7 +466,7 @@ namespace ArbiterInternal {
 			}
 			return rv;
 		}
-		private Arbiter.Tournament parseTournament( JSONClass tournamentNode ) {
+		private Arbiter.Tournament parseTournament( JSONClass tournamentNode ) { // ttt make this a protocol
 			Arbiter.Tournament.StatusType status = Arbiter.Tournament.StatusType.Unknown;
 			
 			switch( tournamentNode["status"] ) {
@@ -583,7 +506,6 @@ namespace ArbiterInternal {
 		}
 		
 		// Parses the Tournament.Users JSON array returned from the server and converts each item into a c# TournamentUser
-		// ttt is this still used? if so, clean it up
 		private List<Arbiter.TournamentUser> parseUsers( JSONNode usersNode ) {
 			List<Arbiter.TournamentUser> rv = new List<Arbiter.TournamentUser>();
 			JSONArray rawUsers = usersNode.AsArray;

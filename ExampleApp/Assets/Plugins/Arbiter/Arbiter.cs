@@ -244,11 +244,6 @@ public partial class Arbiter : MonoBehaviour {
 	private static SuccessHandler fetchedTournamentsCallback;
 	public delegate void FetchTournamentsCallback( List<Tournament> tournaments );
 	public static void FetchTournamentsSuccessHandler( List<Tournament> tournaments ) {
-		/*
-		initializingTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Initializing ).ToList();
-		inProgressTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.InProgress ).ToList();
-		completeTournaments = tournaments.Where( c => c.Status == Tournament.StatusType.Complete ).ToList();
-		*/
 		fetchedTournamentsCallback();
 	}
 
@@ -256,27 +251,7 @@ public partial class Arbiter : MonoBehaviour {
 	public static void DisplayTournamentDetails( string tournamentId, SuccessHandler callback ) {
 		ArbiterBinding.ShowTournamentDetailsPanel( tournamentId, callback );
 	}
-
-
-	/*
-	public static List<Tournament> InitializingTournaments {
-		get {
-			return initializingTournaments;
-		}
-	}
 	
-	public static List<Tournament> InProgressTournaments {
-		get {
-			return inProgressTournaments;
-		}
-	}
-	
-	public static List<Tournament> CompleteTournaments {
-		get {
-			return completeTournaments;
-		}
-	}
-*/
 
 	public static void ViewPreviousTournaments( SuccessHandler callback ) {
 		ArbiterBinding.ViewPreviousTournaments( callback, defaultErrorHandler );
@@ -330,27 +305,10 @@ public partial class Arbiter : MonoBehaviour {
 	private static Poller tournamentPoller;
 	internal static User user;
 	internal static Wallet wallet;
-	/*
-	private static List<Tournament> initializingTournaments; // ttt these still used??
-	private static List<Tournament> inProgressTournaments;
-	private static List<Tournament> completeTournaments;
-*/
-	
-//	private static ErrorHandler initializeErrorHandler = defaultErrorHandler; // ttt kill the unused handlers!
-//	private static ErrorHandler loginErrorHandler = defaultErrorHandler;
-//	private static ErrorHandler loginAsAnonymousErrorHandler = defaultErrorHandler;
+
 	internal static List<Action> userUpdatedListeners = new List<Action>();
 	internal static List<Action> newUserListeners = new List<Action>();
 	internal static List<Action> walletUpdatedListeners = new List<Action>();
 	private static Action walletSuccessCallback;
-//	private static List<Action> walletQueryListeners = new List<Action>();
-//	private static ErrorHandler walletErrorHandler = defaultErrorHandler;
-//	private static ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
-
-	//private static ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;
-//	private static ErrorHandler requestTournamentErrorHandler = defaultErrorHandler;
-	#if UNITY_IOS
-//	private static ErrorHandler loginWithGameCenterErrorHandler = defaultErrorHandler;
-	#endif
 
 }

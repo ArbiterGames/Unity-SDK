@@ -36,7 +36,7 @@ public class Game : MonoBehaviour {
     private void GetTournament() {
         Dictionary<string,string> filters = new Dictionary<string,string>();
         filters.Add( "arbitrary_key", "the_value" );
-        Arbiter.JoinTournament( BET_SIZE, filters, OnTournamentReturned );
+        Arbiter.JoinTournament( BET_SIZE, filters, OnTournamentReturned, OnFailure );
     }
 
 	private void OnTournamentReturned( Arbiter.Tournament tournament ) {
@@ -77,5 +77,9 @@ public class Game : MonoBehaviour {
         }
     }
 
+
+	private void OnFailure( List<string> errors ) {
+		errors.ForEach( error => Debug.LogError( error ));
+	}
 
 }

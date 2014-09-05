@@ -15,6 +15,8 @@
     void (^_callback)(NSString *email);
 }
 
+@synthesize email;
+
 - (id)initWithCallback:(void(^)(NSString *))callback
 {
     self = [super init];
@@ -53,8 +55,12 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         [cell setBackgroundColor:[UIColor clearColor]];
         emailField = [[UITextField alloc] initWithFrame:cell.frame];
-        emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
-                                                                           attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        if ( self.email != nil ) {
+            emailField.text = self.email;
+        } else {
+            emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                               attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        }
         [emailField setTextColor:[UIColor whiteColor]];
         [emailField setAutocorrectionType:UITextAutocorrectionTypeNo];
         [emailField setKeyboardType:UIKeyboardTypeEmailAddress];
@@ -80,13 +86,9 @@
 
 #pragma mark TextField Delegates
 
-- (void)textFieldDidEndEditing:(UITextField *)textField
-{
-    _callback(textField.text);
-}
-
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
+    _callback(textField.text);
     [textField resignFirstResponder];
     return YES;
 }

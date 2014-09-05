@@ -10,16 +10,16 @@
 #import "Arbiter.h"
 
 
-@protocol ArbiterWalletDetailViewDelegate
+@protocol WalletDetailViewDelegate
 
-- (void)closePanel;
+- (void)handleBackButton;
 
 @end
 
 
 @interface ArbiterWalletDetailView : UIView <UITableViewDataSource, UITableViewDelegate>
 {
-    id <ArbiterWalletDetailViewDelegate> delegate;
+    id <WalletDetailViewDelegate> delegate;
 }
 
 @property (nonatomic, assign) id delegate;

@@ -9,7 +9,7 @@
 #import "ArbiterWalletDashboardView.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDetailView.h"
-#import "ArbiterWalletDepsitView.h"
+#import "ArbiterWalletDepositView.h"
 #import "ArbiterWalletWithdrawView.h"
 
 @implementation ArbiterWalletDashboardView
@@ -74,22 +74,26 @@
 - (void)segmentControlClicked:(UISegmentedControl *)segment
 {
     if ( segment.selectedSegmentIndex == 0 ) {
-        ArbiterWalletDetailView *view = [[ArbiterWalletDetailView alloc] initWithFrame:_marginizedFrame andArbiterInstance:self.arbiter];
+        ArbiterWalletDetailView *view = [[ArbiterWalletDetailView alloc] initWithFrame:_marginizedFrame
+                                                                    andArbiterInstance:self.arbiter];
         [view setDelegate:self];
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
-        ArbiterWalletDepsitView *view = [[ArbiterWalletDepsitView alloc] initWithFrame:_marginizedFrame andArbiterInstance:self.arbiter];
+        ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:_marginizedFrame
+                                                                      andArbiterInstance:self.arbiter];
+        [view setDelegate:self];
         [self navigateToView:view];
     } else {
-        ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:_marginizedFrame andArbiterInstance:self.arbiter];
+        ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:_marginizedFrame
+                                                                        andArbiterInstance:self.arbiter];
         [self navigateToView:view];
     }
 }
 
 
-# pragma mark Dashboard Delegate Methods
+# pragma mark Arbiter Dashboard Subvies Delegate Methods
 
-- (void)closePanel
+- (void)handleBackButton
 {
     [self animateOut];
 }

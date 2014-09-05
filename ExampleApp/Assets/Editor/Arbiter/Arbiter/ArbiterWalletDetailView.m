@@ -43,7 +43,6 @@
     [tableView setAllowsSelection:false];
     [self addSubview:tableView];
     
-    // Close button
     UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
     float btnWidth = 50.0;
     float btnHeight = 50.0;
@@ -54,18 +53,6 @@
     [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:backButton];
-    
-//    // TODO: Just using this for lining up the navigation buttons
-//    CALayer *topBorder = [CALayer layer];
-//    topBorder.frame = CGRectMake(0.0, -5.0, self.frame.size.width, 0.5f);
-//    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
-//    [self.layer addSublayer:topBorder];
-//    
-    // TODO: Just using this for lining up the navigation buttons
-//    CALayer *sideBorder = [CALayer layer];
-//    sideBorder.frame = CGRectMake(0.0, -55.0, 0.5, self.frame.size.height);
-//    sideBorder.backgroundColor = [[UIColor whiteColor] CGColor];
-//    [self.layer addSublayer:sideBorder];
 }
 
 # pragma mark TableView Delegate Methods
@@ -131,10 +118,8 @@
 
 - (void)backButtonClicked:(id)sender
 {
-    // TODO: Figure out how this will know whether to go back to a previous view or to close the panel completely
-    [self.delegate closePanel];
+    [self.delegate handleBackButton];
 }
-
 
 @end
 

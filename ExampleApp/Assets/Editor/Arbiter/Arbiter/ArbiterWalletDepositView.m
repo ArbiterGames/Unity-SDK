@@ -6,25 +6,29 @@
 //
 //
 
-#import "ArbiterWalletDepsitView.h"
+#import "ArbiterWalletDepositView.h"
 #import "Arbiter.h"
 #import "ArbiterConstants.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 
-#define BUNDLE_SELECT_TAG 667
-#define EMAIL_FIELD_TAG 668
+#define BUNDLE_SELECT_UI_TAG 667
+#define CONTACT_INFO_UI_TAG 668
+#define BILLING_INFO_UI_TAG 669
 #define GET_BUNDLE_REQUEST_TAG 671
 #define POST_DEPOSIT_REQUEST_TAG 672
 
 
-@implementation ArbiterWalletDepsitView
+@implementation ArbiterWalletDepositView
 {
     Arbiter *_arbiter;
     NSDictionary *_selectedBundle;
-    NSString *_email;
+    int _activeViewIndex;
 }
+
+@synthesize email;
+@synthesize delegate;
 
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
@@ -32,25 +36,25 @@
     self = [super initWithFrame:frame];
     if ( self ) {
         _arbiter = arbiterInstance;
-        _email = [NSString stringWithFormat:@"%@", [_arbiter.user objectForKey:@"email"]];
-        [self setupNextScreen];
+        _activeViewIndex = 0;
+        [self renderBackButton];
     }
     return self;
 }
 
-- (void)setupNextScreen
+- (void)navigateToActiveView
 {
+    self.stripeView = nil;
     [self.nextButton removeFromSuperview];
-    [self.cancelButton removeFromSuperview];
+    [self removeBundleSelectUI];
+    [self removeContactInfoUI];
+    [self removeBillingInfoUI];
     
-    [self hideBundleSelectUI];
-    [self hideEmailFieldUI];
-    
-    if ( [_selectedBundle count] == 0 ) {
+    if ( _activeViewIndex == 0 ) {
         [self setupBundleSelect];
-    } else if ( _email == nil ) {
+    } else if ( _activeViewIndex == 1 ) {
         [self setupEmailFieldLayout];
-    } else if ( self.stripeView == nil ) {
+    } else if ( _activeViewIndex == 2 ) {
         [self setupBillingInfoLayout];
     } else {
         [self getTokenAndSubmitPayment];
@@ -62,17 +66,15 @@
 
 - (void)setupBundleSelect
 {
-    [self renderNextButton:NO];
     [_arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
     [_arbiter httpGet:BundleURL handler:[^(NSDictionary *responseDict) {
         NSMutableArray *availableBundles = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
-        ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles andSelectionCallback:[^(NSDictionary *selectedBundle) {
+        ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles
+                                                                          andSelectionCallback:[^(NSDictionary *selectedBundle) {
             _selectedBundle = selectedBundle;
-            [self setupNextScreen];
+            _activeViewIndex++;
+            [self navigateToActiveView];
         } copy]];
-        
-        // TODO: Take this out once I get the button feeling right
-        [self.nextButton setEnabled:YES];
         
         UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0) style:UITableViewStyleGrouped];
         [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
@@ -82,7 +84,7 @@
         [tableView setBackgroundView:nil];
         [tableView setSeparatorColor:[UIColor clearColor]];
         [tableView reloadData];
-        [tableView setTag:BUNDLE_SELECT_TAG];
+        [tableView setTag:BUNDLE_SELECT_UI_TAG];
         [self addSubview:tableView];
         [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
         [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
@@ -92,22 +94,25 @@
 
 - (void)setupEmailFieldLayout
 {
-    ArbiterContactInfoTableViewDelegate *delegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSString *email) {
-        NSLog(@"setting _email to: %@", email);
-        _email = email;
-        [self setupNextScreen];
+    ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc]
+                                                          initWithCallback:[^(NSString *updatedEmail) {
+        self.email = updatedEmail;
+        _activeViewIndex++;
+        [self navigateToActiveView];
     } copy]];
+    tableDelegate.email = [_arbiter.user objectForKey:@"email"];
+    
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0) style:UITableViewStyleGrouped];
     [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:delegate];
-    [tableView setDataSource:delegate];
+    [tableView setDelegate:tableDelegate];
+    [tableView setDataSource:tableDelegate];
     [tableView setBackgroundColor:[UIColor clearColor]];
     [tableView setBackgroundView:nil];
     [tableView setSeparatorColor:[UIColor clearColor]];
     [tableView reloadData];
     [tableView setAllowsSelection:false];
     [tableView setScrollEnabled:false];
-    [tableView setTag:EMAIL_FIELD_TAG];
+    [tableView setTag:CONTACT_INFO_UI_TAG];
     [self addSubview:tableView];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
@@ -125,18 +130,20 @@
     }
     self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
     self.stripeView.delegate = self;
-    ArbiterBillingInfoTableViewDelegate *delegate = [[ArbiterBillingInfoTableViewDelegate alloc] initWithStripeView:self.stripeView];
+    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
+                                                          initWithStripeView:self.stripeView];
     
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0) style:UITableViewStyleGrouped];
     [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:delegate];
-    [tableView setDataSource:delegate];
+    [tableView setDelegate:tableDelegate];
+    [tableView setDataSource:tableDelegate];
     [tableView setBackgroundColor:[UIColor clearColor]];
     [tableView setBackgroundView:nil];
     [tableView setSeparatorColor:[UIColor clearColor]];
     [tableView reloadData];
     [tableView setAllowsSelection:false];
     [tableView setScrollEnabled:false];
+    [tableView setTag:BILLING_INFO_UI_TAG];
     [self addSubview:tableView];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
@@ -156,40 +163,43 @@
     [self addSubview:self.nextButton];
 }
 
-- (void)renderCancelButton
+- (void)renderBackButton
 {
-    self.cancelButton = [UIButton buttonWithType:UIButtonTypeRoundedRect];
-    [self.cancelButton setFrame:CGRectMake(0, self.bounds.size.height, self.bounds.size.width / 2, 50)];
-    [self.cancelButton setTitle:@"Cancel" forState:UIControlStateNormal];
-    [self.cancelButton.titleLabel setFont:[UIFont systemFontOfSize:17]];
-    [self.cancelButton addTarget:self action:@selector(cancelButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0, 0, self.cancelButton.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [self.cancelButton.layer addSublayer:topBorder];
-    
-    CALayer *rightBorder = [CALayer layer];
-    rightBorder.frame = CGRectMake(self.cancelButton.frame.size.width - 0.5f, 0, 0.5f, self.cancelButton.frame.size.height);
-    rightBorder.backgroundColor = [[UIColor lightGrayColor] CGColor];
-    [self.cancelButton.layer addSublayer:rightBorder];
-    
-    [self addSubview:self.cancelButton];
+    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    float btnWidth = 50.0;
+    float btnHeight = 50.0;
+    [backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
+    [backButton setTitle:@"Back" forState:UIControlStateNormal];
+    [backButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
+    [backButton.titleLabel setFont:[UIFont systemFontOfSize:17.0]];
+    [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [self addSubview:backButton];
+    [self navigateToActiveView];
 }
 
-- (void)hideBundleSelectUI
+- (void)removeBundleSelectUI
 {
     for (UIView *view in [self subviews]) {
-        if (view.tag == BUNDLE_SELECT_TAG) {
+        if (view.tag == BUNDLE_SELECT_UI_TAG) {
             [view removeFromSuperview];
         }
     }
 }
 
-- (void)hideEmailFieldUI
+- (void)removeContactInfoUI
 {
     for ( UIView *view in [self subviews] ) {
-        if ( view.tag == EMAIL_FIELD_TAG ) {
+        if ( view.tag == CONTACT_INFO_UI_TAG ) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
+- (void)removeBillingInfoUI
+{
+    for ( UIView *view in [self subviews] ) {
+        if ( view.tag == BILLING_INFO_UI_TAG ) {
             [view removeFromSuperview];
         }
     }
@@ -200,14 +210,18 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    [self setupNextScreen];
+    _activeViewIndex++;
+    [self navigateToActiveView];
 }
 
 - (void)backButtonClicked:(id)sender
 {
-    NSLog(@"TODO: backButtonClicked");
-//    [self animateOut];
-//    [self endEditing:YES];
+    if ( _activeViewIndex == 0 ) {
+        [self.delegate handleBackButton];
+    } else {
+        _activeViewIndex--;
+        [self navigateToActiveView];
+    }
 }
 
 - (void)getTokenAndSubmitPayment
@@ -220,7 +234,7 @@
         } else {
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"bundle_sku": [_selectedBundle objectForKey:@"sku"],
-                                     @"email": _email};
+                                     @"email": self.email};
             
             [_arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
                 [_arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];

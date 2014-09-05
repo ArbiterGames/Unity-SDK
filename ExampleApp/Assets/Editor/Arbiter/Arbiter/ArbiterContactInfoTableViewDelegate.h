@@ -12,4 +12,6 @@
 
 - (id)initWithCallback:(void(^)(NSString *))callback;
 
+@property (assign) NSString *email;
+
 @end

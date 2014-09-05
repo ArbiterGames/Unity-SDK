@@ -9,9 +9,10 @@
 #import <UIKit/UIKit.h>
 #import "ArbiterPanelView.h"
 #import "ArbiterWalletDetailView.h"
+#import "ArbiterWalletDepositView.h"
 
 
-@interface ArbiterWalletDashboardView : ArbiterPanelView <ArbiterWalletDetailViewDelegate>
+@interface ArbiterWalletDashboardView : ArbiterPanelView <WalletDetailViewDelegate, WalletDepositViewDelegate>
 
 - (void)segmentControlClicked:(UISegmentedControl *)segment;
 

@@ -5,18 +5,18 @@ namespace ArbiterInternal {
 	public class UserProtocol {
 
 
-		public static User Parse( JSONNode userNode ) {
+		public static User Parse( string jsonString ) {
 			User rv = new User();
-			fillUser( ref rv, userNode );
+			fillUser( ref rv, JSON.Parse( jsonString ));
 			return rv;
 		}
 
 
-		// ttt pass in a string instead??
-		public static bool Update( ref User user, JSONNode userNode ) {
-			string rawId = userNode["id"].Value;
+		public static bool Update( ref User user, string jsonString ) {
+			JSONNode jsonNode = JSON.Parse( jsonString );
+			string rawId = jsonNode["id"].Value;
 			if( user != null && user.Id == rawId ) {
-				fillUser( ref user, userNode );
+				fillUser( ref user, jsonNode );
 				return true;
 			} else {
 				return false;

@@ -88,12 +88,10 @@ public partial class Arbiter : MonoBehaviour
 	}
 	public static Action<List<string>> LoginErrorHandler { set { loginErrorHandler = ( errors ) => value( errors ); } }
 	
-	// ttt mimic format of LoginAsGC...
+
 	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
 		ArbiterBinding.LoginAsAnonymous( success, failure );
 	}
-	public static Action<List<string>> LoginAsAnonymousErrorHandler { set { loginAsAnonymousErrorHandler = ( errors ) => value( errors ); } }
-
 
 #if UNITY_IOS
 	public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
@@ -174,42 +172,27 @@ public partial class Arbiter : MonoBehaviour
 
 
 	public static void AddWalletListener( Action listener ) {
-		if( !walletQueryListeners.Contains( listener ))
-			walletQueryListeners.Add( listener );
+		if( !walletUpdatedListeners.Contains( listener ))
+			walletUpdatedListeners.Add( listener );
 	}
 	public static void RemoveWalletListener( Action listener ) {
-		walletQueryListeners.Remove( listener );
+		walletUpdatedListeners.Remove( listener );
 	}
 	
 	public static void UpdateWallet() {
-		if( !IsAuthenticated )
-			Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in" );
-
 		walletPoller.Reset();
-		tryFetchWallet( null );
 	}
 	
-	private static void tryFetchWallet( Action callback ) {
-		walletSuccessCallback = callback;
-
-		if( user == null || !IsVerified ) {
-			/* ttt kill?
-			if( walletSuccessCallback != null )
-				walletSuccessCallback();
-*/
+	private static void tryFetchWallet( SuccessHandler success, ErrorHandler failure ) {
+		if( !IsAuthenticated ) {
+			Debug.LogWarning( "Cannot get an Arbiter Wallet without first logging in" );
 			return;
 		}
-		
-		ArbiterBinding.GetWallet( walletSuccessHandler, walletErrorHandler );
+
+		ArbiterBinding.FetchWallet( success, failure );
 	}
-	
-	private static void walletSuccessHandler( Wallet responseWallet ) {
-		wallet = responseWallet;
-		walletQueryListeners.ForEach( listener => listener() );
-		if( walletSuccessCallback != null )
-			walletSuccessCallback();
-	}
-	
+
+
 	public static void DisplayWalletDashboard( Action callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
 	}
@@ -349,7 +332,7 @@ public partial class Arbiter : MonoBehaviour
 			walletPoller = Poller.Create( "ArbiterWalletPoller" );
 			DontDestroyOnLoad( walletPoller.gameObject );
 			walletPoller.Verbose = false;
-			walletPoller.SetAction( tryFetchWallet );
+			walletPoller.SetAction( () => tryFetchWallet( null, null ));
 		}
 		if ( !tournamentPoller ) {
 			tournamentPoller = Poller.Create( "ArbiterTournamentPoller" );
@@ -371,19 +354,20 @@ public partial class Arbiter : MonoBehaviour
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	internal static User user;
-	private static Wallet wallet;
-	private static List<Tournament> initializingTournaments;
+	internal static Wallet wallet;
+	private static List<Tournament> initializingTournaments; // ttt these still used??
 	private static List<Tournament> inProgressTournaments;
 	private static List<Tournament> completeTournaments;
 	
-	private static ErrorHandler initializeErrorHandler = defaultErrorHandler;
+	private static ErrorHandler initializeErrorHandler = defaultErrorHandler; // ttt kill the unused handlers!
 	private static ErrorHandler loginErrorHandler = defaultErrorHandler;
 	private static ErrorHandler loginAsAnonymousErrorHandler = defaultErrorHandler;
 	internal static List<Action> userUpdatedListeners = new List<Action>();
 	internal static List<Action> newUserListeners = new List<Action>();
+	internal static List<Action> walletUpdatedListeners = new List<Action>();
 	private static Action walletSuccessCallback;
-	private static List<Action> walletQueryListeners = new List<Action>();
-	private static ErrorHandler walletErrorHandler = defaultErrorHandler;
+//	private static List<Action> walletQueryListeners = new List<Action>();
+//	private static ErrorHandler walletErrorHandler = defaultErrorHandler;
 	private static ErrorHandler verifyUserErrorHandler = defaultErrorHandler;
 	private static Action getTournamentsCallback;
 	private static ErrorHandler getTournamentsErrorHandler = defaultErrorHandler;

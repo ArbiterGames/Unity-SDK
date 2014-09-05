@@ -37,18 +37,27 @@ namespace ArbiterInternal {
 		}
 
 
-		// Handler for native to call whenever it updates its user
+		/// <summary>
+		/// Handler for native to call whenever it updates its user
+		/// </summary>
 		public void OnUserUpdated( string jsonString ) {
-			Debug.Log ("ttt ArbiterBinding.OnuserUpdated!");
-			JSONNode jsonNode = JSON.Parse( jsonString );
-			Debug.Log ( jsonNode );
-			Debug.Log ( Arbiter.user );
-			if( UserProtocol.Update( ref Arbiter.user, jsonNode )) {
+			if( UserProtocol.Update( ref Arbiter.user, jsonString )) {
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
-				Arbiter.user = UserProtocol.Parse( jsonNode );
+				Arbiter.user = UserProtocol.Parse( jsonString );
 				Arbiter.newUserListeners.ForEach( listener => listener() );
 			}
+		}
+
+
+		/// <summary>
+		/// Handler for native to call whenever it updates its wallet
+		/// </summary>
+		public void OnWalletUpdated( string jsonString ) {
+			if( Arbiter.wallet == null )
+				Arbiter.wallet = new Wallet();
+			WalletProtocol.Update( ref Arbiter.wallet, jsonString );
+			Arbiter.walletUpdatedListeners.ForEach( listener => listener() );
 		}
 
 
@@ -110,14 +119,8 @@ namespace ArbiterInternal {
 		const string LOGIN_GAME_CENTER = "login_game_center";
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
-		/* ttt kill
-		private static SuccessHandler loginWithGameCenterSuccessCallback;
-		private static ErrorHandler loginWithGameCenterErrorCallback;
-		*/
 		public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
 			callbacks[ LOGIN_GAME_CENTER ] = new CallbackTuple( success, failure );
-//ttt			loginWithGameCenterSuccessCallback = success;
-//			loginWithGameCenterErrorCallback = failure;
 #if UNITY_EDITOR
 			ReportIgnore( "Login:GameCenter" );
 			User user = new User();
@@ -130,20 +133,18 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		
+
+		const string LOGIN = "login";
 		[DllImport ("__Internal")]
 		private static extern void _login();
-		private static SuccessHandler loginCallback;
-		private static ErrorHandler loginErrorHandler;
-		public static void Login( SuccessHandler callback, ErrorHandler errorHandler ) {
-			loginCallback = callback;
-			loginErrorHandler = errorHandler;
+		public static void Login( SuccessHandler success, ErrorHandler failure ) {
+			callbacks[ LOGIN ] = new CallbackTuple( success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:BasicAuth" );
 			User user = new User();
-			user.Id = "0";
+			user.Id = "UserPass_ID";
 			user.Name = "McMockison";
-//ttt td			loginCallback( user, false, null );
+			success();
 #elif UNITY_IOS
 			_login();
 #endif
@@ -189,20 +190,16 @@ namespace ArbiterInternal {
 		
 		[DllImport ("__Internal")]
 		private static extern void _fetchWallet();
-		public delegate void GetWalletCallback( Wallet wallet ); // ttt rename??
-		private static GetWalletCallback getWalletCallback;
-		private static ErrorHandler getWalletErrorHandler;
-		public static void GetWallet( GetWalletCallback callback, ErrorHandler errorHandler ) {
-			getWalletCallback = callback;
-			getWalletErrorHandler = errorHandler;
-			Debug.Log ("ttt ArbiterBinding.GetWallet()...");
+		const string FETCH_WALLET = "fetch_wallet";
+		public static void FetchWallet( SuccessHandler success, ErrorHandler failure ) {
+			callbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure );
 #if UNITY_EDITOR
-			ReportIgnore( "GetWallet" );
-			getWalletCallback( Wallet.CreateMockWallet() );
+			ReportIgnore( "FetchWallet" );
+			Arbiter.wallet = new Wallet();
+			success();
 #elif UNITY_IOS
 			_fetchWallet();
 #endif
-			Debug.Log ("ttt returning from ArbiterBinding.GetWallet()");
 		}
 		
 		
@@ -409,17 +406,8 @@ namespace ArbiterInternal {
 
 
 		
-		public void GetWalletHandler( string jsonString ) {
-			JSONNode json = JSON.Parse( jsonString );
-			if( wasSuccess( json ) ) {
-				if ( getWalletCallback != null ) {
-					getWalletCallback( parseWallet( json["wallet"] ));
-				}
-			} else {
-				if ( getWalletErrorHandler != null ) {
-					getWalletErrorHandler( getErrors( json ));
-				}
-			}
+		public void FetchWalletHandler( string jsonString ) {
+			Callback( FETCH_WALLET, jsonString );
 		}
 		
 		
@@ -536,12 +524,13 @@ namespace ArbiterInternal {
 			return "{" + string.Join( ",", entries ) + "}";
 		}
 		
-		
+		/* tttkill
 		private Wallet parseWallet( JSONNode walletNode ) {
 			Wallet rv = new Wallet();
 			rv.Balance = walletNode["balance"].Value;
 			return rv;
 		}
+		*/
 		
 		
 		private List<Arbiter.Tournament> parseTournaments( JSONNode tournamentsNode ) {

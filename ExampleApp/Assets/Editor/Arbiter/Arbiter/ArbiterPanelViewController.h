@@ -7,6 +7,8 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ArbiterWalletDetailView.h"
+
 
 @interface ArbiterPanelViewController : UIViewController
 

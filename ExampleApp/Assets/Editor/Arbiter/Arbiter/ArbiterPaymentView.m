@@ -47,8 +47,7 @@
 }
 
 - (void)resetSubviewFrames
-{
-    [self.nextButton removeFromSuperview];
+{    [self.nextButton removeFromSuperview];
     [self.cancelButton removeFromSuperview];
     [self renderNextButton:shouldEnableNextButton];
     [self renderCancelButton];

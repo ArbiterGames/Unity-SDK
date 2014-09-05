@@ -25,6 +25,8 @@
     self.view = [[UIView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
 }
 
+# pragma mark Settings / Configs
+
 - (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
 {
     for ( UIView *view in self.view.subviews ) {

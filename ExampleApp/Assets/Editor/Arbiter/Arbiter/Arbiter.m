@@ -79,7 +79,7 @@
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        [self setWallet: [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]]];
+        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
         handler(responseDict);
     } copy];

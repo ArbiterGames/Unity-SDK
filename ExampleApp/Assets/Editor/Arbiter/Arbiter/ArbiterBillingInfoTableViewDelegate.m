@@ -53,6 +53,8 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         [cell setBackgroundColor:[UIColor clearColor]];
         [cell.contentView addSubview:_stripeView];
+        [_stripeView.paymentView.cardNumberField becomeFirstResponder];
+//        [emailField becomeFirstResponder];
         
         
         // Replace all this with the stripeview

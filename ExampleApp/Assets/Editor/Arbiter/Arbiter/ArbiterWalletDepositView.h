@@ -25,7 +25,6 @@
 @property (nonatomic, assign) id delegate;
 @property (assign) STPView *stripeView;
 @property (assign) NSString *email;
-@property (strong, nonatomic) IBOutlet UIButton *nextButton;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)nextButtonClicked:(id)sender;

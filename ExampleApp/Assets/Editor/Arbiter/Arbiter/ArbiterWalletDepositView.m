@@ -38,14 +38,13 @@
         _arbiter = arbiterInstance;
         _activeViewIndex = 0;
         [self renderBackButton];
+        [self navigateToActiveView];
     }
     return self;
 }
 
 - (void)navigateToActiveView
 {
-    self.stripeView = nil;
-    [self.nextButton removeFromSuperview];
     [self removeBundleSelectUI];
     [self removeContactInfoUI];
     [self removeBillingInfoUI];
@@ -121,15 +120,15 @@
 - (void)setupBillingInfoLayout
 {
     NSString *stripePublishableKey;
-    [self renderNextButton:NO];
-
-    if ( [[[_arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-        stripePublishableKey = StripeLivePublishableKey;
-    } else {
-        stripePublishableKey = StripeTestPublishableKey;
+    if ( self.stripeView == nil ) {
+        if ( [[[_arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+            stripePublishableKey = StripeLivePublishableKey;
+        } else {
+            stripePublishableKey = StripeTestPublishableKey;
+        }
+        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
+        self.stripeView.delegate = self;
     }
-    self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
-    self.stripeView.delegate = self;
     ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
                                                           initWithStripeView:self.stripeView];
     
@@ -149,18 +148,19 @@
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
 }
 
-- (void)renderNextButton:(BOOL)enabled
+- (void)renderNextButton
 {
-    // TODO: Put this and the back button at the top of the window
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    UIButton *nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
     float btnWidth = 50.0;
     float btnHeight = 50.0;
-    [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
-    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
-    [self.nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    [self.nextButton setEnabled:enabled];
-    [self addSubview:self.nextButton];
+    [nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+    [nextButton setTitle:@"Submit" forState:UIControlStateNormal];
+    [nextButton.titleLabel setTextAlignment:NSTextAlignmentRight];
+    [nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
+    [nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    [nextButton setTag:BILLING_INFO_UI_TAG];
+    [self addSubview:nextButton];
 }
 
 - (void)renderBackButton
@@ -175,7 +175,6 @@
     [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
     [self addSubview:backButton];
-    [self navigateToActiveView];
 }
 
 - (void)removeBundleSelectUI
@@ -227,7 +226,7 @@
 - (void)getTokenAndSubmitPayment
 {
     [_arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
-    [self.stripeView createToken:^(STPToken *token, NSError *error) {
+    [self.stripeView createToken:[^(STPToken *token, NSError *error) {
         if (error) {
             [_arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
@@ -235,17 +234,17 @@
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"bundle_sku": [_selectedBundle objectForKey:@"sku"],
                                      @"email": self.email};
-            
             [_arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
                 [_arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
                     NSLog(@"Plan out how to hide panel view");
+                    // TODO: Render a success screen with a success message.
                 }
             } copy]];
         }
-    }];
+    } copy]];
 }
 
 
@@ -253,7 +252,7 @@
 
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
-    self.nextButton.enabled = true;
+    [self renderNextButton];
 }
 
 - (void)handleError:(NSString *)error

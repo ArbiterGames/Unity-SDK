@@ -22,9 +22,13 @@
     id <WalletDepositViewDelegate> delegate;
 }
 
-@property (nonatomic, assign) id delegate;
-@property (assign) STPView *stripeView;
-@property (assign) NSString *email;
+@property (strong) id delegate;
+@property (strong) Arbiter *arbiter;
+@property (strong) STPView *stripeView;
+@property (strong) NSDictionary *selectedBundle;
+@property (strong) NSString *email;
+@property int activeViewIndex;
+@property BOOL purchaseCompleted;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)nextButtonClicked:(id)sender;

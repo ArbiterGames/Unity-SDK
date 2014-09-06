@@ -8,10 +8,12 @@
 
 #import <UIKit/UIKit.h>
 
+
 @interface ArbiterContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate>
 
-- (id)initWithCallback:(void(^)(NSString *))callback;
+@property (strong) NSString *email;
+@property (strong) void (^callback)(NSString *);
 
-@property (assign) NSString *email;
+- (id)initWithCallback:(void(^)(NSString *))callback;
 
 @end

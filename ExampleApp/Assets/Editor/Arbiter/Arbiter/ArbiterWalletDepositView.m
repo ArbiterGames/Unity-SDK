@@ -7,36 +7,30 @@
 //
 
 #import "ArbiterWalletDepositView.h"
-#import "Arbiter.h"
 #import "ArbiterConstants.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
+#import "ArbiterTransactionSuccessTableViewDelegate.h"
 
 #define BUNDLE_SELECT_UI_TAG 667
 #define CONTACT_INFO_UI_TAG 668
 #define BILLING_INFO_UI_TAG 669
 #define GET_BUNDLE_REQUEST_TAG 671
 #define POST_DEPOSIT_REQUEST_TAG 672
+#define SUCCESS_MESSAGE_UI_TAG 673
 
 
 @implementation ArbiterWalletDepositView
-{
-    Arbiter *_arbiter;
-    NSDictionary *_selectedBundle;
-    int _activeViewIndex;
-}
 
-@synthesize email;
-@synthesize delegate;
-
+@synthesize delegate = _delegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super initWithFrame:frame];
     if ( self ) {
-        _arbiter = arbiterInstance;
-        _activeViewIndex = 0;
+        self.arbiter = arbiterInstance;
+        self.activeViewIndex = 0;
         [self renderBackButton];
         [self navigateToActiveView];
     }
@@ -49,14 +43,18 @@
     [self removeContactInfoUI];
     [self removeBillingInfoUI];
     
-    if ( _activeViewIndex == 0 ) {
+    if ( self.purchaseCompleted ) {
+        [self.delegate handleBackButton];
+    } else if ( self.activeViewIndex == 0 ) {
         [self setupBundleSelect];
-    } else if ( _activeViewIndex == 1 ) {
+    } else if ( self.activeViewIndex == 1 ) {
         [self setupEmailFieldLayout];
-    } else if ( _activeViewIndex == 2 ) {
+    } else if ( self.activeViewIndex == 2 ) {
         [self setupBillingInfoLayout];
-    } else {
+    } else if ( self.activeViewIndex == 3 ) {
         [self getTokenAndSubmitPayment];
+    } else if ( self.activeViewIndex == 4 ) {
+        [self setupSuccessMessage];
     }
 }
 
@@ -65,13 +63,13 @@
 
 - (void)setupBundleSelect
 {
-    [_arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
-    [_arbiter httpGet:BundleURL handler:[^(NSDictionary *responseDict) {
+    [self.arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
+    [self.arbiter httpGet:BundleURL handler:[^(NSDictionary *responseDict) {
         NSMutableArray *availableBundles = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
         ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles
                                                                           andSelectionCallback:[^(NSDictionary *selectedBundle) {
             _selectedBundle = selectedBundle;
-            _activeViewIndex++;
+            self.activeViewIndex++;
             [self navigateToActiveView];
         } copy]];
         
@@ -87,7 +85,7 @@
         [self addSubview:tableView];
         [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
         [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
-        [_arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
+        [self.arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
     } copy]];
 }
 
@@ -95,12 +93,16 @@
 {
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc]
                                                           initWithCallback:[^(NSString *updatedEmail) {
-        self.email = updatedEmail;
-        _activeViewIndex++;
+        NSLog(@"updatedEmail is string: %hhd", [self.email isKindOfClass:[NSString class]]);
+        if ( [updatedEmail isKindOfClass:[NSString class]]) {
+            self.email = updatedEmail;
+        }
+        NSLog(@"self.email updated to: %@", self.email);
+        self.activeViewIndex++;
         [self navigateToActiveView];
     } copy]];
-    tableDelegate.email = [_arbiter.user objectForKey:@"email"];
     
+    tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
     UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0) style:UITableViewStyleGrouped];
     [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
     [tableView setDelegate:tableDelegate];
@@ -121,7 +123,7 @@
 {
     NSString *stripePublishableKey;
     if ( self.stripeView == nil ) {
-        if ( [[[_arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
             stripePublishableKey = StripeLivePublishableKey;
         } else {
             stripePublishableKey = StripeTestPublishableKey;
@@ -146,6 +148,27 @@
     [self addSubview:tableView];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
     [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
+}
+
+- (void)setupSuccessMessage
+{
+    ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
+                                                          initWithCallback:[^(void) {
+        [self.delegate handleBackButton];
+    } copy]];
+    
+    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0) style:UITableViewStyleGrouped];
+    [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
+    [tableView setDelegate:tableDelegate];
+    [tableView setDataSource:tableDelegate];
+    [tableView setBackgroundColor:[UIColor clearColor]];
+    [tableView setBackgroundView:nil];
+    [tableView setSeparatorColor:[UIColor clearColor]];
+    [tableView reloadData];
+    [tableView setAllowsSelection:false];
+    [tableView setScrollEnabled:false];
+    [tableView setTag:SUCCESS_MESSAGE_UI_TAG];
+    [self addSubview:tableView];
 }
 
 - (void)renderNextButton
@@ -209,38 +232,45 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    _activeViewIndex++;
+    self.activeViewIndex++;
     [self navigateToActiveView];
 }
 
 - (void)backButtonClicked:(id)sender
 {
-    if ( _activeViewIndex == 0 ) {
+    if ( self.activeViewIndex == 0 ) {
         [self.delegate handleBackButton];
     } else {
-        _activeViewIndex--;
+        self.activeViewIndex--;
         [self navigateToActiveView];
     }
 }
 
 - (void)getTokenAndSubmitPayment
 {
-    [_arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
-    [self.stripeView createToken:[^(STPToken *token, NSError *error) {
+    [self.arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
+    [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
         if (error) {
-            [_arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
+            [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
-            NSDictionary *params = @{@"card_token": token.tokenId,
-                                     @"bundle_sku": [_selectedBundle objectForKey:@"sku"],
-                                     @"email": self.email};
-            [_arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
-                [_arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
+            NSString *token = stripeToken.tokenId;
+            NSString *bundleSku = [_selectedBundle objectForKey:@"sku"];
+            NSString *emailValue = self.email;
+            
+            NSLog(@"emailValue: %@", emailValue);
+            
+            NSDictionary *params = @{@"card_token": token,
+                                     @"bundle_sku": bundleSku,
+                                     @"email": emailValue};
+            [self.arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
+                [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
-                    NSLog(@"Plan out how to hide panel view");
-                    // TODO: Render a success screen with a success message.
+                    self.activeViewIndex++;
+                    [self navigateToActiveView];
+                    self.purchaseCompleted = YES;
                 }
             } copy]];
         }

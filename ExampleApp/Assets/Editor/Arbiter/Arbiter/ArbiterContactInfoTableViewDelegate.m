@@ -11,17 +11,12 @@
 #define CELL_FIELD_TAG 1
 
 @implementation ArbiterContactInfoTableViewDelegate
-{
-    void (^_callback)(NSString *email);
-}
 
-@synthesize email;
-
-- (id)initWithCallback:(void(^)(NSString *))callback
+- (id)initWithCallback:(void(^)(NSString *))callbackBlock
 {
     self = [super init];
     if ( self ) {
-        _callback = callback;
+        self.callback = callbackBlock;
     }
     return self;
 }
@@ -88,7 +83,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    _callback(textField.text);
+    self.callback(textField.text);
     [textField resignFirstResponder];
     return YES;
 }

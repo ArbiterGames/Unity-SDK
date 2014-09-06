@@ -6,8 +6,8 @@
 //
 //
 
-#import "ArbiterWalletDepositView.h"
 #import "ArbiterConstants.h"
+#import "ArbiterWalletDepositView.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
@@ -68,7 +68,7 @@
         NSMutableArray *availableBundles = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
         ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles
                                                                           andSelectionCallback:[^(NSDictionary *selectedBundle) {
-            _selectedBundle = selectedBundle;
+            self.selectedBundle = selectedBundle;
             self.activeViewIndex++;
             [self navigateToActiveView];
         } copy]];
@@ -174,7 +174,7 @@
 - (void)renderNextButton
 {
     UIButton *nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 50.0;
+    float btnWidth = 80.0;
     float btnHeight = 50.0;
     [nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
     [nextButton setTitle:@"Submit" forState:UIControlStateNormal];
@@ -254,15 +254,9 @@
             [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
-            NSString *token = stripeToken.tokenId;
-            NSString *bundleSku = [_selectedBundle objectForKey:@"sku"];
-            NSString *emailValue = self.email;
-            
-            NSLog(@"emailValue: %@", emailValue);
-            
-            NSDictionary *params = @{@"card_token": token,
-                                     @"bundle_sku": bundleSku,
-                                     @"email": emailValue};
+            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
+                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
+                                     @"email": self.email};
             [self.arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
                 [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {

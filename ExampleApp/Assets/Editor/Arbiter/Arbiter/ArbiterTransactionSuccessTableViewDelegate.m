@@ -46,29 +46,22 @@
         [cell setBackgroundColor:[UIColor clearColor]];
         
         if ( indexPath.row == 0 ) {
-            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(-80.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, cell.frame.size.height)];
             [label setTag:CELL_LABEL_TAG];
             [label setTextColor:[UIColor whiteColor]];
-            [label setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
-            [label setBackgroundColor:[UIColor clearColor]];
-            [label setText:@"Your deposit was successfull"];
-
+            [label setTextAlignment:NSTextAlignmentCenter];
+            [label setText:@"Your deposit was successful!"];
             [cell.contentView addSubview:label];
         } else if ( indexPath.row == 1 ) {
             UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
-            [backButton setFrame:CGRectMake(0.0, 5.0, 50.0, 50.0)];
-            [backButton setTitle:@"Back" forState:UIControlStateNormal];
-            [backButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-            [backButton.titleLabel setFont:[UIFont systemFontOfSize:17.0]];
+            [backButton setFrame:CGRectMake(0.0 , 0.0, cell.frame.size.width + 80.0, cell.frame.size.height)];
+            [backButton setTitle:@"Back to your Game" forState:UIControlStateNormal];
+            [backButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
+            [backButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17.0]];
             [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
             [cell.contentView addSubview:backButton];
         }
-
-        CALayer *topBorder = [CALayer layer];
-        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-        topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
-        [cell.contentView.layer addSublayer:topBorder];
     }
     
     return cell;

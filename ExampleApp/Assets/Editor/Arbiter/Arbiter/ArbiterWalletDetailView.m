@@ -7,23 +7,20 @@
 //
 
 #import "ArbiterWalletDetailView.h"
-#import "Arbiter.h"
+#import "ArbiterUITableView.h"
 
 #define CELL_LABEL_TAG 1
 #define CELL_VALUE_TAG 2
 
 @implementation ArbiterWalletDetailView
-{
-    Arbiter *_arbiter;
-}
 
-@synthesize delegate;
+@synthesize delegate = _delegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super initWithFrame:frame];
     if ( self ) {
-        _arbiter = arbiterInstance;
+        self.arbiter = arbiterInstance;
         [self renderLayout];
     }
     return self;
@@ -31,16 +28,10 @@
 
 - (void)renderLayout
 {
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0) style:UITableViewStyleGrouped];
-    [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:self];
-    [tableView setDataSource:self];
-    [tableView setBackgroundColor:[UIColor clearColor]];
-    [tableView setBackgroundView:nil];
-    [tableView setSeparatorColor:[UIColor clearColor]];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
+    tableView.delegate = self;
+    tableView.dataSource = self;
     [tableView reloadData];
-    [tableView setScrollEnabled:false];
-    [tableView setAllowsSelection:false];
     [self addSubview:tableView];
     
     UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
@@ -103,11 +94,11 @@
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];
         [label setFont:[UIFont boldSystemFontOfSize:17.0]];
-        [value setText:[NSString stringWithFormat:@"%@ credits", [_arbiter.wallet objectForKey:@"balance"]]];
+        [value setText:[NSString stringWithFormat:@"%@ credits", [self.arbiter.wallet objectForKey:@"balance"]]];
         [value setFont:[UIFont boldSystemFontOfSize:17.0]];
     } else {
         [label setText:@"Username"];
-        [value setText:[_arbiter.user objectForKey:@"username"]];
+        [value setText:[self.arbiter.user objectForKey:@"username"]];
         [cell.contentView.layer addSublayer:topBorder];
     }
     

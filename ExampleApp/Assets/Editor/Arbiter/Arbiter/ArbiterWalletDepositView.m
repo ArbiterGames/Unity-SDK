@@ -7,6 +7,7 @@
 //
 
 #import "ArbiterConstants.h"
+#import "ArbiterUITableView.h"
 #import "ArbiterWalletDepositView.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
@@ -73,18 +74,14 @@
             [self navigateToActiveView];
         } copy]];
         
-        UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0) style:UITableViewStyleGrouped];
-        [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-        [tableView setDelegate:selectView];
-        [tableView setDataSource:selectView];
-        [tableView setBackgroundColor:[UIColor clearColor]];
-        [tableView setBackgroundView:nil];
-        [tableView setSeparatorColor:[UIColor clearColor]];
+        ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
+        tableView.delegate = selectView;
+        tableView.dataSource = selectView;
+        tableView.tag = BUNDLE_SELECT_UI_TAG;
+        tableView.scrollEnabled = YES;
+        tableView.allowsSelection = YES;
         [tableView reloadData];
-        [tableView setTag:BUNDLE_SELECT_UI_TAG];
         [self addSubview:tableView];
-        [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
-        [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
         [self.arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
     } copy]];
 }
@@ -103,20 +100,12 @@
     } copy]];
     
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0) style:UITableViewStyleGrouped];
-    [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:tableDelegate];
-    [tableView setDataSource:tableDelegate];
-    [tableView setBackgroundColor:[UIColor clearColor]];
-    [tableView setBackgroundView:nil];
-    [tableView setSeparatorColor:[UIColor clearColor]];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = CONTACT_INFO_UI_TAG;
     [tableView reloadData];
-    [tableView setAllowsSelection:false];
-    [tableView setScrollEnabled:false];
-    [tableView setTag:CONTACT_INFO_UI_TAG];
     [self addSubview:tableView];
-    [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
-    [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
 }
 
 - (void)setupBillingInfoLayout
@@ -134,20 +123,12 @@
     ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
                                                           initWithStripeView:self.stripeView];
     
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0) style:UITableViewStyleGrouped];
-    [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:tableDelegate];
-    [tableView setDataSource:tableDelegate];
-    [tableView setBackgroundColor:[UIColor clearColor]];
-    [tableView setBackgroundView:nil];
-    [tableView setSeparatorColor:[UIColor clearColor]];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = BILLING_INFO_UI_TAG;
     [tableView reloadData];
-    [tableView setAllowsSelection:false];
-    [tableView setScrollEnabled:false];
-    [tableView setTag:BILLING_INFO_UI_TAG];
     [self addSubview:tableView];
-    [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setFont:[UIFont boldSystemFontOfSize:17.0]];
-    [[UILabel appearanceWhenContainedIn:[UITableViewHeaderFooterView class], nil] setTextColor:[UIColor whiteColor]];
 }
 
 - (void)setupSuccessMessage
@@ -157,17 +138,11 @@
         [self.delegate handleBackButton];
     } copy]];
     
-    UITableView *tableView = [[UITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0) style:UITableViewStyleGrouped];
-    [tableView setAutoresizingMask:UIViewAutoresizingFlexibleHeight|UIViewAutoresizingFlexibleWidth];
-    [tableView setDelegate:tableDelegate];
-    [tableView setDataSource:tableDelegate];
-    [tableView setBackgroundColor:[UIColor clearColor]];
-    [tableView setBackgroundView:nil];
-    [tableView setSeparatorColor:[UIColor clearColor]];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
     [tableView reloadData];
-    [tableView setAllowsSelection:false];
-    [tableView setScrollEnabled:false];
-    [tableView setTag:SUCCESS_MESSAGE_UI_TAG];
     [self addSubview:tableView];
 }
 

@@ -22,7 +22,8 @@
     id <WalletDetailViewDelegate> delegate;
 }
 
-@property (nonatomic, assign) id delegate;
+@property (strong) Arbiter *arbiter;
+@property (strong) id delegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)backButtonClicked:(id)sender;

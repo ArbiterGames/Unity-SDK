@@ -32,6 +32,8 @@
     if ( self ) {
         self.arbiter = arbiterInstance;
         self.activeViewIndex = 0;
+        self.email = [self.arbiter.user objectForKey:@"email"];
+        self.fullName = [self.arbiter.user objectForKey:@"full_name"];
         [self renderBackButton];
         [self navigateToActiveView];
     }
@@ -150,9 +152,8 @@
         self.activeViewIndex++;
         [self navigateToActiveView];
     } copy]];
-    
-    tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
-    tableDelegate.fullName = [self.arbiter.user objectForKey:@"full_name"];
+    tableDelegate.email = self.email;
+    tableDelegate.fullName = self.fullName;
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.scrollEnabled = YES;
     tableView.delegate = tableDelegate;
@@ -226,6 +227,9 @@
                 [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                    [self.nextButton removeFromSuperview];
+                    self.activeViewIndex--;
+                    [self navigateToActiveView];
                 } else {
                     self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
                     self.arbiter.user = [responseDict objectForKey:@"user"];

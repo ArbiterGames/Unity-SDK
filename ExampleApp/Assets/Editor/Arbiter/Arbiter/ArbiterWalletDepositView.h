@@ -30,6 +30,9 @@
 @property int activeViewIndex;
 @property BOOL purchaseCompleted;
 
+@property (strong) IBOutlet UIButton *backButton;
+@property (strong) IBOutlet UIButton *nextButton;
+
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)nextButtonClicked:(id)sender;
 - (void)backButtonClicked:(id)sender;

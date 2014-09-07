@@ -47,7 +47,7 @@
     [self.layer addSublayer:topBorder];
     
     ArbiterWalletDetailView *detailView = [[ArbiterWalletDetailView alloc] initWithFrame:_marginizedFrame andArbiterInstance:self.arbiter];
-    [detailView setDelegate:self];
+    detailView.delegate = self;
     [self navigateToView:detailView];
     
     UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Overview", @"Deposit", @"Withdraw", nil]];
@@ -76,16 +76,17 @@
     if ( segment.selectedSegmentIndex == 0 ) {
         ArbiterWalletDetailView *view = [[ArbiterWalletDetailView alloc] initWithFrame:_marginizedFrame
                                                                     andArbiterInstance:self.arbiter];
-        [view setDelegate:self];
+        view.delegate = self;
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
         ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:_marginizedFrame
                                                                       andArbiterInstance:self.arbiter];
-        [view setDelegate:self];
+        view.delegate = self;
         [self navigateToView:view];
     } else {
         ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:_marginizedFrame
                                                                         andArbiterInstance:self.arbiter];
+        view.delegate = self;
         [self navigateToView:view];
     }
 }

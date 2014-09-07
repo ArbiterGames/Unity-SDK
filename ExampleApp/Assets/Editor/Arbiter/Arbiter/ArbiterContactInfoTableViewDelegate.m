@@ -56,15 +56,15 @@
             emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
                                                                                attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         }
-        [emailField setTextColor:[UIColor whiteColor]];
-        [emailField setAutocorrectionType:UITextAutocorrectionTypeNo];
-        [emailField setKeyboardType:UIKeyboardTypeEmailAddress];
-        [emailField setReturnKeyType:UIReturnKeyDone];
-        [emailField setClearButtonMode:UITextFieldViewModeWhileEditing];
-        [emailField setContentVerticalAlignment:UIControlContentVerticalAlignmentCenter];
-        [emailField setAutocapitalizationType:UITextAutocapitalizationTypeNone];
-        [emailField setDelegate:self];
-        [emailField setTag:CELL_FIELD_TAG];
+        emailField.textColor = [UIColor whiteColor];
+        emailField.autocorrectionType = UITextAutocorrectionTypeNo;
+        emailField.keyboardType = UIKeyboardTypeEmailAddress;
+        emailField.returnKeyType = UIReturnKeyNext;
+        emailField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        emailField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        emailField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        emailField.delegate = self;
+        emailField.tag = CELL_FIELD_TAG;
         [cell.contentView addSubview:emailField];
         [emailField becomeFirstResponder];
     } else {

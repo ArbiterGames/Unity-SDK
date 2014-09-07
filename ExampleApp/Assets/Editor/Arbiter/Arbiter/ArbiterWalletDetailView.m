@@ -39,10 +39,10 @@
     float btnHeight = 50.0;
     [backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
     [backButton setTitle:@"Back" forState:UIControlStateNormal];
-    [backButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-    [backButton.titleLabel setFont:[UIFont systemFontOfSize:17.0]];
     [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    backButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    backButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
     [self addSubview:backButton];
 }
 
@@ -93,9 +93,7 @@
     
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];
-        [label setFont:[UIFont boldSystemFontOfSize:17.0]];
         [value setText:[NSString stringWithFormat:@"%@ credits", [self.arbiter.wallet objectForKey:@"balance"]]];
-        [value setFont:[UIFont boldSystemFontOfSize:17.0]];
     } else {
         [label setText:@"Username"];
         [value setText:[self.arbiter.user objectForKey:@"username"]];

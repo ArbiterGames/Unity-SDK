@@ -40,9 +40,9 @@
 
 - (void)navigateToActiveView
 {
-    [self removeBundleSelectUI];
-    [self removeContactInfoUI];
-    [self removeBillingInfoUI];
+    [self removeUIWithTag:BUNDLE_SELECT_UI_TAG];
+    [self removeUIWithTag:CONTACT_INFO_UI_TAG];
+    [self removeUIWithTag:BILLING_INFO_UI_TAG];
     
     if ( self.purchaseCompleted ) {
         [self.delegate handleBackButton];
@@ -90,11 +90,9 @@
 {
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc]
                                                           initWithCallback:[^(NSString *updatedEmail) {
-        NSLog(@"updatedEmail is string: %hhd", [self.email isKindOfClass:[NSString class]]);
         if ( [updatedEmail isKindOfClass:[NSString class]]) {
             self.email = updatedEmail;
         }
-        NSLog(@"self.email updated to: %@", self.email);
         self.activeViewIndex++;
         [self navigateToActiveView];
     } copy]];
@@ -131,96 +129,6 @@
     [self addSubview:tableView];
 }
 
-- (void)setupSuccessMessage
-{
-    ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
-                                                          initWithCallback:[^(void) {
-        [self.delegate handleBackButton];
-    } copy]];
-    
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
-    [tableView reloadData];
-    [self addSubview:tableView];
-}
-
-- (void)renderNextButton
-{
-    UIButton *nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 80.0;
-    float btnHeight = 50.0;
-    [nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
-    [nextButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [nextButton.titleLabel setTextAlignment:NSTextAlignmentRight];
-    [nextButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17]];
-    [nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    [nextButton setTag:BILLING_INFO_UI_TAG];
-    [self addSubview:nextButton];
-}
-
-- (void)renderBackButton
-{
-    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 50.0;
-    float btnHeight = 50.0;
-    [backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
-    [backButton setTitle:@"Back" forState:UIControlStateNormal];
-    [backButton.titleLabel setTextAlignment:NSTextAlignmentLeft];
-    [backButton.titleLabel setFont:[UIFont systemFontOfSize:17.0]];
-    [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    [self addSubview:backButton];
-}
-
-- (void)removeBundleSelectUI
-{
-    for (UIView *view in [self subviews]) {
-        if (view.tag == BUNDLE_SELECT_UI_TAG) {
-            [view removeFromSuperview];
-        }
-    }
-}
-
-- (void)removeContactInfoUI
-{
-    for ( UIView *view in [self subviews] ) {
-        if ( view.tag == CONTACT_INFO_UI_TAG ) {
-            [view removeFromSuperview];
-        }
-    }
-}
-
-- (void)removeBillingInfoUI
-{
-    for ( UIView *view in [self subviews] ) {
-        if ( view.tag == BILLING_INFO_UI_TAG ) {
-            [view removeFromSuperview];
-        }
-    }
-}
-
-
-# pragma mark Click Handlers
-
-- (void)nextButtonClicked:(id)sender
-{
-    self.activeViewIndex++;
-    [self navigateToActiveView];
-}
-
-- (void)backButtonClicked:(id)sender
-{
-    if ( self.activeViewIndex == 0 ) {
-        [self.delegate handleBackButton];
-    } else {
-        self.activeViewIndex--;
-        [self navigateToActiveView];
-    }
-}
-
 - (void)getTokenAndSubmitPayment
 {
     [self.arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
@@ -244,6 +152,79 @@
             } copy]];
         }
     } copy]];
+}
+
+- (void)setupSuccessMessage
+{
+    ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
+                                                          initWithCallback:[^(void) {
+        [self.delegate handleBackButton];
+    } copy]];
+    
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
+    [tableView reloadData];
+    [self addSubview:tableView];
+    [self.backButton removeFromSuperview];
+    self.nextButton.titleLabel.text = @"Close";
+}
+
+- (void)renderNextButton
+{
+    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    float btnWidth = 80.0;
+    float btnHeight = 50.0;
+    [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+    [self.nextButton setTitle:@"Submit" forState:UIControlStateNormal];
+    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
+    self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    [self addSubview:self.nextButton];
+}
+
+- (void)renderBackButton
+{
+    self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    float btnWidth = 50.0;
+    float btnHeight = 50.0;
+    [self.backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
+    [self.backButton setTitle:@"Back" forState:UIControlStateNormal];
+    [self.backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.backButton.titleLabel.textAlignment = NSTextAlignmentLeft;
+    self.backButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    [self addSubview:self.backButton];
+}
+
+- (void)removeUIWithTag:(int)tag
+{
+    for (UIView *view in [self subviews]) {
+        if (view.tag == tag) {
+            [view removeFromSuperview];
+        }
+    }
+}
+
+
+# pragma mark Click Handlers
+
+- (void)nextButtonClicked:(id)sender
+{
+    self.activeViewIndex++;
+    [self navigateToActiveView];
+}
+
+- (void)backButtonClicked:(id)sender
+{
+    if ( self.activeViewIndex == 0 ) {
+        [self.delegate handleBackButton];
+    } else {
+        self.activeViewIndex--;
+        [self navigateToActiveView];
+    }
 }
 
 

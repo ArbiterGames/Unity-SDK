@@ -14,7 +14,7 @@
 
 @implementation ArbiterFullContactInfoTableViewDelegate
 
-- (id)initWithCallback:(void(^)(NSString *))callbackBlock
+- (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock
 {
     self = [super init];
     if ( self ) {
@@ -96,8 +96,13 @@
     if ( textField.tag == EMAIL_FIELD_TAG ) {
         [self.nameField becomeFirstResponder];
     } else {
-        self.callback(textField.text);
-        [textField resignFirstResponder];
+        if ( self.email == nil || self.fullName == nil ) {
+            NSLog(@"email: %@", self.email);
+            NSLog(@"fullname: %@", self.fullName);
+        } else {
+            self.callback(@{@"email": self.email, @"fullName": self.fullName});
+            [textField resignFirstResponder];
+        }
     }
     return YES;
 }

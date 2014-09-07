@@ -11,6 +11,8 @@
 #import "ArbiterUITableView.h"
 #import "ArbiterWalletWithdrawView.h"
 #import "ArbiterFullContactInfoTableViewDelegate.h"
+#import "ArbiterBillingInfoTableViewDelegate.h"
+#import "ArbiterTransactionSuccessTableViewDelegate.h"
 
 #define AMOUNT_SELECTION_UI_TAG 100
 #define CONTACT_INFO_UI_TAG 101
@@ -140,9 +142,10 @@
 - (void)setupContactInfoUI
 {
     ArbiterFullContactInfoTableViewDelegate *tableDelegate = [[ArbiterFullContactInfoTableViewDelegate alloc]
-                                                              initWithCallback:[^(NSString *updatedEmail) {
-        if ( [updatedEmail isKindOfClass:[NSString class]]) {
-            self.email = updatedEmail;
+                                                              initWithCallback:[^(NSDictionary *updatedEmailAndName) {
+        if ( [updatedEmailAndName isKindOfClass:[NSDictionary class]]) {
+            self.email = [updatedEmailAndName objectForKey:@"email"];
+            self.fullName = [updatedEmailAndName objectForKey:@"fullName"];
         }
         self.activeViewIndex++;
         [self navigateToActiveView];
@@ -162,26 +165,40 @@
 - (void)setupBillingInfoUI
 {
     NSString *stripePublishableKey;
-    
-    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-        stripePublishableKey = StripeLivePublishableKey;
-    } else {
-        stripePublishableKey = StripeTestPublishableKey;
+    if ( self.stripeView == nil ) {
+        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+            stripePublishableKey = StripeLivePublishableKey;
+        } else {
+            stripePublishableKey = StripeTestPublishableKey;
+        }
+        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
+        self.stripeView.delegate = self;
     }
-    
-    // TODO: Move this into an ArbiterTableView
-    self.stripeView = [[STPView alloc] initWithFrame:CGRectMake((self.frame.size.width) / 2, 40.0f,
-                                                                self.frame.size.width, 40.0f)
-                                              andKey:stripePublishableKey];
-    self.stripeView.delegate = self;
-    [self addSubview:self.stripeView];
+    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
+                                                          initWithStripeView:self.stripeView];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = BILLING_INFO_UI_TAG;
+    [tableView reloadData];
+    [self.nextButton removeFromSuperview];
+    [self addSubview:tableView];
 }
 
 - (void)setupSuccessMessageUI
 {
-    NSLog(@"TODO: success message UI");
+    ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
+                                                                 initWithCallback:[^(void) {
+        [self.delegate handleBackButton];
+    } copy]];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
+    [tableView reloadData];
+    [self addSubview:tableView];
     [self.backButton removeFromSuperview];
-    self.nextButton.titleLabel.text = @"Close";
+    [self.nextButton setTitle:@"Close" forState:UIControlStateNormal];
 }
 
 - (void)removeUIWithTag:(int)tag
@@ -196,33 +213,15 @@
 - (void)getTokenAndSubmitWithdraw
 {
     [self.arbiter.alertWindow addRequestToQueue:POST_WITHDRAWAL_REQUEST_TAG];
-    [self setHidden:YES];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
-//        NSDictionary *params;
-//        NSMutableDictionary *mutableParams;
-        
         if (error) {
             [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
-            [self setHidden:NO];
         } else {
-            
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
                                      @"email": self.email,
                                      @"card_name": self.fullName};
-//            mutableParams = [NSMutableDictionary dictionaryWithObjects: @[token.tokenId, [NSString stringWithFormat:@"%.0f", self.withdrawAmount]]
-//                                                               forKeys:@[@"card_token", @"amount"]];
-//            
-//            if ( self.emailField != nil ) {
-//                [mutableParams setObject:self.emailField.text forKey:@"email"];
-//            }
-//            
-//            if ( self.nameField != nil ) {
-//                [mutableParams setObject:self.nameField.text forKey:@"card_name"];
-//            }
-            
-//            params = [mutableParams copy];
             [self.arbiter httpPost:APIWithdrawURL params:params handler:[^(NSDictionary *responseDict) {
                 [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
                 if ([[responseDict objectForKey:@"errors"] count]) {
@@ -232,6 +231,7 @@
                     self.arbiter.user = [responseDict objectForKey:@"user"];
                     self.activeViewIndex++;
                     [self navigateToActiveView];
+                    self.withdrawComplete = YES;
                 }
             } copy]];
         }

@@ -12,11 +12,11 @@
 
 @property (strong) NSString *email;
 @property (strong) NSString *fullName;
-@property (strong) void (^callback)(NSString *);
+@property (strong) void (^callback)(NSDictionary *);
 
 @property (strong) IBOutlet UITextField *emailField;
 @property (strong) IBOutlet UITextField *nameField;
 
-- (id)initWithCallback:(void(^)(NSString *))callback;
+- (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock;
 
 @end

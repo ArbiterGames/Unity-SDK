@@ -42,9 +42,10 @@ public class Entrypoint : MonoBehaviour {
 
 
 	void FatalError( List<string> errors ) {
-		Debug.LogError( "Encountered fatal errors. Cannot continue until they are resolved." );
+		Debug.LogError( "Encountered "+errors.Count+" fatal errors. Cannot continue until they are resolved. Errors:" );
+		int i = 1;
 		errors.ForEach( error => {
-			Debug.LogError( error );
+			Debug.LogError( "("+i+"): "+error );
 		});
 	}
 

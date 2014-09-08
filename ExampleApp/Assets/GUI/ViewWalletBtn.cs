@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class ViewWalletBtn : MonoBehaviour {
 	
 	void OnMouseUpAsButton() {
-        Arbiter.DisplayWalletDashboard( null );
+		Arbiter.DisplayWalletDashboard( null );
     }
 
 }

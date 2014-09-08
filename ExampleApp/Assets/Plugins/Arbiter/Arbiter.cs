@@ -95,14 +95,14 @@ public partial class Arbiter : MonoBehaviour {
 			walletPoller.Stop();
 			walletPoller = null;
 		}
-		
 		if ( tournamentPoller ) {
 			tournamentPoller.Stop();
 			tournamentPoller = null;
 		}
-		
 		wallet = null;
 		user = null;
+
+		setupPollers();
 
 		ArbiterBinding.Logout( success, failure );
 	}

@@ -45,23 +45,9 @@
                                                                self.frame.size.width - 100.0, self.titleHeight)];
     title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
     title.textColor = [UIColor whiteColor];
+    title.text = @"Cash Results";
     title.textAlignment = NSTextAlignmentCenter;
     title.numberOfLines = 0;
-    
-    if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
-        self.titleHeight = 100.0;
-        [title setFrame:CGRectMake(0.0, self.titleYPos,
-                                   self.frame.size.width, self.titleHeight)];
-        title.text = @"Waiting for\nopponent to finish";
-    }
-    else if ( [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
-        self.titleHeight = 100.0;
-        [title setFrame:CGRectMake(0.0, self.titleYPos,
-                                   self.frame.size.width, self.titleHeight)];
-        title.text = [NSString stringWithFormat:@"You won\n%@ credits!", [self.tournament objectForKey:@"payout"]];
-    } else {
-        title.text = @"You lost";
-    }
     [self addSubview:title];
     
     CALayer *topBorder = [CALayer layer];
@@ -71,8 +57,26 @@
     topBorder.opacity = 0.2;
     [self.layer addSublayer:topBorder];
     
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, topBorder.frame.origin.y - 20.0,
-                                                                                         self.frame.size.width, 200.0)];
+    UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, topBorder.frame.origin.y + 10.0, self.frame.size.width, 80.0)];
+    message.textColor = [UIColor whiteColor];
+    message.textAlignment = NSTextAlignmentCenter;
+    message.numberOfLines = 0;
+    [self addSubview:message];
+
+    if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
+        message.text = @"Your opponent has not reported their score yet. Check back later using the 'Previous Tournaments' button in the main menu.";
+        message.textAlignment = NSTextAlignmentLeft;
+    }
+    else if ( [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
+        message.text = [NSString stringWithFormat:@"You won %@ credits!", [self.tournament objectForKey:@"payout"]];
+        message.font = [UIFont boldSystemFontOfSize:23.0];
+    } else {
+        message.text = @"You have been defeated.";
+        message.font = [UIFont boldSystemFontOfSize:23.0];
+    }
+    
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, message.frame.origin.y + message.frame.size.height - 40.0,
+                                                                                         self.frame.size.width, 160.0)];
     tableView.delegate = self;
     tableView.dataSource = self;
     [tableView reloadData];

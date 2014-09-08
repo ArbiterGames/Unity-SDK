@@ -11,8 +11,6 @@
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
-#import "ArbiterPaymentView.h"
-#import "ArbiterWithdrawView.h"
 #import "ArbiterAlertWindow.h"
 #import "ArbiterTournamentResultsView.h"
 #import "STPView.h"
@@ -345,68 +343,6 @@
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
-    
-// TODO: Commenting out while I work on the ArbiterPanelView
-//    if ( self.user ) {
-//        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
-//        [self getWallet:^(NSDictionary *responseDict) {
-//            
-//            void (^closeWalletHandler)(void) = [^(void) {
-//                handler();
-//            } copy];
-//            
-//            void (^populateThenShowAlert)(void) = [^(void) {
-//                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-//                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
-//                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-//                [alert setTag:WALLET_ALERT_TAG];
-//                [alert show];
-//                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
-//                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
-//            } copy];
-//            
-//            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-//                void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-//                    populateThenShowAlert();
-//                } copy];
-//                [self verifyUser:verifyCallback];
-//            } else {
-//                populateThenShowAlert();
-//            }
-//        }];
-//    } else {
-//        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
-//    }
-}
-
-- (void)showDepositPanel
-{
-    ArbiterPaymentView *paymentView;
-    void (^paymentCallback)(void) = [^(void) {
-        [self.alertWindow hide];
-    } copy];
-    
-    paymentView = [[ArbiterPaymentView alloc] initWithCallback:paymentCallback
-                                               arbiterInstance:self];
-    [self.alertWindow show:paymentView];
-}
-
-- (void)showWithdrawPanel
-{
-    ArbiterWithdrawView *withdrawView;
-    void (^withdrawCallback)(void) = [^(void) {
-        [self.alertWindow hide];
-    } copy];
-    
-    withdrawView = [[ArbiterWithdrawView alloc] initWithCallback:withdrawCallback
-                                                      arbiterInstance:self];
-    [self.alertWindow show:withdrawView];
-}
-
-- (void)showWithdrawError:(NSString *)error
-{
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Unsuccessful Withdraw" message:error delegate:self cancelButtonTitle:@"Back" otherButtonTitles:nil];
-    [alert show];
 }
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
@@ -816,18 +752,6 @@
     } else if ( alertView.tag == INVALID_LOGIN_ALERT_TAG ) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"invalidLoginHandler"];
         handler(@{});
-    } else if ( alertView.tag == WALLET_ALERT_TAG ) {
-        if ( [buttonTitle isEqualToString:@"Refresh"] ) {
-            [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-        } else if ( [buttonTitle isEqualToString:@"Deposit"] ) {
-            [self showDepositPanel];
-        } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {
-            [self showWithdrawPanel];
-        } else {
-            void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
-            handler();
-        }
-
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             [self.alertWindow removeRequestFromQueue:VERIFICATION_ALERT_TAG];

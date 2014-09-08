@@ -54,7 +54,6 @@
     } else {
         [self.requestQueue setObject:@1 forKey:stringKey];
     }
-    
     if ( [self.requestQueue count] > 0 ) {
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
         [self.spinnerView setFrame:keyRVCV.bounds];
@@ -68,10 +67,9 @@
     NSString *stringKey = [NSString stringWithFormat:@"%d", key];
     [self.requestQueue setObject:@([[self.requestQueue objectForKey:stringKey] intValue] - 1) forKey:stringKey];
 
-    if ( [[self.requestQueue objectForKey:stringKey] intValue] == 0 ) {
+    if ( [[self.requestQueue objectForKey:stringKey] intValue] <= 0 ) {
         [self.requestQueue removeObjectForKey:stringKey];
     }
-
     if ( [self.requestQueue count] == 0 ) {
         [self.spinnerView stopAnimating];
         [self.spinnerView removeFromSuperview];

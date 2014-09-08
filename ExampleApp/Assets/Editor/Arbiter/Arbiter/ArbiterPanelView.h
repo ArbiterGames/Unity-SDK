@@ -15,6 +15,11 @@
 @property (assign) Arbiter *arbiter;
 @property (assign) ArbiterPanelWindow *parentWindow;
 
+@property CGRect marginizedFrame;
+@property float maxWidth;
+@property float titleYPos;
+@property float titleHeight;
+
 - (id)init:(Arbiter *)arbiterInstance;
 - (void)renderLayout;
 - (void)animateOut;

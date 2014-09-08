@@ -19,6 +19,9 @@
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
+        self.maxWidth = 400.0;
+        self.titleHeight = 40.0;
+        self.titleYPos = 10.0;
         [self animateIn];
         [self renderLayout];
     }
@@ -27,7 +30,13 @@
 
 - (void)renderLayout
 {
-    [self setBackgroundColor:[UIColor clearColor]];
+    self.backgroundColor = [UIColor clearColor];
+    if ( self.bounds.size.width > self.maxWidth ) {
+        self.marginizedFrame = CGRectMake((self.bounds.size.width - self.maxWidth) / 2, 0.0,
+                                          self.maxWidth, self.bounds.size.height - self.titleHeight - self.titleYPos);
+    } else {
+        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - self.titleHeight - self.titleYPos);
+    }
     [self renderPoweredBy];
 }
 

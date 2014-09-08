@@ -19,19 +19,16 @@
     [super renderLayout];
     
     float segmentedControlHeight = 40.0;
-    float titleYPos = 10.0;
-    float titleHeight = 40.0;
     float segmentedControlYPosFromBottom = 30.0;
-    float maxWidth = 400.0;
     
-    if ( self.bounds.size.width > maxWidth ) {
-        self.marginizedFrame = CGRectMake((self.bounds.size.width - maxWidth) / 2, 0.0,
-                                          maxWidth, self.bounds.size.height - titleHeight - titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
+    if ( self.bounds.size.width > self.maxWidth ) {
+        self.marginizedFrame = CGRectMake((self.bounds.size.width - self.maxWidth) / 2, 0.0,
+                                          self.maxWidth, self.bounds.size.height - self.titleHeight - self.titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
     } else {
-        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - titleHeight - titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
+        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - self.titleHeight - self.titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
     }
     
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, titleYPos, self.frame.size.width - 100.0, titleHeight)];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, self.titleYPos, self.frame.size.width - 100.0, self.titleHeight)];
     title.text = @"Wallet";
     title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
     title.textColor = [UIColor whiteColor];
@@ -39,7 +36,8 @@
     [self addSubview:title];
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, titleYPos + titleHeight + 10.0, self.frame.size.width, 0.5f);
+    topBorder.frame = CGRectMake(self.marginizedFrame.origin.x, self.titleYPos + self.titleHeight + 10.0,
+                                 self.marginizedFrame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor grayColor] CGColor];
     [self.layer addSublayer:topBorder];
     
@@ -89,7 +87,7 @@
 }
 
 
-# pragma mark Arbiter Dashboard Subvies Delegate Methods
+# pragma mark Arbiter Dashboard Subviews Delegate Methods
 
 - (void)handleBackButton
 {

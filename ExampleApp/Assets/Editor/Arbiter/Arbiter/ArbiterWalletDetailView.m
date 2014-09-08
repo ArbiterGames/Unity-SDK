@@ -89,7 +89,7 @@
     }
 
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.backgroundColor = [[UIColor grayColor] CGColor];
     
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];

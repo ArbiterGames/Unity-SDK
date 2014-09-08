@@ -17,6 +17,8 @@
 
 @property CGRect marginizedFrame;
 @property float maxWidth;
+@property float maxHeight;
+@property float availableHeight;
 @property float titleYPos;
 @property float titleHeight;
 

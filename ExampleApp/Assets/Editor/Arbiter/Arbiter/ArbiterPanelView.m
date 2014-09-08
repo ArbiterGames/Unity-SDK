@@ -21,11 +21,13 @@
     if ( self ) {
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
+        self.maxHeight = 320.0;
+        self.availableHeight = self.frame.size.height;
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
         if ( frame.size.width > self.maxWidth ) {
-            self.marginizedFrame = CGRectMake((frame.size.width - self.maxWidth) / 2, frame.origin.y,
-                                              self.maxWidth, frame.size.height);
+            self.marginizedFrame = CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
+                                              self.maxWidth, self.maxHeight);
             [self setFrame:self.marginizedFrame];
         } else {
             self.marginizedFrame = frame;
@@ -38,11 +40,12 @@
 
 - (void)renderLayout
 {
-    float finalHeight = 40.0;
+    float finalHeight = 0.0;
     for ( UIView *subview in self.subviews ) {
         finalHeight += subview.frame.size.height;
     }
-    [self setFrame:CGRectMake(self.frame.origin.x, (self.frame.size.height - finalHeight) / 2,
+    
+    [self setFrame:CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
                               self.frame.size.width, finalHeight)];
 }
 

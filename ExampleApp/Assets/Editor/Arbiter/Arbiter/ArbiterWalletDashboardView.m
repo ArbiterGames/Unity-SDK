@@ -16,13 +16,7 @@
 
 - (void)renderLayout
 {
-    
-//    if ( self.bounds.size.width > self.maxWidth ) {
-//        self.marginizedFrame = CGRectMake((self.bounds.size.width - self.maxWidth) / 2, 0.0,
-//                                          self.maxWidth, self.bounds.size.height - self.titleHeight - self.titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
-//    } else {
-//        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - self.titleHeight - self.titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
-//    }
+    float segmentedControlHeight = 40.0;
     
     UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, self.titleYPos, self.frame.size.width - 100.0, self.titleHeight)];
     title.text = @"Wallet";
@@ -38,13 +32,13 @@
     topBorder.opacity = 0.2;
     [self.layer addSublayer:topBorder];
     
-    ArbiterWalletDetailView *detailView = [[ArbiterWalletDetailView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
+    ArbiterWalletDetailView *detailView = [[ArbiterWalletDetailView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, self.maxHeight - segmentedControlHeight - self.titleHeight - self.titleYPos)
                                                                       andArbiterInstance:self.arbiter];
     detailView.delegate = self;
     [self navigateToView:detailView];
     
     UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Overview", @"Deposit", @"Withdraw", nil]];
-    [segmentedControl setFrame:CGRectMake(0.0, detailView.frame.size.height + 40.0, self.frame.size.width, 40.0)];
+    [segmentedControl setFrame:CGRectMake(0.0, detailView.frame.origin.y + detailView.frame.size.height + 10, self.frame.size.width, segmentedControlHeight)];
     [segmentedControl addTarget:self action:@selector(segmentControlClicked:) forControlEvents: UIControlEventValueChanged];
     [segmentedControl setTintColor:[UIColor whiteColor]];
     segmentedControl.selectedSegmentIndex = 0;

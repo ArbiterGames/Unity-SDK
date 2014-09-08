@@ -12,9 +12,9 @@
 
 @interface ArbiterAlertWindow : UIWindow
 
-@property (retain) UIWindow *gameWindow;
-@property (retain) UIActivityIndicatorView *spinnerView;
-@property (retain) NSMutableDictionary *requestQueue;
+@property (strong) UIWindow *gameWindow;
+@property (strong) UIActivityIndicatorView *spinnerView;
+@property (strong) NSMutableDictionary *requestQueue;
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow;
 - (void)show:(UIView *)view;

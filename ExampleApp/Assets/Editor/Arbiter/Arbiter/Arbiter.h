@@ -37,8 +37,11 @@
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
 - (bool)isUserVerified;
+- (bool)isUserAuthenticated;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 
+- (void)getCachedUser:(void(^)(NSDictionary *))handler;
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)fetchWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;

@@ -14,6 +14,9 @@
 
 @interface ArbiterWalletDashboardView : ArbiterPanelView <WalletDetailViewDelegate, WalletDepositViewDelegate>
 
+@property (strong) UIView *activeView;
+@property CGRect marginizedFrame;
+
 - (void)segmentControlClicked:(UISegmentedControl *)segment;
 
 @end

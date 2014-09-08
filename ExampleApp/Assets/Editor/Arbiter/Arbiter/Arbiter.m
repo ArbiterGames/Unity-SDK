@@ -579,14 +579,8 @@
             [alert show];
             [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
         } else {
-            ArbiterTournamentResultsView *resultsView;
-            void (^resultsCallback)(void) = [^(void) {
-                [self.alertWindow hide];
-            } copy];
-            resultsView = [[ArbiterTournamentResultsView alloc] initWithCallback:resultsCallback
-                                                                 arbiterInstance:self
-                                                                   andTournament:tournament];
-            [self.alertWindow show:resultsView];
+            ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] init:self];
+            [self.panelWindow show:resultsView];
         }
     } copy];
     

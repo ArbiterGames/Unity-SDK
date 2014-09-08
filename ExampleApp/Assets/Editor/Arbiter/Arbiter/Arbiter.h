@@ -8,6 +8,9 @@
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterAlertWindow.h"
 
+void ClientCallbackUserUpdated();
+void ClientCallbackWalletUpdated();
+
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
 @property (strong, atomic) NSDictionary *game;
@@ -34,10 +37,13 @@
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;
+- (bool)isUserAuthenticated;
 - (bool)isUserVerified;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
+- (void)getCachedUser:(void(^)(NSDictionary *))handler;
 
 - (void)fetchWallet:(void(^)(NSDictionary *))handler;
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;

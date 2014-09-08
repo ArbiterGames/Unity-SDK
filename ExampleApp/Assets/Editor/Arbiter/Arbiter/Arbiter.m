@@ -304,15 +304,21 @@
 
 - (void)fetchWallet:(void(^)(NSDictionary *))handler
 {
+    NSLog(@"ttt Arbiter.fetchWallet()");
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSLog(@"ttt Arbiter.fetchWallet() check D");
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         handler(responseDict);
     } copy];
     
+    NSLog(@"ttt Arbiter.fetchWallet() check A");
     if ( self.user ) {
+        NSLog(@"ttt Arbiter.fetchWallet() check B");
         NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
+        NSLog(@"ttt Arbiter.fetchWallet() check B1");
         [self httpGet:walletUrl handler:connectionHandler];
     } else {
+        NSLog(@"ttt Arbiter.fetchWallet() check C");
         handler(@{@"success": @"false",
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
                  });
@@ -322,15 +328,19 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    if ( self.user ) {
+    NSLog(@"ttt Arbiter::showWalletPanel");
+    if ( [self isUserAuthenticated] ) {
+        NSLog(@"ttt Arbiter::showWalletPanel check A");
         [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
+        NSLog(@"ttt Arbiter::showWalletPanel check B");
         [self fetchWallet:^(NSDictionary *responseDict) {
-            
+            NSLog(@"ttt Arbiter::showWalletPanel check C");
             void (^closeWalletHandler)(void) = [^(void) {
                 handler();
             } copy];
             
             void (^populateThenShowAlert)(void) = [^(void) {
+                NSLog(@"ttt Arbiter::showWalletPanel check G");
                 NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
                 NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
@@ -339,19 +349,23 @@
                 [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
                 [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
             } copy];
-            
+            NSLog(@"ttt Arbiter::showWalletPanel check D");
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+                NSLog(@"ttt Arbiter::showWalletPanel check F");
                 void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
                     populateThenShowAlert();
                 } copy];
                 [self verifyUser:verifyCallback];
             } else {
+                NSLog(@"ttt Arbiter::showWalletPanel check E");
                 populateThenShowAlert();
             }
         }];
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
+
+    NSLog(@"ttt Arbiter::showWalletPanel check Z");
 }
 
 - (void)showDepositPanel

@@ -133,9 +133,12 @@ void _fetchWallet()
 
 void _showWalletPanel()
 {
+    NSLog(@"ttt showWalletPanelNative()... ");
     [ArbiterInstance() showWalletPanel:^(void) {
+        NSLog(@"ttt showWalletPanelNative handler.");
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", EMPTY_STRING );
     }];
+    NSLog(@"ttt showWalletPanelNative()... done");
 }
 
 void _sendPromoCredits( const char *amount )

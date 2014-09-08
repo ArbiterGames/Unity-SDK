@@ -95,14 +95,14 @@ public partial class Arbiter : MonoBehaviour {
 			walletPoller.Stop();
 			walletPoller = null;
 		}
-		
 		if ( tournamentPoller ) {
 			tournamentPoller.Stop();
 			tournamentPoller = null;
 		}
-		
 		wallet = null;
 		user = null;
+
+		setupPollers();
 
 		ArbiterBinding.Logout( success, failure );
 	}
@@ -172,6 +172,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
+		Debug.Log ("ttt walletPoller="+walletPoller);
 		walletPoller.Reset();
 	}
 	

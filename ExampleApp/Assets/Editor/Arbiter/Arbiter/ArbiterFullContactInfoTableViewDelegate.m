@@ -44,7 +44,6 @@
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
     UITextField *field;
-    CALayer *topBorder = [CALayer layer];
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.backgroundColor = [UIColor clearColor];
     
@@ -81,8 +80,10 @@
     field.delegate = self;
     [cell.contentView addSubview:field];
     
+    CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
     topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
     [cell.contentView.layer addSublayer:topBorder];
     
     return cell;

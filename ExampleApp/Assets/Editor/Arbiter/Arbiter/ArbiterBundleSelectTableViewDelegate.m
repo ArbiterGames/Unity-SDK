@@ -54,7 +54,6 @@
     static NSString *i = @"BundleOptionsTableCell";
     UILabel *label, *value;
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
-    CALayer *topBorder = [CALayer layer];
     NSDictionary *bundle = [_availableBundles objectAtIndex:indexPath.row];
     
     if (cell == nil) {
@@ -80,10 +79,13 @@
         value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
     }
     
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
     [label setText:[NSString stringWithFormat:@"%@ credits", [bundle objectForKey:@"value"]]];
     [value setText:[NSString stringWithFormat:@"$%@ USD", [bundle objectForKey:@"price"]]];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
     [cell.contentView.layer addSublayer:topBorder];
     
     return cell;

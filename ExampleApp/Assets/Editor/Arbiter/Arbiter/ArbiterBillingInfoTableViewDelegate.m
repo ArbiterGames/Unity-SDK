@@ -46,15 +46,16 @@
 {
     static NSString *i = @"BillingInfoCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
-    CALayer *topBorder = [CALayer layer];
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         [cell setBackgroundColor:[UIColor clearColor]];
         [cell.contentView addSubview:_stripeView];
         [_stripeView.paymentView.cardNumberField becomeFirstResponder];
     }
+    CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
     topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
     [cell.contentView.layer addSublayer:topBorder];
     return cell;
 }

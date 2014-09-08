@@ -41,7 +41,7 @@
     [backButton setTitle:@"Back" forState:UIControlStateNormal];
     [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    backButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    backButton.titleLabel.textAlignment = NSTextAlignmentLeft;
     backButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
     [self addSubview:backButton];
 }
@@ -63,7 +63,6 @@
     static NSString *i = @"WalletTableCell";
     UILabel *label, *value;
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
-    CALayer *topBorder = [CALayer layer];
     
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
@@ -87,9 +86,6 @@
         label = (UILabel *)[cell.contentView viewWithTag:CELL_LABEL_TAG];
         value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
     }
-
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-    topBorder.backgroundColor = [[UIColor grayColor] CGColor];
     
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];
@@ -97,6 +93,10 @@
     } else {
         [label setText:@"Username"];
         [value setText:[self.arbiter.user objectForKey:@"username"]];
+        CALayer *topBorder = [CALayer layer];
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+        topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+        topBorder.opacity = 0.2;
         [cell.contentView.layer addSublayer:topBorder];
     }
     

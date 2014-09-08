@@ -68,7 +68,7 @@
 - (void)renderNextButton
 {
     self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 80.0;
+    float btnWidth = 50.0;
     float btnHeight = 50.0;
     [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
@@ -103,6 +103,7 @@
         message.numberOfLines = 0;
         message.textAlignment = NSTextAlignmentCenter;
         message.tag = AMOUNT_SELECTION_UI_TAG;
+        message.textColor = [UIColor whiteColor];
         message.text = [NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance];
         [self addSubview:message];
     } else {

@@ -333,9 +333,7 @@ namespace ArbiterInternal {
 		}
 
 		public void ShowWalletPanelHandler( string emptyString ) {
-			Debug.Log ("ttt ArbiterBinding.ShowWalletPanelhandler...");
 			SimpleCallback( SHOW_WALLET_PANEL );
-			Debug.Log ("ttt ArbiterBinding.ShowWalletPanelhandler... done");
 		}
 		
 		public void SendPromoCreditsHandler( string emptyString ) {

@@ -172,7 +172,6 @@ public partial class Arbiter : MonoBehaviour {
 
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
-		Debug.Log ("ttt walletPoller="+walletPoller);
 		walletPoller.Reset();
 	}
 	

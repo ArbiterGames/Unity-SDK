@@ -16,12 +16,20 @@
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
         frame = CGRectMake(0.0f, 0.0f, [[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
     }
+
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
+        if ( frame.size.width > self.maxWidth ) {
+            self.marginizedFrame = CGRectMake((frame.size.width - self.maxWidth) / 2, frame.origin.y,
+                                              self.maxWidth, frame.size.height);
+            [self setFrame:self.marginizedFrame];
+        } else {
+            self.marginizedFrame = frame;
+        }
         [self animateIn];
         [self renderLayout];
     }
@@ -30,24 +38,12 @@
 
 - (void)renderLayout
 {
-    self.backgroundColor = [UIColor clearColor];
-    if ( self.bounds.size.width > self.maxWidth ) {
-        self.marginizedFrame = CGRectMake((self.bounds.size.width - self.maxWidth) / 2, 0.0,
-                                          self.maxWidth, self.bounds.size.height - self.titleHeight - self.titleYPos);
-    } else {
-        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - self.titleHeight - self.titleYPos);
+    float finalHeight = 40.0;
+    for ( UIView *subview in self.subviews ) {
+        finalHeight += subview.frame.size.height;
     }
-    [self renderPoweredBy];
-}
-
-- (void)renderPoweredBy
-{
-    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake((self.bounds.size.width - 100) / 2, self.bounds.size.height - 20.0, 100.0, 20.0f)];
-    [poweredBy setText:@"powered by Arbiter"];
-    [poweredBy setFont:[UIFont systemFontOfSize:11.0f]];
-    [poweredBy setTextColor:[UIColor whiteColor]];
-    [poweredBy setAlpha:0.3f];
-    [self addSubview:poweredBy];
+    [self setFrame:CGRectMake(self.frame.origin.x, (self.frame.size.height - finalHeight) / 2,
+                              self.frame.size.width, finalHeight)];
 }
 
 
@@ -59,7 +55,7 @@
 }
 
 
-# pragma mark AlertView Esqueue Animations
+# pragma mark Animations
 
 - (void)animateIn
 {

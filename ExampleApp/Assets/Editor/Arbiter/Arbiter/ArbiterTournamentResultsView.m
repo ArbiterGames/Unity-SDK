@@ -26,12 +26,10 @@
 
 - (void)renderLayout
 {
-    [super renderLayout];
-    
     UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
     float btnWidth = 50.0;
     float btnHeight = 50.0;
-    [backButton setFrame:CGRectMake(self.marginizedFrame.origin.x, 5.0, btnWidth, btnHeight)];
+    [backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
     [backButton setTitle:@"Back" forState:UIControlStateNormal];
     [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
     [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
@@ -52,14 +50,14 @@
     
     if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
         self.titleHeight = 100.0;
-        [title setFrame:CGRectMake(self.marginizedFrame.origin.x, self.titleYPos,
-                                   self.marginizedFrame.size.width, self.titleHeight)];
+        [title setFrame:CGRectMake(0.0, self.titleYPos,
+                                   self.frame.size.width, self.titleHeight)];
         title.text = @"Waiting for\nopponent to finish";
     }
     else if ( [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
         self.titleHeight = 100.0;
-        [title setFrame:CGRectMake(self.marginizedFrame.origin.x, self.titleYPos,
-                                   self.marginizedFrame.size.width, self.titleHeight)];
+        [title setFrame:CGRectMake(0.0, self.titleYPos,
+                                   self.frame.size.width, self.titleHeight)];
         title.text = [NSString stringWithFormat:@"You won\n%@ credits!", [self.tournament objectForKey:@"payout"]];
     } else {
         title.text = @"You lost";
@@ -67,18 +65,19 @@
     [self addSubview:title];
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(self.marginizedFrame.origin.x, self.titleYPos + self.titleHeight + 10.0,
-                                 self.marginizedFrame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor grayColor] CGColor];
+    topBorder.frame = CGRectMake(0.0, self.titleYPos + self.titleHeight + 10.0,
+                                 self.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
     [self.layer addSublayer:topBorder];
     
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(self.marginizedFrame.origin.x,
-                                                                                         topBorder.frame.origin.y - 20.0,
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, topBorder.frame.origin.y - 20.0,
                                                                                          self.frame.size.width, 200.0)];
     tableView.delegate = self;
     tableView.dataSource = self;
     [tableView reloadData];
     [self addSubview:tableView];
+    [super renderLayout];
 }
 
 
@@ -107,7 +106,6 @@
     static NSString *i = @"TournamentResultsCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
     UILabel *label, *value;
-    CALayer *topBorder = [CALayer layer];
     
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
@@ -130,8 +128,10 @@
         value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
     }
     
+    CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-    topBorder.backgroundColor = [[UIColor grayColor] CGColor];
+    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
     
     if ( indexPath.row == 0 ) {
         label.text = @"Your score";

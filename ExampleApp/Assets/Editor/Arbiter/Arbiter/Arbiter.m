@@ -42,6 +42,22 @@
 
 #pragma mark User Methods
 
+- (void)setUser:(NSMutableDictionary*)user
+{
+    self._user = user;
+    ClientCallbackUserUpdated();
+}
+
+- (NSMutableDictionary *)user
+{
+    return self._user;
+}
+
+- (void)getCachedUser:(void(^)(NSDictionary *))handler
+{
+    handler(self.user);   
+}
+
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];
@@ -166,6 +182,11 @@
     [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
 }
 
+- (bool)isUserAuthenticated
+{
+    return self.user != nil;
+}
+
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
@@ -268,7 +289,23 @@
 
 #pragma mark Wallet Methods
 
-- (void)getWallet:(void(^)(NSDictionary *))handler
+- (void)setWallet:(NSMutableDictionary*)wallet
+{
+    self._wallet = wallet;
+    ClientCallbackWalletUpdated();
+}
+
+- (NSMutableDictionary *)wallet
+{
+    return self._wallet;
+}
+
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler
+{
+    handler(self.wallet);   
+}
+
+- (void)fetchWallet:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
@@ -285,18 +322,17 @@
     }
 }
 
+
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( self.user ) {
         [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
-        [self getWallet:^(NSDictionary *responseDict) {
-
+        [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
                 [self.panelWindow show:walletDashboard];
                 [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
             } copy];
-
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                 void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
                     populateThenShowPanel();

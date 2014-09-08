@@ -17,14 +17,15 @@ public class Game : MonoBehaviour {
     
     private Arbiter arbiter;
 
+
 	void Start() {
-		GameObject arbiterGO = GameObject.Find ("Arbiter");
+		GameObject arbiterGO = GameObject.Find( "Arbiter" );
 		arbiter = arbiterGO.GetComponent<Arbiter>();
 		
         if( float.Parse( Arbiter.Balance ) < float.Parse( BET_SIZE )) {
             Problems = "You need to deposit more money first.";
         } else {
-			if ( arbiter.SelectedUnfinishedTournamentId == null || arbiter.SelectedUnfinishedTournamentId == "" ) {
+			if( arbiter.SelectedUnfinishedTournamentId == null || arbiter.SelectedUnfinishedTournamentId == "" ) {
 				GetTournament();
 			} else {
 				PlayGame();
@@ -35,7 +36,7 @@ public class Game : MonoBehaviour {
     private void GetTournament() {
         Dictionary<string,string> filters = new Dictionary<string,string>();
         filters.Add( "arbitrary_key", "the_value" );
-        Arbiter.JoinTournament( BET_SIZE, filters, OnTournamentReturned );
+        Arbiter.JoinTournament( BET_SIZE, filters, OnTournamentReturned, OnFailure );
     }
 
 	private void OnTournamentReturned( Arbiter.Tournament tournament ) {
@@ -76,5 +77,9 @@ public class Game : MonoBehaviour {
         }
     }
 
+
+	private void OnFailure( List<string> errors ) {
+		errors.ForEach( error => Debug.LogError( error ));
+	}
 
 }

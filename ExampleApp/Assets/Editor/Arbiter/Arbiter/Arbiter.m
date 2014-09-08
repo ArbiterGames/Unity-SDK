@@ -181,7 +181,7 @@
 
 - (bool)isUserAuthenticated
 {
-    return self.user != nil;
+    return self.user != nil && [self.user objectForKey:@"id"] != nil;
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler

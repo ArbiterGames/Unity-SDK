@@ -554,37 +554,10 @@
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
 {
-    void (^getTournamentHandler)(NSDictionary *tournament) = [^(NSDictionary *tournament) {
-        void (^closeTournamentDetailsHandler)(void) = [^(void) {
-            handler();
-        } copy];
-    
-        NSString *title;
-        NSMutableString *message = [[NSMutableString alloc] init];
-        NSString *status = [tournament objectForKey:@"status"];
-        
-        if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
-            title = @"Waiting for opponent";
-            [message appendString:[NSString stringWithFormat:@"Your opponent has not finished their game. Check back later for results.\n\n Your score: %@\nBuy-in: %@\nPayout: %@",
-                                   [self getPlayerScoreFromTournament:tournament],
-                                   [tournament objectForKey:@"buy_in"],
-                                   [tournament objectForKey:@"payout"]]];
-            UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                            message:message
-                                                           delegate:self
-                                                  cancelButtonTitle:@"Close"
-                                                  otherButtonTitles:nil];
-            
-            [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
-            [alert show];
-            [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
-        } else {
-            ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] init:self];
-            [self.panelWindow show:resultsView];
-        }
-    } copy];
-    
-    [self getTournament:getTournamentHandler tournamentId:tournamentId];
+    [self getTournament:[^(NSDictionary *tournament) {
+        ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
+        [self.panelWindow show:resultsView];
+    } copy] tournamentId:tournamentId];
 }
 
 

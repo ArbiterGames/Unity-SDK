@@ -7,14 +7,19 @@
 //
 
 #import "ArbiterTournamentResultsView.h"
+#import "ArbiterUITableView.h"
+
+#define CELL_LABEL_TAG 1
+#define CELL_VALUE_TAG 2
 
 @implementation ArbiterTournamentResultsView
 
-- (id)initWithCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance andTournament:(NSDictionary*)tournament
+- (id)initWithTournament:(NSDictionary *)tournament arbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super init:arbiterInstance];
     if ( self ) {
         self.tournament = tournament;
+        [self renderTournamentDetails];
     }
     return self;
 }
@@ -23,147 +28,126 @@
 {
     [super renderLayout];
     
-    float segmentedControlHeight = 40.0;
-    float titleYPos = 10.0;
-    float titleHeight = 40.0;
-    float segmentedControlYPosFromBottom = 30.0;
-    float maxWidth = 400.0;
-    
-    if ( self.bounds.size.width > maxWidth ) {
-        self.marginizedFrame = CGRectMake((self.bounds.size.width - maxWidth) / 2, 0.0,
-                                          maxWidth, self.bounds.size.height - titleHeight - titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
-    } else {
-        self.marginizedFrame = CGRectMake(0.0, 0.0, self.bounds.size.width, self.bounds.size.height - titleHeight - titleYPos - segmentedControlHeight - segmentedControlYPosFromBottom);
-    }
-    
-    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, titleYPos, self.frame.size.width - 100.0, titleHeight)];
+    UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    float btnWidth = 50.0;
+    float btnHeight = 50.0;
+    [backButton setFrame:CGRectMake(self.marginizedFrame.origin.x, 5.0, btnWidth, btnHeight)];
+    [backButton setTitle:@"Back" forState:UIControlStateNormal];
+    [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    backButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    backButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    [self addSubview:backButton];
+}
+
+- (void)renderTournamentDetails
+{
+    NSString *status = [self.tournament objectForKey:@"status"];
+    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, self.titleYPos,
+                                                               self.frame.size.width - 100.0, self.titleHeight)];
     title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
     title.textColor = [UIColor whiteColor];
     title.textAlignment = NSTextAlignmentCenter;
-    if ( [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
-        [title setText:@"You Won!"];
+    title.numberOfLines = 0;
+    
+    if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
+        self.titleHeight = 100.0;
+        [title setFrame:CGRectMake(self.marginizedFrame.origin.x, self.titleYPos,
+                                   self.marginizedFrame.size.width, self.titleHeight)];
+        title.text = @"Waiting for\nopponent to finish";
+    }
+    else if ( [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
+        self.titleHeight = 100.0;
+        [title setFrame:CGRectMake(self.marginizedFrame.origin.x, self.titleYPos,
+                                   self.marginizedFrame.size.width, self.titleHeight)];
+        title.text = [NSString stringWithFormat:@"You won\n%@ credits!", [self.tournament objectForKey:@"payout"]];
     } else {
-        [title setText:@"You Lost"];
+        title.text = @"You lost";
     }
     [self addSubview:title];
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, titleYPos + titleHeight + 10.0, self.frame.size.width, 0.5f);
+    topBorder.frame = CGRectMake(self.marginizedFrame.origin.x, self.titleYPos + self.titleHeight + 10.0,
+                                 self.marginizedFrame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor grayColor] CGColor];
     [self.layer addSublayer:topBorder];
     
-    UILabel *playerScore = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 60.0f, self.frame.size.width / 4, 20.0f)];
-    [playerScore setFont:[UIFont boldSystemFontOfSize:23]];
-    [playerScore setTextAlignment:NSTextAlignmentCenter];
-    [playerScore setText:[self.arbiter getPlayerScoreFromTournament:self.tournament]];
-    
-    UILabel *playerLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 80.0f, self.frame.size.width / 4, 40.0f)];
-    [playerLabel setNumberOfLines:0];
-    [playerLabel setFont:[UIFont systemFontOfSize:14]];
-    [playerLabel setTextAlignment:NSTextAlignmentCenter];
-    [playerLabel setText:@"your\nscore"];
-    
-    UILabel *opponentScore = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 4 * 3, 60.0f, self.frame.size.width / 4, 20.0f)];
-    [opponentScore setFont:[UIFont boldSystemFontOfSize:23]];
-    [opponentScore setTextAlignment:NSTextAlignmentCenter];
-    [opponentScore setText:[self.arbiter getOpponentScoreFromTournament:self.tournament]];
-    
-    UILabel *opponentLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 4 * 3, 80.0f, self.frame.size.width / 4, 40.0f)];
-    [opponentLabel setNumberOfLines:0];
-    [opponentLabel setFont:[UIFont systemFontOfSize:12]];
-    [opponentLabel setTextAlignment:NSTextAlignmentCenter];
-    [opponentLabel setText:@"opponent\nscore"];
-    
-    UILabel *scoreDivider = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 48 * 35, 80.0f, self.frame.size.width / 40, 35.0f)];
-    [scoreDivider setNumberOfLines:0];
-    [scoreDivider setFont:[UIFont systemFontOfSize:14]];
-    [scoreDivider setTextAlignment:NSTextAlignmentCenter];
-    [scoreDivider setTextColor:[UIColor grayColor]];
-    [scoreDivider setText:@"vs"];
-    
-    UILabel *payout = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 55.0f, self.frame.size.width / 2, 40.0f)];
-    [payout setFont:[UIFont boldSystemFontOfSize:40]];
-    [payout setTextAlignment:NSTextAlignmentCenter];
-    [payout setText:[self.tournament objectForKey:@"payout"]];
-    
-    
-    UILabel *payoutLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 65.0f, self.frame.size.width / 2, 70.0f)];
-    [payoutLabel setFont:[UIFont systemFontOfSize:14]];
-    [payoutLabel setTextAlignment:NSTextAlignmentCenter];
-    [payoutLabel setText:@"credits"];
-    
-    [self addSubview:title];
-    [self addSubview:payout];
-    [self addSubview:payoutLabel];
-    [self addSubview:playerScore];
-    [self addSubview:playerLabel];
-    [self addSubview:scoreDivider];
-    [self addSubview:opponentScore];
-    [self addSubview:opponentLabel];
-
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(self.marginizedFrame.origin.x,
+                                                                                         topBorder.frame.origin.y - 20.0,
+                                                                                         self.frame.size.width, 200.0)];
+    tableView.delegate = self;
+    tableView.dataSource = self;
+    [tableView reloadData];
+    [self addSubview:tableView];
 }
 
-//- (void)setupNextScreen
-//{
-//    UILabel *title = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 10.0f, self.frame.size.width, 20.0f)];
-//    [title setFont:[UIFont boldSystemFontOfSize:21]];
-//    [title setTextAlignment:NSTextAlignmentCenter];
-//    if ( [[_tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
-//        [title setText:@"You Won!"];
-//    } else {
-//        [title setText:@"You Lost"];
-//    }
-//    
-//    UILabel *playerScore = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 60.0f, self.frame.size.width / 4, 20.0f)];
-//    [playerScore setFont:[UIFont boldSystemFontOfSize:23]];
-//    [playerScore setTextAlignment:NSTextAlignmentCenter];
-//    [playerScore setText:[self.arbiter getPlayerScoreFromTournament:_tournament]];
-//
-//    UILabel *playerLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 2, 80.0f, self.frame.size.width / 4, 40.0f)];
-//    [playerLabel setNumberOfLines:0];
-//    [playerLabel setFont:[UIFont systemFontOfSize:14]];
-//    [playerLabel setTextAlignment:NSTextAlignmentCenter];
-//    [playerLabel setText:@"your\nscore"];
-//    
-//    UILabel *opponentScore = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 4 * 3, 60.0f, self.frame.size.width / 4, 20.0f)];
-//    [opponentScore setFont:[UIFont boldSystemFontOfSize:23]];
-//    [opponentScore setTextAlignment:NSTextAlignmentCenter];
-//    [opponentScore setText:[self.arbiter getOpponentScoreFromTournament:_tournament]];
-//    
-//    UILabel *opponentLabel = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 4 * 3, 80.0f, self.frame.size.width / 4, 40.0f)];
-//    [opponentLabel setNumberOfLines:0];
-//    [opponentLabel setFont:[UIFont systemFontOfSize:12]];
-//    [opponentLabel setTextAlignment:NSTextAlignmentCenter];
-//    [opponentLabel setText:@"opponent\nscore"];
-//    
-//    UILabel *scoreDivider = [[UILabel alloc] initWithFrame:CGRectMake(self.frame.size.width / 48 * 35, 80.0f, self.frame.size.width / 40, 35.0f)];
-//    [scoreDivider setNumberOfLines:0];
-//    [scoreDivider setFont:[UIFont systemFontOfSize:14]];
-//    [scoreDivider setTextAlignment:NSTextAlignmentCenter];
-//    [scoreDivider setTextColor:[UIColor grayColor]];
-//    [scoreDivider setText:@"vs"];
-//    
-//    UILabel *payout = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 55.0f, self.frame.size.width / 2, 40.0f)];
-//    [payout setFont:[UIFont boldSystemFontOfSize:40]];
-//    [payout setTextAlignment:NSTextAlignmentCenter];
-//    [payout setText:[_tournament objectForKey:@"payout"]];
-//    
-//    
-//    UILabel *payoutLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0f, 65.0f, self.frame.size.width / 2, 70.0f)];
-//    [payoutLabel setFont:[UIFont systemFontOfSize:14]];
-//    [payoutLabel setTextAlignment:NSTextAlignmentCenter];
-//    [payoutLabel setText:@"credits"];
-//    
-//    [self addSubview:title];
-////    [self addSubview:coinImage];
-//    [self addSubview:payout];
-//    [self addSubview:payoutLabel];
-//    [self addSubview:playerScore];
-//    [self addSubview:playerLabel];
-//    [self addSubview:scoreDivider];
-//    [self addSubview:opponentScore];
-//    [self addSubview:opponentLabel];
-//}
+
+#pragma mark Click Handlers
+
+- (void)backButtonClicked:(id)sender
+{
+    [self animateOut];
+}
+
+
+# pragma mark TableView Delegate Methods
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 3;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *i = @"TournamentResultsCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
+    UILabel *label, *value;
+    CALayer *topBorder = [CALayer layer];
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
+        cell.backgroundColor = [UIColor clearColor];
+        float adjustedWidth = (cell.frame.size.width + 80.0) / 2;
+        
+        label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, adjustedWidth, cell.frame.size.height)];
+        label.tag = CELL_LABEL_TAG;
+        label.textColor = [UIColor whiteColor];
+        label.textAlignment = NSTextAlignmentLeft;
+        [cell.contentView addSubview:label];
+        
+        value = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, 0.0, adjustedWidth, cell.frame.size.height)];
+        value.tag = CELL_VALUE_TAG;
+        value.textColor = [UIColor whiteColor];
+        value.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:value];
+    } else {
+        label = (UILabel *)[cell.contentView viewWithTag:CELL_LABEL_TAG];
+        value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
+    }
+    
+    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+    topBorder.backgroundColor = [[UIColor grayColor] CGColor];
+    
+    if ( indexPath.row == 0 ) {
+        label.text = @"Your score";
+        value.text = [self.arbiter getPlayerScoreFromTournament:self.tournament];
+    } else if ( indexPath.row == 1 ) {
+        label.text = @"Opponent score";
+        value.text = [self.arbiter getOpponentScoreFromTournament:self.tournament];
+        [cell.contentView.layer addSublayer:topBorder];
+    } else if ( indexPath.row == 2 ) {
+        label.text = @"Payout";
+        value.text = [NSString stringWithFormat:@"%@ credits", [self.tournament objectForKey:@"payout"]];
+        [cell.contentView.layer addSublayer:topBorder];
+    }
+
+    return cell;
+}
 
 
 @end

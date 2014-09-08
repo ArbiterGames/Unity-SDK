@@ -6,19 +6,12 @@
 //
 //
 
-//#import "ArbiterAlertView.h"
-
-//@interface ArbiterTournamentResultsView : ArbiterAlertView
-//
-//- (id)initWithCallback:(void(^)(void))callback arbiterInstance:(Arbiter *)arbiterInstance andTournament:(NSDictionary*)tournament;
-//
-//@end
-
 #import "ArbiterPanelView.h"
 
-@interface ArbiterTournamentResultsView : ArbiterPanelView
+@interface ArbiterTournamentResultsView : ArbiterPanelView <UITableViewDelegate, UITableViewDataSource>
 
-@property CGRect marginizedFrame;
 @property (strong) NSDictionary *tournament;
+
+- (id)initWithTournament:(NSDictionary *)tournament arbiterInstance:(Arbiter *)arbiterInstance;
 
 @end

@@ -141,7 +141,6 @@ void _showWalletPanel()
 void _sendPromoCredits( const char *amount )
 {
     [ArbiterInstance() sendPromoCredits:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "FetchWalletHandler", ProcessDictionaryParams( jsonDict ) ); // ttt try removing this and see if it still works...
         UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", EMPTY_STRING );
     }
                        amount:[[NSString alloc] initWithUTF8String:amount]];

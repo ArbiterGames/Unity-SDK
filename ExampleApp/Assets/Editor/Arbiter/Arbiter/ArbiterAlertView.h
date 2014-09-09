@@ -28,6 +28,5 @@
 - (void)nextButtonClicked:(id)sender;
 - (void)cancelButtonClicked:(id)sender;
 - (void)setMaxHeight:(float)maxHeight;
-- (NSString *)addThousandsSeparatorToString:(NSString *)original;
 
 @end

@@ -69,6 +69,5 @@ void ClientCallbackWalletUpdated();
 
 - (NSString*)getPlayerScoreFromTournament:(NSDictionary *)tournament;
 - (NSString*)getOpponentScoreFromTournament:(NSDictionary *)tournament;
-- (NSString *)addThousandsSeparatorToString:(NSString *)original;
 
 @end

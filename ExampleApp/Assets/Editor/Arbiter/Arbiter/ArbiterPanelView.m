@@ -19,6 +19,9 @@
 
     self = [super initWithFrame:frame];
     if ( self ) {
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
+        [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
+        
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
         self.maxHeight = 320.0;
@@ -39,6 +42,11 @@
 }
 
 - (void)renderLayout
+{
+    [self updateYPosition];
+}
+
+- (void)updateYPosition
 {
     float finalHeight = 0.0;
     for ( UIView *subview in self.subviews ) {
@@ -100,6 +108,30 @@
                      completion:^(BOOL finished) { [self.parentWindow hide]; }];
 }
 
+- (void)moveViewForKeyboard:(NSNotification *)notification keyboardIsUp:(BOOL)keyboardIsUp
+{
+    NSDictionary *userInfo = [notification userInfo];
+    NSTimeInterval animationDuration;
+    UIViewAnimationCurve animationCurve;
+    CGRect keyboardEndFrame;
+    [[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] getValue:&animationCurve];
+    [[userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] getValue:&animationDuration];
+    [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardEndFrame];
+    
+    [UIView beginAnimations:nil context:nil];
+    [UIView setAnimationDuration:animationDuration];
+    [UIView setAnimationCurve:animationCurve];
+    
+    CGRect newFrame = self.frame;
+    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        newFrame.origin.y -= (keyboardEndFrame.size.width * (keyboardIsUp? 1 : -1)) / 2;
+    } else {
+        newFrame.origin.y -= (keyboardEndFrame.size.height * (keyboardIsUp? 1 : -1)) / 2;
+    }
+    self.frame = newFrame;
+    [UIView commitAnimations];
+}
+
 
 # pragma mark TableView Delegate Methods
 
@@ -118,5 +150,17 @@
     return nil;
 }
 
+
+# pragma mark NSNotification Handlers
+
+- (void)keyboardDidShow:(NSNotification *)notification
+{
+    [self moveViewForKeyboard:notification keyboardIsUp:YES];
+}
+
+- (void)keyboardDidHide:(NSNotification *)notification
+{
+    [self moveViewForKeyboard:notification keyboardIsUp:NO];
+}
 
 @end

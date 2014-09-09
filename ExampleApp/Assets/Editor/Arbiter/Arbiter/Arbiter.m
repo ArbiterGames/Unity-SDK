@@ -885,6 +885,19 @@
     return slugalizedString;
 }
 
+- (NSString *)addThousandsSeparatorToString:(NSString *)original
+{
+    NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
+    [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
+    [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];
+    
+    NSNumberFormatter *stringToNumberFormatter = [[NSNumberFormatter alloc] init];
+    [stringToNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
+    
+    return [separatorFormattor stringFromNumber:origNumber];
+}
+
 - (UIWindow*) getTopApplicationWindow
 {
     UIApplication *clientApp = [UIApplication sharedApplication];

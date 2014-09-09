@@ -127,7 +127,7 @@ void _fetchWallet()
 {
     [ArbiterInstance() fetchWallet:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchWalletHandler", ProcessDictionaryParams( jsonDict ));
-    }];
+    } isBlocking:NO];
 }
 
 
@@ -160,7 +160,7 @@ void _fetchTournaments()
 {
     [ArbiterInstance() getTournaments:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchTournamentsHandler", ProcessDictionaryParams( jsonDict ));
-    } page:nil];
+    } page:nil isBlocking:NO];
 }
 
 void _viewPreviousTournaments()

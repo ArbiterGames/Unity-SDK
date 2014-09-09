@@ -19,6 +19,8 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *apiKey;
 @property (retain) ArbiterAlertWindow *alertWindow;
 @property (retain) ArbiterPanelWindow *panelWindow;
+@property (strong) UIActivityIndicatorView *spinnerView;
+@property (strong) NSMutableDictionary *requestQueue;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageTournamentsUrl;
 @property (copy) NSString *previousPageTournamentsUrl;
@@ -47,25 +49,28 @@ void ClientCallbackWalletUpdated();
 
 - (void)getCachedUser:(void(^)(NSDictionary *))handler;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
-- (void)fetchWallet:(void(^)(NSDictionary *))handler;
+- (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString *)buyIn filters:(NSString *)filters;
-- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page;
+- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 
-- (void)getIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page;
+- (void)getIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
 - (void)viewIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;
 
-- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler;
-- (void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
+- (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
+- (void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPostAsDeveloper:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
+
+- (void)addRequestToQueue:(NSString *)key;
+- (void)removeRequestFromQueue:(NSString *)key;
 
 - (NSString*)getPlayerScoreFromTournament:(NSDictionary *)tournament;
 - (NSString*)getOpponentScoreFromTournament:(NSDictionary *)tournament;

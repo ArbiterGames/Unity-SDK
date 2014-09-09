@@ -69,6 +69,11 @@
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
         _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
+        
+        self.requestQueue = [[NSMutableDictionary alloc] init];
+        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
 
         [self getGameSettings];
     }
@@ -85,7 +90,7 @@
         handler(responseDict);
     } copy];
     
-    [self httpGet:APIUserInitializeURL handler:connectionHandler];
+    [self httpGet:APIUserInitializeURL isBlocking:NO handler:connectionHandler];
 }
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
@@ -115,7 +120,7 @@
                                          @"playerID":localPlayer.playerID,
                                          @"game_center_username": localPlayer.alias,
                                          @"bundleID":[[NSBundle mainBundle] bundleIdentifier]};
-            [self httpPost:APILinkWithGameCenterURL params:paramsDict handler:connectionHandler];
+            [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
         }
     }];
 #else
@@ -157,7 +162,7 @@
         if ( [loginCredentials objectForKey:@"errors"] ) {
             handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
         } else {
-            [self httpPost:APIUserLoginURL params:loginCredentials handler:connectionHandler];
+            [self httpPost:APIUserLoginURL params:loginCredentials isBlocking:NO handler:connectionHandler];
         }
     } copy];
     
@@ -177,7 +182,7 @@
         handler(responseDict);
     } copy];
 
-    [self httpPost:APIUserLogoutURL params:nil handler:connectionHandler];
+    [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
 }
 
 - (bool)isUserAuthenticated
@@ -209,7 +214,7 @@
                 NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
                 [verificationUrl appendString: [self.user objectForKey:@"id"]];
                 [verificationUrl appendString: @"/verify"];
-                [self httpPost:verificationUrl params:postParams handler:handler];
+                [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
             }
         } else {
             if ( self.user == nil ) {
@@ -303,7 +308,7 @@
     handler(self.wallet);   
 }
 
-- (void)fetchWallet:(void(^)(NSDictionary *))handler
+- (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
@@ -312,7 +317,7 @@
     
     if ( self.user ) {
         NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
-        [self httpGet:walletUrl handler:connectionHandler];
+        [self httpGet:walletUrl isBlocking:isBlocking handler:connectionHandler];
     } else {
         handler(@{@"success": @"false",
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
@@ -324,12 +329,10 @@
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( [self isUserAuthenticated] ) {
-        [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
         [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
                 [self.panelWindow show:walletDashboard];
-                [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
             } copy];
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                 void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
@@ -339,7 +342,7 @@
             } else {
                 populateThenShowPanel();
             }
-        }];
+        } isBlocking:YES];
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
@@ -369,12 +372,12 @@
     if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
         void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
             if ( [[dict objectForKey:@"success"] boolValue] == true ) {
-                [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
+                [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
             }
         } copy];
         [self verifyUser:verifyCallback];
     } else {
-        [self httpPost:APITournamentCreateURL params:paramsDict handler:connectionHandler];
+        [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
     }
 }
 
@@ -385,13 +388,13 @@
         handler(tournament);
     } copy];
     
-    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] handler:connectionHandler];
+    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:NO handler:connectionHandler];
 }
 
 /**
     Makes the request to Arbiter to a paginated set of tournaments for this user
  */
-- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page
+- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
@@ -409,7 +412,7 @@
         tournamentsUrl = APIRequestTournamentURL;
     }
 
-    [self httpGet:tournamentsUrl handler:connectionHandler];
+    [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
 }
 
 
@@ -453,18 +456,15 @@
         [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
         [alert setTag:PREVIOUS_TOURNAMENTS_ALERT_TAG];
         [alert show];
-        [self.alertWindow removeRequestFromQueue:PREVIOUS_TOURNAMENTS_ALERT_TAG];
     } copy];
-
-    [self.alertWindow addRequestToQueue:PREVIOUS_TOURNAMENTS_ALERT_TAG];
-    [self getTournaments:connectionHandler page:page];
+    [self getTournaments:connectionHandler page:page isBlocking:YES];
 }
 
 
 /**
     Gets the latest incomplete tournaments from Arbiter. Paginated by 1 comp per page
  */
-- (void)getIncompleteTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page
+- (void)getIncompleteTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
@@ -483,7 +483,7 @@
         tournamentsUrl = APIRequestTournamentURL;
     }
 
-    [self httpGet:tournamentsUrl handler:connectionHandler];
+    [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
 }
 
 /**
@@ -533,24 +533,19 @@
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
         [alert setTag:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
         [alert show];
-        [self.alertWindow removeRequestFromQueue:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
     } copy];
 
-    [self.alertWindow addRequestToQueue:VIEW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
-    [self getIncompleteTournaments:connectionHandler page:page];
+    [self getIncompleteTournaments:connectionHandler page:page isBlocking:YES];
 }
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score
 {
     NSDictionary *paramsDict = @{@"score": score};
-    
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
-
     NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
-
-    [self httpPost:requestUrl params:paramsDict handler:connectionHandler];
+    [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
@@ -564,7 +559,7 @@
 
 #pragma mark NSURLConnection Delegate Methods
 
-- (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler
+- (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSLog( @"ArbiterSDK GET %@", url );
     
@@ -583,16 +578,20 @@
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [url stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
+    if ( isBlocking ) {
+        [self addRequestToQueue:key];
+    }
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
--(void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
     NSString *paramsStr;
     NSString *tokenValue;
+    NSString *key = [url stringByAppendingString:@":POST"];
     
     if ( [self.user objectForKey:@"token"] != NULL ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
@@ -622,8 +621,11 @@
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-
-        [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
+        
+        if ( isBlocking ) {
+            [self addRequestToQueue:key];
+        }
+        [_connectionHandlerRegistry setObject:handler forKey:key];
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
 }
@@ -661,6 +663,36 @@
     }
 }
 
+- (void)addRequestToQueue:(NSString *)key
+{
+    if ( [self.requestQueue objectForKey:key] ) {
+        [self.requestQueue setObject:@([[self.requestQueue objectForKey:key] intValue] + 1) forKey:key];
+    } else {
+        [self.requestQueue setObject:@1 forKey:key];
+    }
+    if ( [self.requestQueue count] > 0 ) {
+        UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
+        [self.spinnerView setFrame:keyRVCV.bounds];
+        [keyRVCV addSubview:self.spinnerView];
+        [self.spinnerView startAnimating];
+    }
+}
+
+- (void)removeRequestFromQueue:(NSString *)key
+{
+    [self.requestQueue setObject:@([[self.requestQueue objectForKey:key] intValue] - 1) forKey:key];
+    
+    if ( [[self.requestQueue objectForKey:key] intValue] <= 0 ) {
+        [self.requestQueue removeObjectForKey:key];
+    }
+    if ( [self.requestQueue count] == 0 ) {
+        [self.spinnerView stopAnimating];
+        [self.spinnerView removeFromSuperview];
+    } else {
+        NSLog(@"Open requests still out: %@", self.requestQueue);
+    }
+}
+
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
     [_responseDataRegistry setObject:[[NSMutableData alloc] init] forKey:key];
@@ -691,6 +723,9 @@
     }
     
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:key];
+    if ( [self.requestQueue objectForKey:key] != nil ) {
+        [self removeRequestFromQueue:key];
+    }
     handler(dict);
 }
 
@@ -722,7 +757,6 @@
         handler(@{});
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-            [self.alertWindow removeRequestFromQueue:VERIFICATION_ALERT_TAG];
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
                 self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
@@ -733,12 +767,11 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
-            [self.alertWindow addRequestToQueue:VERIFICATION_ALERT_TAG];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
-            [self httpPost:verificationUrl params:postParams handler:connectionHandler];
+            [self httpPost:verificationUrl params:postParams isBlocking:YES handler:connectionHandler];
 
         // View Terms
         } else if ( buttonIndex == 1 ) {
@@ -822,7 +855,7 @@
         self.game = responseDict;
     } copy];
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl handler:connectionHandler];
+    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
 }
 
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament

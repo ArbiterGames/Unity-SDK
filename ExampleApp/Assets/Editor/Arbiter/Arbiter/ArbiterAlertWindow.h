@@ -13,13 +13,9 @@
 @interface ArbiterAlertWindow : UIWindow
 
 @property (strong) UIWindow *gameWindow;
-@property (strong) UIActivityIndicatorView *spinnerView;
-@property (strong) NSMutableDictionary *requestQueue;
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow;
 - (void)show:(UIView *)view;
 - (void)hide;
-- (void)addRequestToQueue:(int)key;
-- (void)removeRequestFromQueue:(int)key;
 
 @end

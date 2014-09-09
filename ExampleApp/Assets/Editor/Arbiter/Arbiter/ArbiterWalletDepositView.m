@@ -64,8 +64,7 @@
 
 - (void)setupBundleSelect
 {
-    [self.arbiter.alertWindow addRequestToQueue:GET_BUNDLE_REQUEST_TAG];
-    [self.arbiter httpGet:BundleURL handler:[^(NSDictionary *responseDict) {
+    [self.arbiter httpGet:BundleURL isBlocking:YES handler:[^(NSDictionary *responseDict) {
         NSMutableArray *availableBundles = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
         ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles
                                                                           andSelectionCallback:[^(NSDictionary *selectedBundle) {
@@ -82,7 +81,6 @@
         tableView.allowsSelection = YES;
         [tableView reloadData];
         [self addSubview:tableView];
-        [self.arbiter.alertWindow removeRequestFromQueue:GET_BUNDLE_REQUEST_TAG];
     } copy]];
 }
 
@@ -131,17 +129,14 @@
 
 - (void)getTokenAndSubmitPayment
 {
-    [self.arbiter.alertWindow addRequestToQueue:POST_DEPOSIT_REQUEST_TAG];
     [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
         if (error) {
-            [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
             NSDictionary *params = @{@"card_token": stripeToken.tokenId,
                                      @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
                                      @"email": self.email};
-            [self.arbiter httpPost:APIDepositURL params:params handler:[^(NSDictionary *responseDict) {
-                [self.arbiter.alertWindow removeRequestFromQueue:POST_DEPOSIT_REQUEST_TAG];
+            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {

@@ -211,18 +211,15 @@
 
 - (void)getTokenAndSubmitWithdraw
 {
-    [self.arbiter.alertWindow addRequestToQueue:POST_WITHDRAWAL_REQUEST_TAG];
     [self.stripeView createToken:^(STPToken *token, NSError *error) {
         if (error) {
-            [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
             [self handleError:[error localizedDescription]];
         } else {
             NSDictionary *params = @{@"card_token": token.tokenId,
                                      @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
                                      @"email": self.email,
                                      @"card_name": self.fullName};
-            [self.arbiter httpPost:APIWithdrawURL params:params handler:[^(NSDictionary *responseDict) {
-                [self.arbiter.alertWindow removeRequestFromQueue:POST_WITHDRAWAL_REQUEST_TAG];
+            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                     [self.nextButton removeFromSuperview];

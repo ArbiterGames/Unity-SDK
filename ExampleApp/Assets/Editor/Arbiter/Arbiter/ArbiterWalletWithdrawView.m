@@ -46,6 +46,7 @@
     [self removeUIWithTag:CONTACT_INFO_UI_TAG];
     [self removeUIWithTag:BILLING_INFO_UI_TAG];
     [self removeUIWithTag:SUCCESS_MESSAGE_UI_TAG];
+    [self.nextButton removeFromSuperview];
     
     if ( self.withdrawComplete ) {
         [self.delegate handleBackButton];
@@ -68,7 +69,7 @@
 - (void)renderNextButton
 {
     self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 50.0;
+    float btnWidth = 60.0;
     float btnHeight = 50.0;
     [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
     [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
@@ -180,7 +181,6 @@
     tableView.dataSource = tableDelegate;
     tableView.tag = BILLING_INFO_UI_TAG;
     [tableView reloadData];
-    [self.nextButton removeFromSuperview];
     [self addSubview:tableView];
 }
 
@@ -275,6 +275,7 @@
 - (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
 {
     [self renderNextButton];
+    [self.nextButton setTitle:@"Submit" forState:UIControlStateNormal];
 }
 
 - (void)handleError:(NSString *)error

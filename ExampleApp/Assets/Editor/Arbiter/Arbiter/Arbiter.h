@@ -7,6 +7,7 @@
 
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterAlertWindow.h"
+#import "ArbiterPanelWindow.h"
 
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();
@@ -17,6 +18,7 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
 @property (retain) ArbiterAlertWindow *alertWindow;
+@property (retain) ArbiterPanelWindow *panelWindow;
 @property (copy) NSString *verificationUrl;
 @property (copy) NSString *nextPageTournamentsUrl;
 @property (copy) NSString *previousPageTournamentsUrl;
@@ -39,9 +41,12 @@ void ClientCallbackWalletUpdated();
 - (void)logout:(void(^)(NSDictionary *))handler;
 - (bool)isUserAuthenticated;
 - (bool)isUserVerified;
+- (bool)isUserAuthenticated;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
 - (void)getCachedUser:(void(^)(NSDictionary *))handler;
 
+- (void)getCachedUser:(void(^)(NSDictionary *))handler;
+- (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)fetchWallet:(void(^)(NSDictionary *))handler;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)showWalletPanel:(void(^)(void))handler;
@@ -61,5 +66,9 @@ void ClientCallbackWalletUpdated();
 - (void)httpGet:(NSString*)url handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 - (void)httpPostAsDeveloper:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
+
+- (NSString*)getPlayerScoreFromTournament:(NSDictionary *)tournament;
+- (NSString*)getOpponentScoreFromTournament:(NSDictionary *)tournament;
+- (NSString *)addThousandsSeparatorToString:(NSString *)original;
 
 @end

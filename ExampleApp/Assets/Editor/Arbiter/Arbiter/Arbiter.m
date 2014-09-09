@@ -10,9 +10,9 @@
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
-#import "ArbiterPaymentView.h"
-#import "ArbiterWithdrawView.h"
+#import "ArbiterWalletDashboardView.h"
 #import "ArbiterAlertWindow.h"
+#import "ArbiterTournamentResultsView.h"
 #import "STPView.h"
 
 #define LOGIN_ALERT_TAG 329
@@ -64,6 +64,7 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self.alertWindow = [[ArbiterAlertWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -325,62 +326,24 @@
     if ( [self isUserAuthenticated] ) {
         [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
         [self fetchWallet:^(NSDictionary *responseDict) {
-            void (^closeWalletHandler)(void) = [^(void) {
-                handler();
-            } copy];
-            
-            void (^populateThenShowAlert)(void) = [^(void) {
-                NSString *title = [NSString stringWithFormat: @"Balance: %@ credits", [self.wallet objectForKey:@"balance"]];
-                NSString *message = [NSString stringWithFormat: @"Logged in as: %@", [self.user objectForKey:@"username"]];
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:@"Refresh", @"Deposit", @"Withdraw", nil];
-                [alert setTag:WALLET_ALERT_TAG];
-                [alert show];
-                [_alertViewHandlerRegistry setObject:closeWalletHandler forKey:@"closeWalletHandler"];
+            void (^populateThenShowPanel)(void) = [^(void) {
+                ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+                [self.panelWindow show:walletDashboard];
                 [self.alertWindow removeRequestFromQueue:WALLET_ALERT_TAG];
             } copy];
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                 void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-                    populateThenShowAlert();
+                    populateThenShowPanel();
                 } copy];
                 [self verifyUser:verifyCallback];
             } else {
-                populateThenShowAlert();
+                populateThenShowPanel();
             }
         }];
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
 
-}
-
-- (void)showDepositPanel
-{
-    ArbiterPaymentView *paymentView;
-    void (^paymentCallback)(void) = [^(void) {
-        [self.alertWindow hide];
-    } copy];
-    
-    paymentView = [[ArbiterPaymentView alloc] initWithCallback:paymentCallback
-                                               arbiterInstance:self];
-    [self.alertWindow show:paymentView];
-}
-
-- (void)showWithdrawPanel
-{
-    ArbiterWithdrawView *withdrawView;
-    void (^withdrawCallback)(void) = [^(void) {
-        [self.alertWindow hide];
-    } copy];
-    
-    withdrawView = [[ArbiterWithdrawView alloc] initWithCallback:withdrawCallback
-                                                      arbiterInstance:self];
-    [self.alertWindow show:withdrawView];
-}
-
-- (void)showWithdrawError:(NSString *)error
-{
-    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Unsuccessful Withdraw" message:error delegate:self cancelButtonTitle:@"Back" otherButtonTitles:nil];
-    [alert show];
 }
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
@@ -592,52 +555,10 @@
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
 {
-    void (^getTournamentHandler)(NSDictionary *tournament) = [^(NSDictionary *tournament) {
-        void (^closeTournamentDetailsHandler)(void) = [^(void) {
-            handler();
-        } copy];
-    
-        NSString *title;
-        NSMutableString *message = [[NSMutableString alloc] init];
-        NSString *status = [tournament objectForKey:@"status"];
-        NSString *createdOn = [tournament objectForKey:@"created_on"];
-        NSTimeInterval seconds = [createdOn doubleValue] / 1000;
-        NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
-        NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-        [dateFormatter setDateFormat:@"EEE, MMM d"];
-        
-        if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
-            title = @"Waiting for opponent";
-            [message appendString:[NSString stringWithFormat:@"Your opponent has not finished their game. Check back later for results.\n\n Your score: %@\nBuy-in: %@\nPayout: %@",
-                                   [self getPlayerScoreFromTournament:tournament],
-                                   [tournament objectForKey:@"buy_in"],
-                                   [tournament objectForKey:@"payout"]]];
-        } else {
-            if ( [[tournament objectForKey:@"winners"] containsObject:[self.user objectForKey:@"id"]] ) {
-                title = [NSString stringWithFormat:@"You won %@ credits!", [tournament objectForKey:@"payout"]];
-            } else {
-                title = @"You have been defeated";
-            }
-            [message appendString:[NSString stringWithFormat:@"Your score: %@\nOpponent score: %@\nDate: %@\nBuy-in: %@\nPayout: %@",
-                                   [self getPlayerScoreFromTournament:tournament],
-                                   [self getOpponentScoreFromTournament:tournament],
-                                   [dateFormatter stringFromDate:unFormattedDate],
-                                   [tournament objectForKey:@"buy_in"],
-                                   [tournament objectForKey:@"payout"]]];
-        }
-        
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
-                                                        message:message
-                                                       delegate:self
-                                              cancelButtonTitle:@"Close"
-                                              otherButtonTitles:nil];
-
-        [alert setTag:TOURNAMENT_DETAILS_ALERT_TAG];
-        [alert show];
-        [_alertViewHandlerRegistry setObject:closeTournamentDetailsHandler forKey:@"closeTournamentDetailsHandler"];
-    } copy];
-    
-    [self getTournament:getTournamentHandler tournamentId:tournamentId];
+    [self getTournament:[^(NSDictionary *tournament) {
+        ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
+        [self.panelWindow show:resultsView];
+    } copy] tournamentId:tournamentId];
 }
 
 
@@ -799,18 +720,6 @@
     } else if ( alertView.tag == INVALID_LOGIN_ALERT_TAG ) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"invalidLoginHandler"];
         handler(@{});
-    } else if ( alertView.tag == WALLET_ALERT_TAG ) {
-        if ( [buttonTitle isEqualToString:@"Refresh"] ) {
-            [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
-        } else if ( [buttonTitle isEqualToString:@"Deposit"] ) {
-            [self showDepositPanel];
-        } else if ( [buttonTitle isEqualToString:@"Withdraw"] ) {
-            [self showWithdrawPanel];
-        } else {
-            void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"];
-            handler();
-        }
-
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             [self.alertWindow removeRequestFromQueue:VERIFICATION_ALERT_TAG];
@@ -975,6 +884,19 @@
     slugalizedString = [[slugalizedString stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-"]] mutableCopy];
 
     return slugalizedString;
+}
+
+- (NSString *)addThousandsSeparatorToString:(NSString *)original
+{
+    NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
+    [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
+    [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];
+    
+    NSNumberFormatter *stringToNumberFormatter = [[NSNumberFormatter alloc] init];
+    [stringToNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
+    
+    return [separatorFormattor stringFromNumber:origNumber];
 }
 
 - (UIWindow*) getTopApplicationWindow

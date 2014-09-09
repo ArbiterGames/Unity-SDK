@@ -43,10 +43,10 @@
 
 - (void)renderLayout
 {
-    [self updateYPosition];
+    [self updatePositionOnScreen];
 }
 
-- (void)updateYPosition
+- (void)updatePositionOnScreen
 {
     float finalHeight = 0.0;
     for ( UIView *subview in self.subviews ) {

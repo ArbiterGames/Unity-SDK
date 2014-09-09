@@ -73,6 +73,8 @@
     if ( [self.requestQueue count] == 0 ) {
         [self.spinnerView stopAnimating];
         [self.spinnerView removeFromSuperview];
+    } else {
+        NSLog(@"Open requests still out: %@", self.requestQueue);
     }
 }
 

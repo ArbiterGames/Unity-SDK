@@ -27,13 +27,6 @@
 
 # pragma mark Settings / Configs
 
-- (void)willRotateToInterfaceOrientation:(UIInterfaceOrientation)toInterfaceOrientation duration:(NSTimeInterval)duration
-{
-    for ( UIView *view in self.view.subviews ) {
-        [view setFrame:[[UIScreen mainScreen] bounds]];
-    }
-}
-
 - (BOOL)prefersStatusBarHidden
 {
     return YES;

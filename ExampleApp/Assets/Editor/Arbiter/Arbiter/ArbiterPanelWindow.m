@@ -35,7 +35,7 @@
     UIGraphicsEndImageContext();
     
     view.parentWindow = self;
-    self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyLightEffect]];
+    self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyDarkEffect]];
     [self.rootViewController.view addSubview:view];
     [self renderPoweredBy];
 }

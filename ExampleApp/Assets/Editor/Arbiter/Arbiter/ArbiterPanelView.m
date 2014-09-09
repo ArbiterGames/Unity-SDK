@@ -111,25 +111,18 @@
 - (void)moveViewForKeyboard:(NSNotification *)notification keyboardIsUp:(BOOL)keyboardIsUp
 {
     NSDictionary *userInfo = [notification userInfo];
-    NSTimeInterval animationDuration;
-    UIViewAnimationCurve animationCurve;
+    CGRect updatedFrame = self.frame;
     CGRect keyboardEndFrame;
-    [[userInfo objectForKey:UIKeyboardAnimationCurveUserInfoKey] getValue:&animationCurve];
-    [[userInfo objectForKey:UIKeyboardAnimationDurationUserInfoKey] getValue:&animationDuration];
     [[userInfo objectForKey:UIKeyboardFrameEndUserInfoKey] getValue:&keyboardEndFrame];
     
-    [UIView beginAnimations:nil context:nil];
-    [UIView setAnimationDuration:animationDuration];
-    [UIView setAnimationCurve:animationCurve];
-    
-    CGRect newFrame = self.frame;
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        newFrame.origin.y -= (keyboardEndFrame.size.width * (keyboardIsUp? 1 : -1)) / 2;
+        updatedFrame.origin.y -= (keyboardEndFrame.size.width * (keyboardIsUp? 1 : -1)) / 2;
     } else {
-        newFrame.origin.y -= (keyboardEndFrame.size.height * (keyboardIsUp? 1 : -1)) / 2;
+        updatedFrame.origin.y -= (keyboardEndFrame.size.height * (keyboardIsUp? 1 : -1)) / 2;
     }
-    self.frame = newFrame;
-    [UIView commitAnimations];
+    if ( (keyboardIsUp && updatedFrame.origin.y > 0) || (keyboardIsUp == NO && updatedFrame.origin.y + updatedFrame.size.height <= self.availableHeight) ) {
+        self.frame = updatedFrame;
+    }
 }
 
 

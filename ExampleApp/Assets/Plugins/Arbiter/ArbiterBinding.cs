@@ -171,7 +171,7 @@ namespace ArbiterInternal {
 #if UNITY_EDITOR
 			ReportIgnore( "FetchWallet" );
 			Arbiter.wallet = new Wallet();
-			Arbiter.wallet.Balance = "12401";
+			Arbiter.wallet.Balance = "12345";
 			success();
 #elif UNITY_IOS
 			_fetchWallet();

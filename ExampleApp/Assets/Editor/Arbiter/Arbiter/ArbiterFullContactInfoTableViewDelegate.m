@@ -64,10 +64,9 @@
         field = self.emailField;
         if ( self.email != nil ) {
             field.text = self.email;
-        } else {
-            field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
-                                                                          attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         }
+        field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         field.tag = EMAIL_FIELD_TAG;
         [field becomeFirstResponder];
     } else {
@@ -75,10 +74,9 @@
         field = self.nameField;
         if ( self.fullName != nil ) {
             field.text = self.fullName;
-        } else {
-            field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Name as it appears on your debit card"
-                                                                          attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         }
+        field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Name as it appears on your debit card"
+                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         field.tag = NAME_FIELD_TAG;
     }
     

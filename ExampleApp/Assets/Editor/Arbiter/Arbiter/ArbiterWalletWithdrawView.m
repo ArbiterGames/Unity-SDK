@@ -103,7 +103,7 @@
         message.numberOfLines = 0;
         message.tag = AMOUNT_SELECTION_UI_TAG;
         message.textColor = [UIColor whiteColor];
-        message.text = [NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance];
+        message.text = [NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum (100 credits).", walletBalance];
         [self addSubview:message];
     } else {
         [self renderNextButton];

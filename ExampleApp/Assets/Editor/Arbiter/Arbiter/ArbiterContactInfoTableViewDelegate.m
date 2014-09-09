@@ -63,10 +63,9 @@
         emailField = [[UITextField alloc] initWithFrame:cell.frame];
         if ( self.email != nil ) {
             emailField.text = self.email;
-        } else {
-            emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
-                                                                               attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         }
+        emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                           attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
         emailField.textColor = [UIColor whiteColor];
         emailField.autocorrectionType = UITextAutocorrectionTypeNo;
         emailField.keyboardType = UIKeyboardTypeEmailAddress;

@@ -12,8 +12,8 @@
 
 @interface ArbiterPanelView : UIView <UITableViewDelegate, UITableViewDataSource>
 
-@property (assign) Arbiter *arbiter;
-@property (assign) ArbiterPanelWindow *parentWindow;
+@property (strong) Arbiter *arbiter;
+@property (strong) ArbiterPanelWindow *parentWindow;
 
 @property CGRect marginizedFrame;
 @property float maxWidth;

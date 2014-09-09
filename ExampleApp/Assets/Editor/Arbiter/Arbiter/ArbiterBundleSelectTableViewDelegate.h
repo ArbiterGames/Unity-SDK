@@ -10,6 +10,9 @@
 
 @interface ArbiterBundleSelectView : UIView <UITableViewDataSource, UITableViewDelegate>
 
+@property (strong) NSMutableArray *availableBundles;
+@property (strong) void (^selectionCallback)(NSDictionary *selectedBundle);
+
 - (id)initWithBundles:(NSMutableArray *)availableBundles andSelectionCallback:(void(^)(NSDictionary *))selectionCallback;
 
 @end

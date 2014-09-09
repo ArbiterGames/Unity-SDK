@@ -50,7 +50,7 @@
             [label setTag:CELL_LABEL_TAG];
             [label setTextColor:[UIColor whiteColor]];
             [label setTextAlignment:NSTextAlignmentCenter];
-            [label setText:@"Your deposit was successful!"];
+            [label setText:@"Your request was successful!"];
             [cell.contentView addSubview:label];
         } else if ( indexPath.row == 1 ) {
             UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];

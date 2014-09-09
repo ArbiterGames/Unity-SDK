@@ -12,17 +12,13 @@
 #define CELL_VALUE_TAG 11
 
 @implementation ArbiterBundleSelectView
-{
-    NSMutableArray *_availableBundles;
-    void (^_selectionCallback)(NSDictionary *_selectedBundle);
-}
 
 - (id)initWithBundles:(NSMutableArray *)availableBundles andSelectionCallback:(void(^)(NSDictionary *))selectionCallback
 {
     self = [super init];
     if ( self ) {
-        _availableBundles = availableBundles;
-        _selectionCallback = selectionCallback;
+        self.availableBundles = availableBundles;
+        self.selectionCallback = selectionCallback;
     }
     return self;
 }
@@ -31,7 +27,7 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    _selectionCallback([_availableBundles objectAtIndex:indexPath.row]);
+    self.selectionCallback([self.availableBundles objectAtIndex:indexPath.row]);
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
@@ -41,12 +37,24 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return [_availableBundles count];
+    return [self.availableBundles count];
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
-    return @"How many credits would you like?";
+    return 40.0;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UILabel *label = [[UILabel alloc] init];
+    label.frame = CGRectMake(0.0, 10.0, tableView.frame.size.width, 20.0);
+    label.font = [UIFont boldSystemFontOfSize:17.0];
+    label.textColor = [UIColor whiteColor];
+    label.text = @"How many credits would you like to purchase?";
+    UIView *headerView = [[UIView alloc] init];
+    [headerView addSubview:label];
+    return headerView;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -54,32 +62,28 @@
     static NSString *i = @"BundleOptionsTableCell";
     UILabel *label, *value;
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
-    NSDictionary *bundle = [_availableBundles objectAtIndex:indexPath.row];
+    NSDictionary *bundle = [self.availableBundles objectAtIndex:indexPath.row];
     
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
-        [cell setBackgroundColor:[UIColor clearColor]];
+        cell.backgroundColor = [UIColor clearColor];
         
-        label = [[UILabel alloc] initWithFrame:CGRectMake(-80.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
-        [label setTag:CELL_LABEL_TAG];
-        [label setTextColor:[UIColor whiteColor]];
-        [label setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
-        [label setBackgroundColor:[UIColor clearColor]];
+        label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        label.tag = CELL_LABEL_TAG;
+        label.textColor = [UIColor whiteColor];
         [cell.contentView addSubview:label];
         
-        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
-        [value setTag:CELL_VALUE_TAG];
-        [value setTextAlignment:NSTextAlignmentRight];
-        [value setTextColor:[UIColor grayColor]];
-        [value setBackgroundColor:[UIColor clearColor]];
-        [value setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
+        value = [[UILabel alloc] initWithFrame:CGRectMake((cell.frame.size.width / 2) + 80.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        value.tag = CELL_VALUE_TAG;
+        value.textAlignment = NSTextAlignmentRight;
+        value.textColor = [UIColor whiteColor];
         [cell.contentView addSubview:value];
     } else {
         label = (UILabel *)[cell.contentView viewWithTag:CELL_LABEL_TAG];
         value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
     }
     
-    [label setText:[NSString stringWithFormat:@"%@ credits", [bundle objectForKey:@"value"]]];
+    [label setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[bundle objectForKey:@"value"]]]];
     [value setText:[NSString stringWithFormat:@"$%@ USD", [bundle objectForKey:@"price"]]];
     
     CALayer *topBorder = [CALayer layer];
@@ -89,6 +93,22 @@
     [cell.contentView.layer addSublayer:topBorder];
     
     return cell;
+}
+
+
+# pragma mark helpers
+
+- (NSString *)addThousandsSeparatorToString:(NSString *)original
+{
+    NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
+    [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
+    [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];
+    
+    NSNumberFormatter *stringToNumberFormatter = [[NSNumberFormatter alloc] init];
+    [stringToNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
+    
+    return [separatorFormattor stringFromNumber:origNumber];
 }
 
 @end

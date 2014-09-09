@@ -36,9 +36,21 @@
     return 2;
 }
 
-- (NSString *)tableView:(UITableView *)tableView titleForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
-    return @"Please enter your contact info";
+    return 40.0;
+}
+
+- (UIView *)tableView:(UITableView *)tableView viewForHeaderInSection:(NSInteger)section
+{
+    UILabel *label = [[UILabel alloc] init];
+    label.frame = CGRectMake(0.0, 10.0, tableView.frame.size.width, 20.0);
+    label.font = [UIFont boldSystemFontOfSize:17.0];
+    label.textColor = [UIColor whiteColor];
+    label.text = @"Please enter your contact info";
+    UIView *headerView = [[UIView alloc] init];
+    [headerView addSubview:label];
+    return headerView;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -73,7 +85,7 @@
     field.textColor = [UIColor whiteColor];
     field.autocorrectionType = UITextAutocorrectionTypeNo;
     field.keyboardType = UIKeyboardTypeEmailAddress;
-    field.returnKeyType = UIReturnKeyNext;
+    field.returnKeyType = UIReturnKeyDone;
     field.clearButtonMode = UITextFieldViewModeWhileEditing;
     field.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
     field.autocapitalizationType = UITextAutocapitalizationTypeNone;

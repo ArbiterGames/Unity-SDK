@@ -74,7 +74,7 @@
             [self navigateToActiveView];
         } copy]];
         
-        ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
+        ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
         tableView.delegate = selectView;
         tableView.dataSource = selectView;
         tableView.tag = BUNDLE_SELECT_UI_TAG;

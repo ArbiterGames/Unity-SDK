@@ -101,7 +101,6 @@
     if ( walletBalance < 100 ) {
         UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 70.0, self.frame.size.width, 50.0)];
         message.numberOfLines = 0;
-        message.textAlignment = NSTextAlignmentCenter;
         message.tag = AMOUNT_SELECTION_UI_TAG;
         message.textColor = [UIColor whiteColor];
         message.text = [NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum.", walletBalance];
@@ -113,7 +112,7 @@
         message.numberOfLines = 0;
         message.text = @"How many credits would you like to withdraw?";
         message.textColor = [UIColor whiteColor];
-        message.textAlignment = NSTextAlignmentCenter;
+        message.font = [UIFont boldSystemFontOfSize:17.0];
         message.tag = AMOUNT_SELECTION_UI_TAG;
         [self addSubview:message];
         
@@ -127,14 +126,12 @@
         [self addSubview:slider];
         
         self.withdrawSelectionLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 120.0, self.bounds.size.width, 20.0)];
-        self.withdrawSelectionLabel.textAlignment = NSTextAlignmentCenter;
         self.withdrawSelectionLabel.textColor = [UIColor whiteColor];
         self.withdrawSelectionLabel.tag = AMOUNT_SELECTION_UI_TAG;
         [self addSubview:self.withdrawSelectionLabel];
         [self updateSelectedAmountLabel];
         
         self.withdrawValueLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 140.0, self.bounds.size.width, 20.0)];
-        self.withdrawValueLabel.textAlignment = NSTextAlignmentCenter;
         self.withdrawValueLabel.tag = AMOUNT_SELECTION_UI_TAG;
         self.withdrawValueLabel.textColor = [UIColor whiteColor];
         [self addSubview:self.withdrawValueLabel];

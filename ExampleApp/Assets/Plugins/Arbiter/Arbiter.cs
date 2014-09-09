@@ -147,6 +147,31 @@ public partial class Arbiter : MonoBehaviour {
 	} }
 
 
+	/// <summary>
+	/// Returns a human-readable string no longer than X characters long
+	/// </summary>
+	/// <returns>The balance.</returns>
+	public static string FormattedBalance() {
+		if( !WalletExists )
+			return "...";
+		
+		float b = int.Parse( wallet.Balance );
+		
+		if( b >= 1000000000 ) {
+			return ">999m";
+		} else if( b >= 1000000 ) {
+			return (b / 1000000).ToString("0.0") + "m";
+		} else if( b >= 100000 ) {
+			return (b / 1000 ).ToString("0.0") + "k";
+		} else if( b >= 1000 ) {
+			return (b / 1000).ToString("0") + "," + (b % 1000).ToString("000");
+		} else {
+			return b.ToString();
+		}
+		
+	}
+
+
 	public static void AddWalletListener( Action listener ) {
 		if( !walletUpdatedListeners.Contains( listener ))
 			walletUpdatedListeners.Add( listener );

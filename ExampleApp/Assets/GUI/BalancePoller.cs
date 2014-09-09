@@ -16,7 +16,7 @@ public class BalancePoller : MonoBehaviour {
 
 
 	void OnGUI () {
-        textField.text = Arbiter.Balance;
+		textField.text = Arbiter.FormattedBalance();
     }
 
 

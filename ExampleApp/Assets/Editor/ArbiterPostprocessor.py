@@ -29,6 +29,8 @@ for f in files_in_dir:
 # Change build settings
 ############################
 project.add_other_buildsetting('GCC_ENABLE_OBJC_EXCEPTIONS', 'YES')
+project.add_other_buildsetting('CLANG_ENABLE_MODULES', 'YES')
+project.add_other_buildsetting('IPHONEOS_DEPLOYMENT_TARGET', '7.0')
 
 
 # Add ARC compiler flag for Stripe and PaymentKit files

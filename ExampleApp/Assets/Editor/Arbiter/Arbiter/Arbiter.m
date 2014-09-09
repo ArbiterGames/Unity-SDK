@@ -182,7 +182,7 @@
 
 - (bool)isUserAuthenticated
 {
-    return self.user != nil;
+    return self.user != nil && [self.user objectForKey:@"id"] != nil;
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
@@ -323,7 +323,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    if ( self.user ) {
+    if ( [self isUserAuthenticated] ) {
         [self.alertWindow addRequestToQueue:WALLET_ALERT_TAG];
         [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
@@ -343,6 +343,7 @@
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
+
 }
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount

@@ -86,19 +86,19 @@
 
 - (void)setupEmailFieldLayout
 {
-    ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc]
-                                                          initWithCallback:[^(NSString *updatedEmail) {
-        if ( [updatedEmail isKindOfClass:[NSString class]]) {
-            self.email = updatedEmail;
-        }
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
+        self.email = [updatedFields objectForKey:@"email"];
+        self.username = [updatedFields objectForKey:@"username"];
         self.activeViewIndex++;
         [self navigateToActiveView];
     } copy]];
     
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    tableDelegate.username = [self.arbiter.user objectForKey:@"username"];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
+    tableView.scrollEnabled = YES;
     tableView.tag = CONTACT_INFO_UI_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
@@ -135,11 +135,13 @@
         } else {
             NSDictionary *params = @{@"card_token": stripeToken.tokenId,
                                      @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
-                                     @"email": self.email};
+                                     @"email": self.email,
+                                     @"username": self.username};
             [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
                     [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
                 } else {
+                    self.arbiter.user = [responseDict objectForKey:@"user"];
                     self.activeViewIndex++;
                     [self navigateToActiveView];
                     self.purchaseCompleted = YES;

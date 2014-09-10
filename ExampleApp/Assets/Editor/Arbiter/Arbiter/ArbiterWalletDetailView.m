@@ -165,7 +165,7 @@
     
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];
-        [value setText:[NSString stringWithFormat:@"%@ credits", [self.arbiter.wallet objectForKey:@"balance"]]];
+        [value setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[self.arbiter.wallet objectForKey:@"balance"]]]];
     } else {
         [label setText:@"Username"];
         [value setText:[self.arbiter.user objectForKey:@"username"]];
@@ -177,6 +177,19 @@
     }
     
     return cell;
+}
+
+- (NSString *)addThousandsSeparatorToString:(NSString *)original
+{
+    NSNumberFormatter *separatorFormattor = [[NSNumberFormatter alloc] init];
+    [separatorFormattor setFormatterBehavior: NSNumberFormatterBehavior10_4];
+    [separatorFormattor setNumberStyle: NSNumberFormatterDecimalStyle];
+    
+    NSNumberFormatter *stringToNumberFormatter = [[NSNumberFormatter alloc] init];
+    [stringToNumberFormatter setNumberStyle:NSNumberFormatterDecimalStyle];
+    NSNumber *origNumber = [stringToNumberFormatter numberFromString:original];
+    
+    return [separatorFormattor stringFromNumber:origNumber];
 }
 
 @end

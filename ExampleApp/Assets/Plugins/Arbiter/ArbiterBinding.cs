@@ -374,6 +374,7 @@ namespace ArbiterInternal {
 		public void ReportScoreHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
+				_fetchWallet();
 				JSONClass tournamentNode = json["tournament"] as JSONClass;
 				if( reportScoreSuccessHandler != null )
 					reportScoreSuccessHandler( TournamentProtocol.ParseTournament( tournamentNode ));

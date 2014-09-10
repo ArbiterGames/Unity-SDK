@@ -24,6 +24,7 @@
 
 @property (strong) Arbiter *arbiter;
 @property (strong) id delegate;
+@property int activeUI;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)backButtonClicked:(id)sender;

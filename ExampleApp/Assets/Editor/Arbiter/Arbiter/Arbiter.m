@@ -11,7 +11,6 @@
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
-#import "ArbiterAlertWindow.h"
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "STPView.h"
@@ -64,7 +63,6 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
-        self.alertWindow = [[ArbiterAlertWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];

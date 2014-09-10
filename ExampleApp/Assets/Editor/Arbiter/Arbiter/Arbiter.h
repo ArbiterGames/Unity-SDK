@@ -6,7 +6,6 @@
 //
 
 #import <CoreLocation/CoreLocation.h>
-#import "ArbiterAlertWindow.h"
 #import "ArbiterPanelWindow.h"
 
 void ClientCallbackUserUpdated();
@@ -17,7 +16,6 @@ void ClientCallbackWalletUpdated();
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
-@property (retain) ArbiterAlertWindow *alertWindow;
 @property (retain) ArbiterPanelWindow *panelWindow;
 @property (strong) UIActivityIndicatorView *spinnerView;
 @property (strong) NSMutableDictionary *requestQueue;

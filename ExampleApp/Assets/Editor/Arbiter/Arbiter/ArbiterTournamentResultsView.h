@@ -13,5 +13,6 @@
 @property (strong) NSDictionary *tournament;
 
 - (id)initWithTournament:(NSDictionary *)tournament arbiterInstance:(Arbiter *)arbiterInstance;
+- (void)backButtonClicked:(id)sender;
 
 @end

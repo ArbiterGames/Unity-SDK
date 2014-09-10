@@ -1,0 +1,249 @@
+//
+//  ArbiterPreviousTournamentsView.m
+//  Unity-iPhone
+//
+//  Created by Andy Zinsser on 9/9/14.
+//
+//
+
+#import "ArbiterPreviousTournamentsView.h"
+#import "ArbiterUITableView.h"
+
+#define CELL_DATE_TAG 1
+#define CELL_OUTCOME_TAG 2
+#define CELL_PAYOUT_TAG 3
+#define CELL_PLAYER_LABEL_TAG 4
+#define CELL_PLAYER_SCORE_TAG 5
+#define CELL_OPPONENT_LABEL_TAG 6
+#define CELL_OPPONENT_SCORE_TAG 7
+#define LINE_HEIGHT 24.0
+
+@implementation ArbiterPreviousTournamentsView
+
+- (id)init:(Arbiter *)arbiter
+{
+    self = [super init:arbiter];
+    if ( self ) {
+        self.currentPage = 0;
+        self.currentHead = 0;
+        self.currentTail = 0;
+        [self renderTournamentTable];
+        [self getNextPage];
+    }
+    return self;
+}
+
+- (void)getNextPage
+{
+    self.currentPage++;
+    [self.nextButton removeFromSuperview];
+    NSString *nextPage = (self.currentPage == 1) ? nil : @"next";
+    [self.arbiter getTournaments:[^(NSDictionary (*responseDict)) {
+        NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
+        self.tournaments = [tournamentSerializer objectForKey:@"results"];
+        self.total = self.arbiter.previousTournamentsCount;
+        
+        if ( self.currentHead == 0 ) {
+            self.currentHead = 1;
+        } else {
+            self.currentHead += 10;
+        }
+        if ( self.currentTail == 0 && [self.tournaments count] == self.total ) {
+            self.currentTail = self.total;
+        } else {
+            if ( self.currentTail + 10 > self.total ) {
+                self.currentTail = self.total;
+            } else {
+                [self renderNextButton];
+                self.currentTail += 10;
+            }
+        }
+        self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
+        [self.tournamentTable reloadData];
+    } copy] page:nextPage isBlocking:YES];
+}
+
+- (void)renderLayout
+{
+    self.title = [[UILabel alloc] initWithFrame:CGRectMake(50.0, self.titleYPos, self.frame.size.width - 100.0, self.titleHeight)];
+    self.title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
+    self.title.textColor = [UIColor whiteColor];
+    self.title.textAlignment = NSTextAlignmentCenter;
+    [self addSubview:self.title];
+    
+    CALayer *topBorder = [CALayer layer];
+    topBorder.frame = CGRectMake(0.0, self.titleYPos + self.titleHeight + 10.0,
+                                 self.frame.size.width, 0.5f);
+    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+    topBorder.opacity = 0.2;
+    [self.layer addSublayer:topBorder];
+    
+    float btnWidth = 50.0;
+    float btnHeight = 50.0;
+    self.backButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.backButton setFrame:CGRectMake(0.0, 5.0, btnWidth, btnHeight)];
+    [self.backButton setTitle:@"Back" forState:UIControlStateNormal];
+    [self.backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.backButton.titleLabel.textAlignment = NSTextAlignmentCenter;
+    self.backButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    [self addSubview:self.backButton];
+}
+
+- (void)renderNextButton
+{
+    float btnWidth = 50.0;
+    float btnHeight = 50.0;
+    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+    [self.nextButton setFrame:CGRectMake(self.frame.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
+    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+    self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
+    self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    [self addSubview:self.nextButton];
+}
+
+- (void)renderTournamentTable
+{
+    float tableYOrigin = self.titleYPos + self.titleHeight + 10;
+    float tableHeight = self.frame.size.height - tableYOrigin - 40;
+    self.tournamentTable = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, tableYOrigin, self.frame.size.width, tableHeight)];
+    self.tournamentTable.delegate = self;
+    self.tournamentTable.dataSource = self;
+    self.tournamentTable.scrollEnabled = YES;
+    [self.tournamentTable reloadData];
+    [self addSubview:self.tournamentTable];
+    [super renderLayout];
+}
+
+
+# pragma mark TableView Delegate Methods
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 0.1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return [self.tournaments count];
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return LINE_HEIGHT * 5;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    // TODO: Pull tournament from array based on indexPath.row
+    //       then repeat the parsing like how i did in the alert view
+    static NSString *i = @"PreviousTournamentCell";
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
+    float adjustedWidth;
+    UILabel *date;
+    UILabel *outcome;
+    UILabel *playerScoreLabel;
+    UILabel *playerScoreValue;
+    UILabel *opponentScoreLabel;
+    UILabel *opponentScoreValue;
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
+        cell.backgroundColor = [UIColor clearColor];
+        adjustedWidth = (cell.frame.size.width + 80.0) / 2;
+        date = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 10.0, adjustedWidth, LINE_HEIGHT)];
+        date.textColor = [UIColor lightGrayColor];
+        date.tag = CELL_DATE_TAG;
+        [cell.contentView addSubview:date];
+
+        outcome = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT + 10, adjustedWidth, LINE_HEIGHT)];
+        outcome.tag = CELL_OUTCOME_TAG;
+        outcome.textColor = [UIColor whiteColor];
+        [cell.contentView addSubview:outcome];
+        
+        playerScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        playerScoreLabel.tag = CELL_PLAYER_LABEL_TAG;
+        playerScoreLabel.textColor = [UIColor whiteColor];
+        playerScoreLabel.textAlignment = NSTextAlignmentLeft;
+        [cell.contentView addSubview:playerScoreLabel];
+        
+        playerScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        playerScoreValue.tag = CELL_PLAYER_SCORE_TAG;
+        playerScoreValue.textColor = [UIColor whiteColor];
+        playerScoreValue.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:playerScoreValue];
+        
+        opponentScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT * 3 + 10, adjustedWidth, LINE_HEIGHT)];
+        opponentScoreLabel.tag = CELL_PLAYER_LABEL_TAG;
+        opponentScoreLabel.textColor = [UIColor whiteColor];
+        opponentScoreLabel.textAlignment = NSTextAlignmentLeft;
+        [cell.contentView addSubview:opponentScoreLabel];
+        
+        opponentScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT * 3 + 10, adjustedWidth, LINE_HEIGHT)];
+        opponentScoreValue.tag = CELL_PLAYER_SCORE_TAG;
+        opponentScoreValue.textColor = [UIColor whiteColor];
+        opponentScoreValue.textAlignment = NSTextAlignmentRight;
+        [cell.contentView addSubview:opponentScoreValue];
+        
+        CALayer *topBorder = [CALayer layer];
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+        topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+        topBorder.opacity = 0.2;
+        [cell.contentView.layer addSublayer:topBorder];
+    } else {
+        date = (UILabel *)[cell.contentView viewWithTag:CELL_DATE_TAG];
+        outcome = (UILabel *)[cell.contentView viewWithTag:CELL_OUTCOME_TAG];
+        playerScoreLabel = (UILabel *)[cell.contentView viewWithTag:CELL_PLAYER_LABEL_TAG];
+        playerScoreValue = (UILabel *)[cell.contentView viewWithTag:CELL_PLAYER_SCORE_TAG];
+        opponentScoreLabel = (UILabel *)[cell.contentView viewWithTag:CELL_OPPONENT_LABEL_TAG];
+        opponentScoreValue = (UILabel *)[cell.contentView viewWithTag:CELL_OPPONENT_SCORE_TAG];
+    }
+
+    NSDictionary *tournament = [self.tournaments objectAtIndex:indexPath.row];
+    NSString *status = [tournament objectForKey:@"status"];
+    NSString *createdOn = [tournament objectForKey:@"created_on"];
+    NSTimeInterval seconds = [createdOn doubleValue] / 1000;
+    NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
+    NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
+    [dateFormatter setDateFormat:@"EEE, MMM d"];
+    date.text = [dateFormatter stringFromDate:unFormattedDate];
+    
+    playerScoreLabel.text = @"Your score";
+    playerScoreValue.text = [self.arbiter getPlayerScoreFromTournament:tournament];
+    
+    opponentScoreLabel.text = @"Opponent score";
+    opponentScoreValue.text = [self.arbiter getOpponentScoreFromTournament:tournament];
+    
+    if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
+        outcome.text = @"Your opponent has not reported their score yet.";
+    }
+    else if ( [[tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
+        outcome.text = [NSString stringWithFormat:@"You won %@ credits!", [tournament objectForKey:@"payout"]];
+    } else {
+        outcome.text = @"You lost.";
+    }
+    return cell;
+}
+
+
+# pragma mark Arbiter Dashboard Subviews Delegate Methods
+
+- (void)backButtonClicked:(id)sender
+{
+    [self animateOut];
+}
+
+- (void)nextButtonClicked:(id)sender
+{
+    [self getNextPage];
+}
+
+
+@end

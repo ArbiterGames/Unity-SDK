@@ -13,6 +13,7 @@
 #import "ArbiterWalletDashboardView.h"
 #import "ArbiterAlertWindow.h"
 #import "ArbiterTournamentResultsView.h"
+#import "ArbiterPreviousTournamentsView.h"
 #import "STPView.h"
 
 #define LOGIN_ALERT_TAG 329
@@ -400,6 +401,7 @@
         NSDictionary *paginationInfo = [responseDict objectForKey:@"tournaments"];
         self.previousPageTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"previous"]];
         self.nextPageTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
+        self.previousTournamentsCount = [[paginationInfo objectForKey:@"count"] intValue];
         handler(responseDict);
     } copy];
 
@@ -421,43 +423,8 @@
  */
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page
 {
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary (*responseDict)) {
-        NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
-        NSArray *tournaments = [tournamentSerializer objectForKey:@"results"];
-        NSMutableString *message = [NSMutableString string];
-        
-        if ( [tournaments count] > 0 ) {
-            for (int i = 0; i < [tournaments count]; i++) {
-                NSString *createdOn = [[tournaments objectAtIndex:i] objectForKey:@"created_on"];
-                NSTimeInterval seconds = [createdOn doubleValue] / 1000;
-                NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
-                NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
-                [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
-                    [dateFormatter stringFromDate:unFormattedDate],
-                    [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
-                    [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
-                    [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
-                [message appendString:tournamentString];
-            }
-        } else {
-            [message appendString:@"No previous games"];
-        }
-
-        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Previous Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
-
-        if ( [tournamentSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
-            [alert addButtonWithTitle:@"Prev"];
-        }
-        if ( [tournamentSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
-            [alert addButtonWithTitle:@"Next"];
-        }
-
-        [_alertViewHandlerRegistry setObject:handler forKey:@"closePreviousGamesHandler"];
-        [alert setTag:PREVIOUS_TOURNAMENTS_ALERT_TAG];
-        [alert show];
-    } copy];
-    [self getTournaments:connectionHandler page:page isBlocking:YES];
+    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self];
+    [self.panelWindow show:view];
 }
 
 

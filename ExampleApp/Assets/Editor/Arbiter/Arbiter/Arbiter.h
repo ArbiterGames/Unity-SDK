@@ -26,6 +26,7 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *previousPageTournamentsUrl;
 @property (copy) NSString *nextPageIncompleteTournamentsUrl;
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
+@property int previousTournamentsCount;
 @property (copy) NSString *currentIncompleteTournamentId;
 
 @property (strong, atomic) NSMutableDictionary* _user;

@@ -275,21 +275,21 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 
-	public static void DisplayTournamentDetails( string tournamentId, SuccessHandler callback ) {
+	public static void ShowTournamentDetails( string tournamentId, SuccessHandler callback ) {
 		ArbiterBinding.ShowTournamentDetailsPanel( tournamentId, callback );
 	}
 	
 
-	public static void ViewPreviousTournaments( SuccessHandler callback ) {
-		ArbiterBinding.ViewPreviousTournaments( callback, defaultErrorHandler );
+	public static void ShowPreviousTournaments( SuccessHandler callback ) {
+		ArbiterBinding.ShowPreviousTournaments( callback, defaultErrorHandler );
 	}
 
 	
-	public delegate void ViewIncompleteTournamentsCallback( string tournamentId );
-	public static void ViewIncompleteTournaments( ViewIncompleteTournamentsCallback callback ) {
+	public delegate void ShowIncompleteTournamentsCallback( string tournamentId );
+	public static void ShowIncompleteTournaments( ShowIncompleteTournamentsCallback callback ) {
 		if( callback == null )
 			callback = ( tournamentId ) => {};
-		ArbiterBinding.ViewIncompleteTournaments( callback );
+		ArbiterBinding.ShowIncompleteTournaments( callback );
 	}
 	
 	
@@ -313,18 +313,16 @@ public partial class Arbiter : MonoBehaviour {
 		}
 
 		TournamentsCallback onFetched = ( tournaments ) => showUnviewedTournamentsClientSide( tournaments, done );
-		ArbiterBinding.FetchTournaments( onFetched, defaultErrorHandler );
+		ArbiterBinding.FetchUnviewedTournaments( onFetched, defaultErrorHandler );
 	}
-	private static void showUnviewedTournamentsClientSide( List<Tournament> tournaments, SuccessHandler done ) {
-		List<Tournament> unviewedTournaments = tournaments.Where( t => t.Status == Tournament.StatusType.Complete && !t.UserHasViewed( user.Id )).ToList();
-		Debug.Log ("ttt showUnviewedTournamentsClientSide. count="+unviewedTournaments.Count);
+	private static void showUnviewedTournamentsClientSide( List<Tournament> unviewedTournaments, SuccessHandler done ) {
+		
 		Action<int> showEachTournamentPast;
 		showEachTournamentPast = ( i ) => {
-			Debug.Log ("ttt showing tournament: "+i);
 			if( i < unviewedTournaments.Count ) {
 				SuccessHandler showNextTournament = () => showEachTournamentPast( i+1 );
 				Tournament iTournament = unviewedTournaments[ i ];
-				DisplayTournamentDetails( iTournament.Id, showNextTournament );
+				ShowTournamentDetails( iTournament.Id, showNextTournament );
 				MarkViewedTournament( iTournament.Id );
 			} else {
 				if( done != null )

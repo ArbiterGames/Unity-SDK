@@ -158,23 +158,30 @@ void _requestTournament( const char *buyIn, const char *filters )
 
 void _fetchTournaments()
 {
-    [ArbiterInstance() getTournaments:^(NSDictionary *jsonDict) {
+    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchTournamentsHandler", ProcessDictionaryParams( jsonDict ));
-    } page:nil isBlocking:NO];
+    } page:nil isBlocking:NO excludeViewed:NO];
 }
 
-void _viewPreviousTournaments()
+void _fetchUnviewedTournaments()
 {
-    [ArbiterInstance() viewPreviousTournaments:^(void) {
-        UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", EMPTY_STRING );
+    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "FetchUnviewedTournamentsHandler", ProcessDictionaryParams( jsonDict ));
+    } page:nil isBlocking:NO excludeViewed:YES];
+}
+
+void _showPreviousTournaments()
+{
+    [ArbiterInstance() showPreviousTournaments:^(void) {
+        UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", EMPTY_STRING );
     } page:nil];
 }
 
-void _viewIncompleteTournaments()
+void _showIncompleteTournaments()
 {
-    [ArbiterInstance() viewIncompleteTournaments:^(NSString *tournamentId) {
+    [ArbiterInstance() showIncompleteTournaments:^(NSString *tournamentId) {
         const char *jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
-        UnitySendMessage("ArbiterBinding", "ViewIncompleteTournamentsHandler", jsonChar );
+        UnitySendMessage("ArbiterBinding", "ShowIncompleteTournamentsHandler", jsonChar );
     } page:nil];
 }
 

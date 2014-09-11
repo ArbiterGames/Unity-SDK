@@ -38,7 +38,7 @@
     self.currentPage++;
     [self.nextButton removeFromSuperview];
     NSString *nextPage = (self.currentPage == 1) ? nil : @"next";
-    [self.arbiter getTournaments:[^(NSDictionary (*responseDict)) {
+    [self.arbiter fetchTournaments:[^(NSDictionary (*responseDict)) {
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         self.tournaments = [tournamentSerializer objectForKey:@"results"];
         self.total = self.arbiter.previousTournamentsCount;
@@ -60,7 +60,7 @@
         }
         self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
         [self.tournamentTable reloadData];
-    } copy] page:nextPage isBlocking:YES];
+    } copy] page:nextPage isBlocking:YES excludeViewed:NO];
 }
 
 - (void)renderLayout

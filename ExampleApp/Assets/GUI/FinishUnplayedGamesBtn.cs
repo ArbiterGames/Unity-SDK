@@ -7,7 +7,7 @@ using System.Collections.Generic;
 public class FinishUnplayedGamesBtn : MonoBehaviour {
 	
 	void OnMouseUpAsButton() {
-		Arbiter.ViewIncompleteTournaments( PlayUnfinishedGame );
+		Arbiter.ShowIncompleteTournaments( PlayUnfinishedGame );
 	}
 	
 	void PlayUnfinishedGame( string tournamentId ) {

@@ -55,11 +55,11 @@ void ClientCallbackWalletUpdated();
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString *)buyIn filters:(NSString *)filters;
-- (void)getTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
-- (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
+- (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)exludeViewed;
+- (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 
-- (void)getIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
-- (void)viewIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
+- (void)fetchIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
+- (void)showIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
 - (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId;

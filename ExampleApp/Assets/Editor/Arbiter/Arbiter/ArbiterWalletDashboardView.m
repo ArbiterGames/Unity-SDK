@@ -84,6 +84,9 @@
 
 - (void)handleBackButton
 {
+    if ( self.callback ) {
+        self.callback();
+    }
     [self animateOut];
 }
 

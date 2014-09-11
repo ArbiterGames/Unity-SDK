@@ -11,6 +11,7 @@
 @interface ArbiterTournamentResultsView : ArbiterPanelView <UITableViewDelegate, UITableViewDataSource>
 
 @property (strong) NSDictionary *tournament;
+@property (strong) void (^callback)(void);
 
 - (id)initWithTournament:(NSDictionary *)tournament arbiterInstance:(Arbiter *)arbiterInstance;
 - (void)backButtonClicked:(id)sender;

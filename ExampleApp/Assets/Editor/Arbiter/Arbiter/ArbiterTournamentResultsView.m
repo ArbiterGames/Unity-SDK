@@ -89,7 +89,9 @@
 
 - (void)backButtonClicked:(id)sender
 {
-    // TODO also do callback handler here?
+    if ( self.callback ) {
+        self.callback();
+    }
     [self animateOut];
 }
 

@@ -331,6 +331,7 @@
         [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+                walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];
             } copy];
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {

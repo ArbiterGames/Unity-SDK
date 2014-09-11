@@ -84,6 +84,7 @@ public partial class Arbiter {
 	public class TournamentUser {
 
 		public string Id            { get { return this.id; } }
+		public string Username		{ get { return this.username; } set { this.username = value; } }
 		public bool Paid			{ get { return this.paid; } set { this.paid = value; } }
 		public bool HasScore		{ get { return this.score.HasValue; } }
 		public int? Score           { get { return this.score; } set { this.score = value; } }
@@ -93,6 +94,7 @@ public partial class Arbiter {
 			this.id = id;
 			this.paid = false;
 			this.score = null;
+			this.username = null;
 		}
 
 		public void SetScore( int score ) {
@@ -100,10 +102,11 @@ public partial class Arbiter {
 		}
 		
 		public override string ToString() {
-			return "[Id:"+Id+", paid:"+paid+", score:"+Score+"]";
+			return "[Id:"+Id+", paid:"+paid+", score:"+Score+", username:"+Username+"]";
 		}
 		
 		private string id;
+		private string username;
 		private bool paid;
 		private int? score;
 		

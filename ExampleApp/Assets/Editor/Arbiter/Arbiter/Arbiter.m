@@ -423,6 +423,7 @@
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page
 {
     ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self];
+    view.callback = handler;
     [self.panelWindow show:view];
 }
 

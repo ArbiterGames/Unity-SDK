@@ -13,6 +13,7 @@
 @interface ArbiterPreviousTournamentsView : ArbiterPanelView <UITableViewDelegate, UITableViewDataSource>
 
 @property (strong) NSArray *tournaments;
+@property (strong) void (^callback)(void);
 @property (strong) ArbiterUITableView *tournamentTable;
 @property (strong) UILabel *title;
 @property int currentHead;

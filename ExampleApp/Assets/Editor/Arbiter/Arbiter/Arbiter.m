@@ -835,7 +835,6 @@
     return @"...";
 }
 
-// TODO: Get rid of this and just use the above method
 - (NSDictionary *)getCurrentUserFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
@@ -857,8 +856,6 @@
     return opponent;
 }
 
-
-// TODO: Get rid of this and just use the above method
 - (NSString *)getOpponentScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {

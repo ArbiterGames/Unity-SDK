@@ -517,6 +517,7 @@
 {
     [self getTournament:[^(NSDictionary *tournament) {
         ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
+        resultsView.callback = handler;
         [self.panelWindow show:resultsView];
     } copy] tournamentId:tournamentId];
 }

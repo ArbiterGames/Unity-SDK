@@ -111,6 +111,7 @@
     static NSString *i = @"TournamentResultsCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
     UILabel *label, *value;
+    NSDictionary *opponent;
     
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
@@ -140,15 +141,24 @@
     
     if ( indexPath.row == 0 ) {
         label.text = @"Your score";
-        value.text = [self.arbiter getPlayerScoreFromTournament:self.tournament];
+        value.text = [[self.arbiter getCurrentUserFromTournament:self.tournament] objectForKey:@"score"];
     } else if ( indexPath.row == 1 ) {
-        label.text = @"Opponent score";
-        value.text = [self.arbiter getOpponentScoreFromTournament:self.tournament];
+        opponent = [self.arbiter getOpponentFromTournament:self.tournament];
+        if ( opponent ) {
+            label.text = [NSString stringWithFormat:@"%@'s score", [opponent objectForKey:@"username"]];
+            value.text = [opponent objectForKey:@"score"];
+        } else {
+            label.text = @"Waiting for opponent";
+            value.text = @"...";
+        }
         [cell.contentView.layer addSublayer:topBorder];
     } else if ( indexPath.row == 2 ) {
-        label.text = @"Payout";
-        value.text = [NSString stringWithFormat:@"%@ credits", [self.tournament objectForKey:@"payout"]];
-        [cell.contentView.layer addSublayer:topBorder];
+        NSString *status = [self.tournament objectForKey:@"status"];
+        if ( ([status  isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"]) || [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
+            label.text = @"Payout";
+            value.text = [NSString stringWithFormat:@"%@ credits", [self.tournament objectForKey:@"payout"]];
+            [cell.contentView.layer addSublayer:topBorder];
+        }
     }
 
     return cell;

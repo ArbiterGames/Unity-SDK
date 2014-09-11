@@ -842,6 +842,27 @@
     return @"...";
 }
 
+- (NSDictionary *)getCurrentUserFromTournament: (NSDictionary *)tournament
+{
+    for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
+        if ( [[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
+            return user;
+        }
+    }
+    return nil;
+}
+
+- (NSDictionary *)getOpponentFromTournament: (NSDictionary *)tournament
+{
+    NSDictionary *opponent = nil;
+    for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
+        if ( ![[user objectForKey:@"id"] isEqualToString:[self.user objectForKey:@"id"]] ) {
+            opponent = user;
+        }
+    }
+    return opponent;
+}
+
 - (NSString *)getOpponentScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {

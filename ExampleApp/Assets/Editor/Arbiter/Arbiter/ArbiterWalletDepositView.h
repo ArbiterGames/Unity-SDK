@@ -27,6 +27,7 @@
 @property (strong) STPView *stripeView;
 @property (strong) NSDictionary *selectedBundle;
 @property (strong) NSString *email;
+@property (strong) NSString *username;
 @property int activeViewIndex;
 @property BOOL purchaseCompleted;
 

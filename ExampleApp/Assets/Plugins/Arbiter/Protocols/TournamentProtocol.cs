@@ -70,6 +70,7 @@ namespace ArbiterInternal {
 			while( enumerator.MoveNext() ) {
 				JSONClass userNode = enumerator.Current as JSONClass;
 				string id = userNode["id"];
+				string username = userNode["username"];
 				bool paid = userNode["paid"].AsBool;
 				string score = userNode["score"];
 
@@ -78,7 +79,9 @@ namespace ArbiterInternal {
 
 				Arbiter.TournamentUser user = new Arbiter.TournamentUser( id );
 				user.Paid = paid;
+				user.Username = username;
 				user.Viewed = viewed;
+				
 				if( score != null && score != "null" && score != "<null>" )                	
 					user.Score = int.Parse( score );
 				

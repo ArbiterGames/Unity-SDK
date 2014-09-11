@@ -12,8 +12,12 @@
 @interface ArbiterContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate>
 
 @property (strong) NSString *email;
-@property (strong) void (^callback)(NSString *);
+@property (strong) NSString *username;
+@property (strong) void (^callback)(NSDictionary *);
 
-- (id)initWithCallback:(void(^)(NSString *))callback;
+@property (strong) IBOutlet UITextField *emailField;
+@property (strong) IBOutlet UITextField *usernameField;
+
+- (id)initWithCallback:(void(^)(NSDictionary *))callback;
 
 @end

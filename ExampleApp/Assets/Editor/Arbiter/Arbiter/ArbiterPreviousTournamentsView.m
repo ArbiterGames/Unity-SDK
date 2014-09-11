@@ -137,13 +137,11 @@
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return LINE_HEIGHT * 5;
+    return LINE_HEIGHT * 4;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    // TODO: Pull tournament from array based on indexPath.row
-    //       then repeat the parsing like how i did in the alert view
     static NSString *i = @"PreviousTournamentCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
     float adjustedWidth;
@@ -158,36 +156,38 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         cell.backgroundColor = [UIColor clearColor];
         adjustedWidth = (cell.frame.size.width + 80.0) / 2;
-        date = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 10.0, adjustedWidth, LINE_HEIGHT)];
+        date = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, 10.0, adjustedWidth, LINE_HEIGHT)];
+        date.textAlignment = NSTextAlignmentRight;
         date.textColor = [UIColor lightGrayColor];
         date.tag = CELL_DATE_TAG;
         [cell.contentView addSubview:date];
 
-        outcome = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT + 10, adjustedWidth, LINE_HEIGHT)];
+        outcome = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 10, adjustedWidth, LINE_HEIGHT)];
         outcome.tag = CELL_OUTCOME_TAG;
         outcome.textColor = [UIColor whiteColor];
+        outcome.font = [UIFont boldSystemFontOfSize:17.0];
         [cell.contentView addSubview:outcome];
         
-        playerScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        playerScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT + 10, adjustedWidth, LINE_HEIGHT)];
         playerScoreLabel.tag = CELL_PLAYER_LABEL_TAG;
         playerScoreLabel.textColor = [UIColor whiteColor];
         playerScoreLabel.textAlignment = NSTextAlignmentLeft;
         [cell.contentView addSubview:playerScoreLabel];
         
-        playerScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        playerScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT + 10, adjustedWidth, LINE_HEIGHT)];
         playerScoreValue.tag = CELL_PLAYER_SCORE_TAG;
         playerScoreValue.textColor = [UIColor whiteColor];
         playerScoreValue.textAlignment = NSTextAlignmentRight;
         [cell.contentView addSubview:playerScoreValue];
         
-        opponentScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT * 3 + 10, adjustedWidth, LINE_HEIGHT)];
-        opponentScoreLabel.tag = CELL_PLAYER_LABEL_TAG;
+        opponentScoreLabel = [[UILabel alloc] initWithFrame:CGRectMake(0.0, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        opponentScoreLabel.tag = CELL_OPPONENT_LABEL_TAG;
         opponentScoreLabel.textColor = [UIColor whiteColor];
         opponentScoreLabel.textAlignment = NSTextAlignmentLeft;
         [cell.contentView addSubview:opponentScoreLabel];
         
-        opponentScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT * 3 + 10, adjustedWidth, LINE_HEIGHT)];
-        opponentScoreValue.tag = CELL_PLAYER_SCORE_TAG;
+        opponentScoreValue = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, LINE_HEIGHT * 2 + 10, adjustedWidth, LINE_HEIGHT)];
+        opponentScoreValue.tag = CELL_OPPONENT_SCORE_TAG;
         opponentScoreValue.textColor = [UIColor whiteColor];
         opponentScoreValue.textAlignment = NSTextAlignmentRight;
         [cell.contentView addSubview:opponentScoreValue];
@@ -208,6 +208,7 @@
 
     NSDictionary *tournament = [self.tournaments objectAtIndex:indexPath.row];
     NSString *status = [tournament objectForKey:@"status"];
+    NSDictionary *opponent = [self.arbiter getOpponentFromTournament:tournament];
     NSString *createdOn = [tournament objectForKey:@"created_on"];
     NSTimeInterval seconds = [createdOn doubleValue] / 1000;
     NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
@@ -216,18 +217,24 @@
     date.text = [dateFormatter stringFromDate:unFormattedDate];
     
     playerScoreLabel.text = @"Your score";
-    playerScoreValue.text = [self.arbiter getPlayerScoreFromTournament:tournament];
+    playerScoreValue.text = [[self.arbiter getCurrentUserFromTournament:tournament] objectForKey:@"score"];
     
-    opponentScoreLabel.text = @"Opponent score";
-    opponentScoreValue.text = [self.arbiter getOpponentScoreFromTournament:tournament];
+    if ( opponent ) {
+        opponentScoreLabel.text = [NSString stringWithFormat:@"%@'s score", [opponent objectForKey:@"username"]];
+        opponentScoreValue.text = [opponent objectForKey:@"score"];
+
+    } else {
+        opponentScoreLabel.text = @"Waiting for opponent";
+        opponentScoreValue.text = @"...";
+    }
     
     if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {
-        outcome.text = @"Your opponent has not reported their score yet.";
+        outcome.text = @"In-progress";
     }
     else if ( [[tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
         outcome.text = [NSString stringWithFormat:@"You won %@ credits!", [tournament objectForKey:@"payout"]];
     } else {
-        outcome.text = @"You lost.";
+        outcome.text = @"You lost";
     }
     return cell;
 }

@@ -62,6 +62,7 @@ void ClientCallbackWalletUpdated();
 - (void)viewIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
 
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
+- (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId;
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;

@@ -60,13 +60,24 @@ public partial class Arbiter {
 			});
 			return rv;
 		}
+
+
+		public bool UserHasViewed( string id ) {
+			bool rv = false;
+			this.users.ForEach( user => {
+				if( user.Id == id && user.Viewed ) {
+					rv = true;
+				}
+			});
+			return rv;
+		}
 		
 		
 		public override string ToString() {
 			string rv = "[Tournament "+
 				"id:"+this.id+", "+
-					"status:"+this.status+", "+
-					"users:[";
+				"status:"+this.status+", "+
+				"users:[";
 			this.users.ForEach( user => {
 				rv += user +", ";
 			});
@@ -84,6 +95,7 @@ public partial class Arbiter {
 	public class TournamentUser {
 
 		public string Id            { get { return this.id; } }
+		public bool Viewed			{ get { return this.viewed; } set { this.viewed = value; } }
 		public bool Paid			{ get { return this.paid; } set { this.paid = value; } }
 		public bool HasScore		{ get { return this.score.HasValue; } }
 		public int? Score           { get { return this.score; } set { this.score = value; } }
@@ -92,6 +104,7 @@ public partial class Arbiter {
 		public TournamentUser( string id ) {
 			this.id = id;
 			this.paid = false;
+			this.viewed = false;
 			this.score = null;
 		}
 
@@ -100,10 +113,11 @@ public partial class Arbiter {
 		}
 		
 		public override string ToString() {
-			return "[Id:"+Id+", paid:"+paid+", score:"+Score+"]";
+			return "[Id:"+Id+", viewed:"+viewed+", paid:"+paid+", score:"+Score+"]";
 		}
 		
 		private string id;
+		private bool viewed;
 		private bool paid;
 		private int? score;
 		

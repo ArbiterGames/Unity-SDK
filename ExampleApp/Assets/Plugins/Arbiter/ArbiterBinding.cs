@@ -242,9 +242,9 @@ namespace ArbiterInternal {
 		const string FETCH_TOURNAMENTS = "fetch_tourn";
 		[DllImport ("__Internal")]
 		private static extern void _fetchTournaments();
-		private static Arbiter.FetchTournamentsCallback fetchTournamentsSuccessHandler;
+		private static Arbiter.TournamentsCallback fetchTournamentsSuccessHandler;
 		private static ErrorHandler fetchTournamentsErrorHandler;
-		public static void FetchTournaments( Arbiter.FetchTournamentsCallback success, ErrorHandler failure ) {
+		public static void FetchTournaments( Arbiter.TournamentsCallback success, ErrorHandler failure ) {
 			fetchTournamentsSuccessHandler = success;
 			fetchTournamentsErrorHandler = failure;
 #if UNITY_EDITOR
@@ -300,7 +300,20 @@ namespace ArbiterInternal {
 			_reportScore( tournamentId, score.ToString() );
 #endif
 		}
-		
+
+
+		const string MARK_VIEWED_TOURNAMENT = "mark_view_tourn";
+		[DllImport ("__Internal")]
+		private static extern void _markViewedTournament( string tournamentId );
+		public static void MarkViewedTournament( string tournamentId, ErrorHandler failure ) {
+			SetSimpleCallbacks( MARK_VIEWED_TOURNAMENT, null, failure );
+#if UNITY_EDITOR
+			ReportIgnore( "MarkViewedTournament" );
+#elif UNITY_IOS
+			_markViewedTournament( tournamentId );
+#endif
+		}
+
 		
 		
 #region Plugin response handling
@@ -358,7 +371,12 @@ namespace ArbiterInternal {
 		}
 
 
+		public void MarkViewedTournamentHandler( string jsonString ) {
+			SimpleCallback( MARK_VIEWED_TOURNAMENT, jsonString );
+		}
+
 		public void ShowTournamentDetailsPanelHandler( string emptyString ) {
+			Debug.Log ("ttt ShowTournamentDetailsPanelHandler()");
 			SimpleCallback( SHOW_TOURNAMENT_PANEL );
 		}
 		

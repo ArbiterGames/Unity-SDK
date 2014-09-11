@@ -513,6 +513,13 @@
     [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
 }
 
+- (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId
+{
+    NSLog(@"TODO: Insert call to server, here");
+            handler(@{@"success": @"true"
+                 });
+}
+
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
 {
     [self getTournament:[^(NSDictionary *tournament) {

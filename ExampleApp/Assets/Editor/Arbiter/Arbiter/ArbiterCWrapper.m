@@ -188,6 +188,15 @@ void _reportScore( const char *tournamentId, const char *score )
      ];
 }
 
+void _markViewedTournament( const char* tournamentId )
+{
+    [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
+    }
+            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
+     ];
+}
+
 void _showTournamentDetailsPanel( const char *tournamentId )
 {
     [ArbiterInstance() showTournamentDetailsPanel:^(void) {

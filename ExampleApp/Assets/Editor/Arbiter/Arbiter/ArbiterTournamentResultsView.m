@@ -89,6 +89,7 @@
 
 - (void)backButtonClicked:(id)sender
 {
+    // TODO also do callback handler here?
     [self animateOut];
 }
 

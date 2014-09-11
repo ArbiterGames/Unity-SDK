@@ -413,7 +413,7 @@
         tournamentsUrl = APIRequestTournamentURL;
     }
     if ( excludeViewed ) {
-        tournamentsUrl = [NSString stringWithFormat:@"%@?viewed=false", tournamentsUrl];
+        tournamentsUrl = [NSString stringWithFormat:@"%@?excludeViewed=true", tournamentsUrl];
     }
 
     [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];

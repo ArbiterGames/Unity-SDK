@@ -55,7 +55,7 @@ void ClientCallbackWalletUpdated();
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString *)buyIn filters:(NSString *)filters;
-- (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)exludeViewed;
+- (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)excludeViewed;
 - (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page;
 
 - (void)fetchIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;

@@ -16,6 +16,7 @@
 
 @property (strong) UIView *activeView;
 @property CGRect marginizedFrame;
+@property (strong) void (^callback)(void);
 
 - (void)segmentControlClicked:(UISegmentedControl *)segment;
 

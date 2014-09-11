@@ -331,6 +331,7 @@
         [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+                walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];
             } copy];
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
@@ -422,6 +423,7 @@
 - (void)viewPreviousTournaments:(void(^)(void))handler page:(NSString *)page
 {
     ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self];
+    view.callback = handler;
     [self.panelWindow show:view];
 }
 
@@ -517,6 +519,7 @@
 {
     [self getTournament:[^(NSDictionary *tournament) {
         ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
+        resultsView.callback = handler;
         [self.panelWindow show:resultsView];
     } copy] tournamentId:tournamentId];
 }

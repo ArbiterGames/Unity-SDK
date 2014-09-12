@@ -20,7 +20,6 @@
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
-#define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
@@ -768,17 +767,6 @@
         if (buttonIndex == 1) {
             [self verifyUser:[_alertViewHandlerRegistry objectForKey:@"enableLocationServices"]];
         }
-    } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
-        void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
-
-        if ( [buttonTitle isEqualToString:@"Next"] ) {
-            [self showPreviousTournaments:handler page:@"next"];
-        } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
-            [self showPreviousTournaments:handler page:@"previous"];
-        } else {
-            handler();
-        }
-
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
         if ( [buttonTitle isEqualToString:@"Next"] ) {

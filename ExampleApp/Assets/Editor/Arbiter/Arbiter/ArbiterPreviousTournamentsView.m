@@ -42,8 +42,10 @@
     [self.arbiter fetchTournaments:[^(NSDictionary (*responseDict)) {
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         self.tournaments = [tournamentSerializer objectForKey:@"results"];
+        if ( self.showUnviewedOnly ) {
+            [self setCurrentsetOfTournamentsAsViewed];
+        }
         self.total = self.arbiter.previousTournamentsCount;
-        
         if ( self.currentHead == 0 ) {
             self.currentHead = 1;
         } else {
@@ -116,6 +118,17 @@
     [self.tournamentTable reloadData];
     [self addSubview:self.tournamentTable];
     [super renderLayout];
+}
+
+- (void)setCurrentsetOfTournamentsAsViewed
+{
+    NSMutableArray *tournamentIds = [[NSMutableArray alloc] init];
+    for ( NSDictionary *tournament in self.tournaments ) {
+        [tournamentIds addObject:[tournament objectForKey:@"id"]];
+    }
+    [self.arbiter markViewedTournament:^(void) {
+        NSLog(@"Tournaments marked as viewed");
+    } tournamentIds:tournamentIds];
 }
 
 

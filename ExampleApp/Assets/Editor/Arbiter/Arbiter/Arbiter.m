@@ -518,10 +518,10 @@
     [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
 }
 
-- (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId
+- (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
 {
-    NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString:APITournamentMarkAsViewedPart2]];
-    [self httpPost:requestUrl params:nil isBlocking:NO handler:[handler copy]];
+    NSDictionary *params = @{@"tournaments": tournamentIds};
+    [self httpPost:APITournamentMarkAsViewed params:params isBlocking:NO handler:[handler copy]];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId

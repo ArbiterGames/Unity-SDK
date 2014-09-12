@@ -283,6 +283,19 @@ namespace ArbiterInternal {
 			_showIncompleteTournaments();
 #endif
 		}
+		
+		const string SHOW_UNVIEWED_TOURNAMENTS = "show_unviewed_tourn";
+		[DllImport ("__Internal")]
+		private static extern void _showUnviewedTournaments();
+		public static void ShowUnviewedTournaments( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( SHOW_UNVIEWED_TOURNAMENTS, success, failure );
+#if UNITY_EDITOR
+			ReportIgnore( "ShowUnviewedTournaments" );
+			success();
+#elif UNITY_IOS
+			_showUnviewedTournaments();
+#endif
+		}
 
 
 		[DllImport ("__Internal")]
@@ -407,6 +420,10 @@ namespace ArbiterInternal {
 		
 		public void ViewPreviousTournamentsHandler( string emptyString ) {
 			SimpleCallback( SHOW_PREIVOUS_TOURNAMENTS );
+		}
+		
+		public void ShowUnviewedTournamentsHandler( string emptyString ) {
+			SimpleCallback( SHOW_UNVIEWED_TOURNAMENTS );
 		}
 		
 		public void ShowIncompleteTournamentsHandler( string tournamentId ) {

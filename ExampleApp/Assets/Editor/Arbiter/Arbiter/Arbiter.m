@@ -423,9 +423,9 @@
 /**
     Calls getTournaments, then parses the results and displays the tournaments in an alertView
  */
-- (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page
+- (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page showUnviewedOnly:(BOOL)showUnviewedOnly
 {
-    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self];
+    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self showUnviewedOnly:showUnviewedOnly];
     view.callback = handler;
     [self.panelWindow show:view];
 }

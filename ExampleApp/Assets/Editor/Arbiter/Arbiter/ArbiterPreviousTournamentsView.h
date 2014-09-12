@@ -16,6 +16,7 @@
 @property (strong) void (^callback)(void);
 @property (strong) ArbiterUITableView *tournamentTable;
 @property (strong) UILabel *title;
+@property BOOL showUnviewedOnly;
 @property int currentHead;
 @property int currentTail;
 @property int currentPage;
@@ -24,6 +25,6 @@
 @property (strong) IBOutlet UIButton *backButton;
 @property (strong) IBOutlet UIButton *nextButton;
 
-- (id)init:(Arbiter *)arbiter;
+- (id)init:(Arbiter *)arbiter showUnviewedOnly:(BOOL)showUnviewedOnly;
 
 @end

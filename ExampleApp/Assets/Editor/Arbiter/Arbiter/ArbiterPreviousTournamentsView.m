@@ -20,13 +20,14 @@
 
 @implementation ArbiterPreviousTournamentsView
 
-- (id)init:(Arbiter *)arbiter
+- (id)init:(Arbiter *)arbiter showUnviewedOnly:(BOOL)showUnviewedOnly
 {
     self = [super init:arbiter];
     if ( self ) {
         self.currentPage = 0;
         self.currentHead = 0;
         self.currentTail = 0;
+        self.showUnviewedOnly = showUnviewedOnly;
         [self renderTournamentTable];
         [self getNextPage];
     }
@@ -60,7 +61,7 @@
         }
         self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
         [self.tournamentTable reloadData];
-    } copy] page:nextPage isBlocking:YES excludeViewed:NO];
+    } copy] page:nextPage isBlocking:YES excludeViewed:self.showUnviewedOnly];
 }
 
 - (void)renderLayout

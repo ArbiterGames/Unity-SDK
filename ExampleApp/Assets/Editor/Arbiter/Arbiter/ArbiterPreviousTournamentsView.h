@@ -16,6 +16,7 @@
 @property (strong) void (^callback)(void);
 @property (strong) ArbiterUITableView *tournamentTable;
 @property (strong) UILabel *title;
+@property (strong) NSMutableArray *markAsViewedQueue;
 @property BOOL showUnviewedOnly;
 @property int currentHead;
 @property int currentTail;

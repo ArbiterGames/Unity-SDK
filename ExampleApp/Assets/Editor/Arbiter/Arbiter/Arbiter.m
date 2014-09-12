@@ -520,8 +520,7 @@
 
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
 {
-    NSDictionary *params = @{@"tournaments": tournamentIds};
-    [self httpPost:APITournamentMarkAsViewed params:params isBlocking:NO handler:[handler copy]];
+    [self httpPost:APITournamentMarkAsViewed params:@{@"tournaments": tournamentIds} isBlocking:NO handler:[handler copy]];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId

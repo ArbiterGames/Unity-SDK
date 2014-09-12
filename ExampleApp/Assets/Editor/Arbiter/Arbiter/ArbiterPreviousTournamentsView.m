@@ -27,6 +27,7 @@
         self.currentPage = 0;
         self.currentHead = 0;
         self.currentTail = 0;
+        self.markAsViewedQueue = [[NSMutableArray alloc] init];
         self.showUnviewedOnly = showUnviewedOnly;
         [self renderTournamentTable];
         [self getNextPage];
@@ -42,27 +43,32 @@
     [self.arbiter fetchTournaments:[^(NSDictionary (*responseDict)) {
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         self.tournaments = [tournamentSerializer objectForKey:@"results"];
-        if ( self.showUnviewedOnly ) {
-            [self setCurrentsetOfTournamentsAsViewed];
-        }
-        self.total = self.arbiter.previousTournamentsCount;
-        if ( self.currentHead == 0 ) {
-            self.currentHead = 1;
-        } else {
-            self.currentHead += 10;
-        }
-        if ( self.currentTail == 0 && [self.tournaments count] == self.total ) {
-            self.currentTail = self.total;
-        } else {
-            if ( self.currentTail + 10 > self.total ) {
+        if ( [self.tournaments count] > 0 ) {
+            if ( self.showUnviewedOnly ) {
+                [self addCurrentSetToMarkAsViewedQueue];
+            }
+            self.total = self.arbiter.previousTournamentsCount;
+            if ( self.currentHead == 0 ) {
+                self.currentHead = 1;
+            } else {
+                self.currentHead += 10;
+            }
+            if ( self.currentTail == 0 && [self.tournaments count] == self.total ) {
                 self.currentTail = self.total;
             } else {
-                [self renderNextButton];
-                self.currentTail += 10;
+                if ( self.currentTail + 10 > self.total ) {
+                    self.currentTail = self.total;
+                } else {
+                    [self renderNextButton];
+                    self.currentTail += 10;
+                }
             }
+            self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
+        } else {
+            self.title.text = @"No Updates";
         }
-        self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
         [self.tournamentTable reloadData];
+        
     } copy] page:nextPage isBlocking:YES excludeViewed:self.showUnviewedOnly];
 }
 
@@ -120,15 +126,11 @@
     [super renderLayout];
 }
 
-- (void)setCurrentsetOfTournamentsAsViewed
+- (void)addCurrentSetToMarkAsViewedQueue
 {
-    NSMutableArray *tournamentIds = [[NSMutableArray alloc] init];
     for ( NSDictionary *tournament in self.tournaments ) {
-        [tournamentIds addObject:[tournament objectForKey:@"id"]];
+        [self.markAsViewedQueue addObject:[tournament objectForKey:@"id"]];
     }
-    [self.arbiter markViewedTournament:^(void) {
-        NSLog(@"Tournaments marked as viewed");
-    } tournamentIds:tournamentIds];
 }
 
 
@@ -258,6 +260,11 @@
 
 - (void)backButtonClicked:(id)sender
 {
+    if ( [self.markAsViewedQueue count] > 0 ) {
+        [self.arbiter markViewedTournament:^(void) {
+            NSLog(@"Tournaments marked as viewed");
+        } tournamentIds:self.markAsViewedQueue];
+    }
     if ( self.callback ) {
         self.callback();
     }

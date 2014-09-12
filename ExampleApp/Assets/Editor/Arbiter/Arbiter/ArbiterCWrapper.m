@@ -174,14 +174,14 @@ void _showPreviousTournaments()
 {
     [ArbiterInstance() showPreviousTournaments:^(void) {
         UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", EMPTY_STRING );
-    } page:nil showUnviewedOnly:NO];
+    } page:nil excludeViewed:NO];
 }
 
 void _showUnviewedTournaments()
 {
     [ArbiterInstance() showPreviousTournaments:^(void) {
         UnitySendMessage("ArbiterBinding", "ShowUnviewedTournamentsHandler", EMPTY_STRING );
-    } page:nil showUnviewedOnly:YES];
+    } page:nil excludeViewed:YES];
 }
 
 void _showIncompleteTournaments()

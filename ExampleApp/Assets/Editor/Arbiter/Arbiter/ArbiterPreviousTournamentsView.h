@@ -17,7 +17,7 @@
 @property (strong) ArbiterUITableView *tournamentTable;
 @property (strong) UILabel *title;
 @property (strong) NSMutableArray *markAsViewedQueue;
-@property BOOL showUnviewedOnly;
+@property BOOL excludeViewed;
 @property int currentHead;
 @property int currentTail;
 @property int currentPage;
@@ -26,6 +26,6 @@
 @property (strong) IBOutlet UIButton *backButton;
 @property (strong) IBOutlet UIButton *nextButton;
 
-- (id)init:(Arbiter *)arbiter showUnviewedOnly:(BOOL)showUnviewedOnly;
+- (id)init:(Arbiter *)arbiter excludeViewed:(BOOL)excludeViewed;
 
 @end

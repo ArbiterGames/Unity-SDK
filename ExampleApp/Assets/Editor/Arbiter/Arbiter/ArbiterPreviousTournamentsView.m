@@ -20,7 +20,7 @@
 
 @implementation ArbiterPreviousTournamentsView
 
-- (id)init:(Arbiter *)arbiter showUnviewedOnly:(BOOL)showUnviewedOnly
+- (id)init:(Arbiter *)arbiter excludeViewed:(BOOL)excludeViewed
 {
     self = [super init:arbiter];
     if ( self ) {
@@ -28,7 +28,7 @@
         self.currentHead = 0;
         self.currentTail = 0;
         self.markAsViewedQueue = [[NSMutableArray alloc] init];
-        self.showUnviewedOnly = showUnviewedOnly;
+        self.excludeViewed = excludeViewed;
         [self renderTournamentTable];
         [self getNextPage];
     }
@@ -44,7 +44,7 @@
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         self.tournaments = [tournamentSerializer objectForKey:@"results"];
         if ( [self.tournaments count] > 0 ) {
-            if ( self.showUnviewedOnly ) {
+            if ( self.excludeViewed ) {
                 [self addCurrentSetToMarkAsViewedQueue];
             }
             self.total = self.arbiter.previousTournamentsCount;
@@ -69,7 +69,7 @@
         }
         [self.tournamentTable reloadData];
         
-    } copy] page:nextPage isBlocking:YES excludeViewed:self.showUnviewedOnly];
+    } copy] page:nextPage isBlocking:YES excludeViewed:self.excludeViewed];
 }
 
 - (void)renderLayout

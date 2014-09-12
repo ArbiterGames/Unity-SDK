@@ -18,6 +18,7 @@ NSString *const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
 NSString *const APITournamentCreateURL = @"https://www.arbiter.me/api/v1/tournament/create";
 NSString *const APIRequestTournamentURL = @"https://www.arbiter.me/api/v1/tournament";
 NSString *const APITournamentBaseURL = @"https://www.arbiter.me/api/v1/tournament/";
+NSString *const APITournamentMarkAsViewedPart2 = @"/mark-as-viewed";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
 NSString *const APIDepositURL = @"https://www.arbiter.me/stripe/deposit";
 NSString *const APIWithdrawURL = @"https://www.arbiter.me/stripe/withdraw";

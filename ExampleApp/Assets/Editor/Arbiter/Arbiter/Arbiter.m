@@ -521,9 +521,10 @@
 
 - (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId
 {
-    NSLog(@"TODO: Insert call to server, here");
-            handler(@{@"success": @"true"
-                 });
+    NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString:APITournamentMarkAsViewedPart2]];
+    [self httpPost:requestUrl params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        handler(@{@"success": @"true"});
+    } copy]];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId

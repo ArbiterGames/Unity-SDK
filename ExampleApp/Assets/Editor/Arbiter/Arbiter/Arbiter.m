@@ -381,14 +381,14 @@
     }
 }
 
-- (void)fetchTournament:(void(^)(NSDictionary*))handler tournamentId:(NSString *)tournamentId
+- (void)fetchTournament:(void(^)(NSDictionary*))handler tournamentId:(NSString *)tournamentId isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         NSDictionary *tournament = [responseDict objectForKey:@"tournament"];
         handler(tournament);
     } copy];
     
-    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:NO handler:connectionHandler];
+    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:isBlocking handler:connectionHandler];
 }
 
 /**
@@ -522,9 +522,7 @@
 - (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId
 {
     NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString:APITournamentMarkAsViewedPart2]];
-    [self httpPost:requestUrl params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
-        handler(@{@"success": @"true"});
-    } copy]];
+    [self httpPost:requestUrl params:nil isBlocking:NO handler:[handler copy]];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
@@ -533,7 +531,9 @@
         ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
         resultsView.callback = handler;
         [self.panelWindow show:resultsView];
-    } copy] tournamentId:tournamentId];
+    } copy]
+             tournamentId:tournamentId
+               isBlocking:YES];
 }
 
 

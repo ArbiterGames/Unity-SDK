@@ -327,7 +327,7 @@
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( [self isUserAuthenticated] ) {
-        [self fetchWallet:^(NSDictionary *responseDict) {
+//ttt        [self fetchWallet:^(NSDictionary *responseDict) {
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
                 walletDashboard.callback = handler;
@@ -341,7 +341,7 @@
             } else {
                 populateThenShowPanel();
             }
-        } isBlocking:YES];
+//ttt        } isBlocking:YES];
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }

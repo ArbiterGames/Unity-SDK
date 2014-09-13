@@ -377,6 +377,7 @@ namespace ArbiterInternal {
 		}
 
 		public void ShowWalletPanelHandler( string emptyString ) {
+			Debug.Log ("ttt ArbiterBinding::ShowWalletPanelHandler");
 			SimpleCallback( SHOW_WALLET_PANEL );
 		}
 		

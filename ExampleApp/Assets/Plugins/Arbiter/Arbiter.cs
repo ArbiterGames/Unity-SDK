@@ -301,35 +301,17 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 	
+	// TODO: Currently this is only required on the obj-c side.
 	public static void MarkViewedTournament( string tournamentId ) {
 		ArbiterBinding.MarkViewedTournament( tournamentId, defaultErrorHandler );
 	}
 
-
-	public static void ShowUnviewedTournaments( SuccessHandler done ) {
+	public static void ShowUnviewedTournaments( SuccessHandler callback ) {
 		if( !UserExists ) {
 			Debug.LogWarning( "Make sure user is logged in before showing their unviewed tournaments!" );
 			return;
 		}
-
-		TournamentsCallback onFetched = ( tournaments ) => showUnviewedTournamentsClientSide( tournaments, done );
-		ArbiterBinding.FetchUnviewedTournaments( onFetched, defaultErrorHandler );
-	}
-	private static void showUnviewedTournamentsClientSide( List<Tournament> unviewedTournaments, SuccessHandler done ) {
-		
-		Action<int> showEachTournamentPast;
-		showEachTournamentPast = ( i ) => {
-			if( i < unviewedTournaments.Count ) {
-				SuccessHandler showNextTournament = () => showEachTournamentPast( i+1 );
-				Tournament iTournament = unviewedTournaments[ i ];
-				ShowTournamentDetails( iTournament.Id, showNextTournament );
-				MarkViewedTournament( iTournament.Id );
-			} else {
-				if( done != null )
-					done();
-			}
-		};
-		showEachTournamentPast( 0 );
+		ArbiterBinding.ShowUnviewedTournaments( callback, defaultErrorHandler ); 
 	}
 
 	

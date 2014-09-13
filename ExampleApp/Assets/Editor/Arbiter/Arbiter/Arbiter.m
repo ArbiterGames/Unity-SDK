@@ -20,7 +20,6 @@
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
-#define PREVIOUS_TOURNAMENTS_ALERT_TAG 336
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
@@ -424,9 +423,9 @@
 /**
     Calls getTournaments, then parses the results and displays the tournaments in an alertView
  */
-- (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page
+- (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page excludeViewed:(BOOL)excludeViewed
 {
-    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self];
+    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self excludeViewed:excludeViewed];
     view.callback = handler;
     [self.panelWindow show:view];
 }
@@ -519,10 +518,9 @@
     [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
 }
 
-- (void)markViewedTournament:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId
+- (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
 {
-    NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString:APITournamentMarkAsViewedPart2]];
-    [self httpPost:requestUrl params:nil isBlocking:NO handler:[handler copy]];
+    [self httpPost:APITournamentMarkAsViewed params:@{@"tournaments": tournamentIds} isBlocking:NO handler:[handler copy]];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
@@ -768,17 +766,6 @@
         if (buttonIndex == 1) {
             [self verifyUser:[_alertViewHandlerRegistry objectForKey:@"enableLocationServices"]];
         }
-    } else if ( alertView.tag == PREVIOUS_TOURNAMENTS_ALERT_TAG ) {
-        void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closePreviousGamesHandler"];
-
-        if ( [buttonTitle isEqualToString:@"Next"] ) {
-            [self showPreviousTournaments:handler page:@"next"];
-        } else if ( [buttonTitle isEqualToString:@"Prev"] ) {
-            [self showPreviousTournaments:handler page:@"previous"];
-        } else {
-            handler();
-        }
-
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
         if ( [buttonTitle isEqualToString:@"Next"] ) {

@@ -214,7 +214,7 @@ public partial class Arbiter : MonoBehaviour {
 			tournament.UserCanReportScore( user.Id );
 		};
 		
-		FetchTournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
+		TournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
 			
 			if( joinableTournaments.Count > 0 ) {
@@ -242,7 +242,7 @@ public partial class Arbiter : MonoBehaviour {
 			tournamentPoller.SetAction( askAgain );
 		};
 		
-		FetchTournamentsCallback gotTournamentsFirstTimeHelper = ( tournaments ) => {
+		TournamentsCallback gotTournamentsFirstTimeHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
 			if( joinableTournaments.Count > 0 ) {
 				success( joinableTournaments[0] );
@@ -263,31 +263,33 @@ public partial class Arbiter : MonoBehaviour {
 	
 	
 	public static void FetchTournaments( SuccessHandler success, ErrorHandler failure ) {
-		fetchedTournamentsCallback = success;
+		fetchedTournamentsCallback = () => { 
+			success();
+		};
 		ArbiterBinding.FetchTournaments( FetchTournamentsSuccessHandler, failure );
 	}
 	private static SuccessHandler fetchedTournamentsCallback;
-	public delegate void FetchTournamentsCallback( List<Tournament> tournaments );
+	public delegate void TournamentsCallback( List<Tournament> tournaments );
 	public static void FetchTournamentsSuccessHandler( List<Tournament> tournaments ) {
 		fetchedTournamentsCallback();
 	}
 
 
-	public static void DisplayTournamentDetails( string tournamentId, SuccessHandler callback ) {
+	public static void ShowTournamentDetails( string tournamentId, SuccessHandler callback ) {
 		ArbiterBinding.ShowTournamentDetailsPanel( tournamentId, callback );
 	}
 	
 
-	public static void ViewPreviousTournaments( SuccessHandler callback ) {
-		ArbiterBinding.ViewPreviousTournaments( callback, defaultErrorHandler );
+	public static void ShowPreviousTournaments( SuccessHandler callback ) {
+		ArbiterBinding.ShowPreviousTournaments( callback, defaultErrorHandler );
 	}
+
 	
-	
-	public delegate void ViewIncompleteTournamentsCallback( string tournamentId );
-	public static void ViewIncompleteTournaments( ViewIncompleteTournamentsCallback callback ) {
+	public delegate void ShowIncompleteTournamentsCallback( string tournamentId );
+	public static void ShowIncompleteTournaments( ShowIncompleteTournamentsCallback callback ) {
 		if( callback == null )
 			callback = ( tournamentId ) => {};
-		ArbiterBinding.ViewIncompleteTournaments( callback );
+		ArbiterBinding.ShowIncompleteTournaments( callback );
 	}
 	
 	
@@ -298,6 +300,19 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.ReportScore( tournamentId, score, callback, defaultErrorHandler );
 	}
 
+	
+	// TODO: Currently this is only required on the obj-c side.
+	public static void MarkViewedTournament( string tournamentId ) {
+		ArbiterBinding.MarkViewedTournament( tournamentId, defaultErrorHandler );
+	}
+
+	public static void ShowUnviewedTournaments( SuccessHandler callback ) {
+		if( !UserExists ) {
+			Debug.LogWarning( "Make sure user is logged in before showing their unviewed tournaments!" );
+			return;
+		}
+		ArbiterBinding.ShowUnviewedTournaments( callback, defaultErrorHandler ); 
+	}
 
 	
 	private static void defaultErrorHandler( List<string> errors ) {

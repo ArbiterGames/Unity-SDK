@@ -158,23 +158,37 @@ void _requestTournament( const char *buyIn, const char *filters )
 
 void _fetchTournaments()
 {
-    [ArbiterInstance() getTournaments:^(NSDictionary *jsonDict) {
+    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchTournamentsHandler", ProcessDictionaryParams( jsonDict ));
-    } page:nil isBlocking:NO];
+    } page:nil isBlocking:NO excludeViewed:NO];
 }
 
-void _viewPreviousTournaments()
+void _fetchUnviewedTournaments()
 {
-    [ArbiterInstance() viewPreviousTournaments:^(void) {
-        UnitySendMessage("ArbiterBinding", "ViewPreviousTournamentsHandler", EMPTY_STRING );
-    } page:nil];
+    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "FetchUnviewedTournamentsHandler", ProcessDictionaryParams( jsonDict ));
+    } page:nil isBlocking:NO excludeViewed:YES];
 }
 
-void _viewIncompleteTournaments()
+void _showPreviousTournaments()
 {
-    [ArbiterInstance() viewIncompleteTournaments:^(NSString *tournamentId) {
+    [ArbiterInstance() showPreviousTournaments:^(void) {
+        UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", EMPTY_STRING );
+    } page:nil excludeViewed:NO];
+}
+
+void _showUnviewedTournaments()
+{
+    [ArbiterInstance() showPreviousTournaments:^(void) {
+        UnitySendMessage("ArbiterBinding", "ShowUnviewedTournamentsHandler", EMPTY_STRING );
+    } page:nil excludeViewed:YES];
+}
+
+void _showIncompleteTournaments()
+{
+    [ArbiterInstance() showIncompleteTournaments:^(NSString *tournamentId) {
         const char *jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
-        UnitySendMessage("ArbiterBinding", "ViewIncompleteTournamentsHandler", jsonChar );
+        UnitySendMessage("ArbiterBinding", "ShowIncompleteTournamentsHandler", jsonChar );
     } page:nil];
 }
 
@@ -185,6 +199,15 @@ void _reportScore( const char *tournamentId, const char *score )
     }
             tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
                    score:[[NSString alloc] initWithUTF8String:score]
+     ];
+}
+
+void _markViewedTournament( const char* tournamentId )
+{
+    [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
+    }
+            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
      ];
 }
 

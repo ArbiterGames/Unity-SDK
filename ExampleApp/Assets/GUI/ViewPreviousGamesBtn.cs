@@ -9,7 +9,7 @@ using System.Collections.Generic;
 public class ViewPreviousGamesBtn : MonoBehaviour {
 	
 	void OnMouseUpAsButton() {
-        Arbiter.ViewPreviousTournaments( null );
+        Arbiter.ShowPreviousTournaments( null );
     }
 
 }

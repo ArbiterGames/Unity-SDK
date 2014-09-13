@@ -242,9 +242,9 @@ namespace ArbiterInternal {
 		const string FETCH_TOURNAMENTS = "fetch_tourn";
 		[DllImport ("__Internal")]
 		private static extern void _fetchTournaments();
-		private static Arbiter.FetchTournamentsCallback fetchTournamentsSuccessHandler;
+		private static Arbiter.TournamentsCallback fetchTournamentsSuccessHandler;
 		private static ErrorHandler fetchTournamentsErrorHandler;
-		public static void FetchTournaments( Arbiter.FetchTournamentsCallback success, ErrorHandler failure ) {
+		public static void FetchTournaments( Arbiter.TournamentsCallback success, ErrorHandler failure ) {
 			fetchTournamentsSuccessHandler = success;
 			fetchTournamentsErrorHandler = failure;
 #if UNITY_EDITOR
@@ -257,30 +257,60 @@ namespace ArbiterInternal {
 		}
 		
 
-		const string VIEW_PREIVOUS_TOURNAMENTS = "view_prev_tourn";
+		const string SHOW_PREIVOUS_TOURNAMENTS = "show_prev_tourn";
 		[DllImport ("__Internal")]
-		private static extern void _viewPreviousTournaments();
-		public static void ViewPreviousTournaments( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( VIEW_PREIVOUS_TOURNAMENTS, success, failure );
+		private static extern void _showPreviousTournaments();
+		public static void ShowPreviousTournaments( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( SHOW_PREIVOUS_TOURNAMENTS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "ViewPreviousTournaments" );
 			success();
 #elif UNITY_IOS
-			_viewPreviousTournaments();
+			_showPreviousTournaments();
 #endif
 		}
 		
 		
 		[DllImport ("__Internal")]
-		private static extern void _viewIncompleteTournaments();
-		private static Arbiter.ViewIncompleteTournamentsCallback viewIncompleteTournamentsCallback;
-		public static void ViewIncompleteTournaments( Arbiter.ViewIncompleteTournamentsCallback callback ) {
-			viewIncompleteTournamentsCallback = callback;
+		private static extern void _showIncompleteTournaments();
+		private static Arbiter.ShowIncompleteTournamentsCallback showIncompleteTournamentsCallback;
+		public static void ShowIncompleteTournaments( Arbiter.ShowIncompleteTournamentsCallback callback ) {
+			showIncompleteTournamentsCallback = callback;
 #if UNITY_EDITOR
-			ReportIgnore( "ViewIncompleteTournaments" );
-			viewIncompleteTournamentsCallback( "" );
+			ReportIgnore( "ShowIncompleteTournaments" );
+			showIncompleteTournamentsCallback( "" );
 #elif UNITY_IOS
-			_viewIncompleteTournaments();
+			_showIncompleteTournaments();
+#endif
+		}
+		
+		const string SHOW_UNVIEWED_TOURNAMENTS = "show_unviewed_tourn";
+		[DllImport ("__Internal")]
+		private static extern void _showUnviewedTournaments();
+		public static void ShowUnviewedTournaments( SuccessHandler success, ErrorHandler failure ) {
+			SetSimpleCallbacks( SHOW_UNVIEWED_TOURNAMENTS, success, failure );
+#if UNITY_EDITOR
+			ReportIgnore( "ShowUnviewedTournaments" );
+			success();
+#elif UNITY_IOS
+			_showUnviewedTournaments();
+#endif
+		}
+
+
+		[DllImport ("__Internal")]
+		private static extern void _fetchUnviewedTournaments();
+		private static Arbiter.TournamentsCallback fetchUnviewedTournamentsSuccessHandler;
+		private static ErrorHandler fetchUnviewedTournamentsErrorHandler;
+		public static void FetchUnviewedTournaments( Arbiter.TournamentsCallback success, ErrorHandler failure ) {
+			fetchUnviewedTournamentsSuccessHandler = success;
+			fetchUnviewedTournamentsErrorHandler = failure;
+#if UNITY_EDITOR
+			ReportIgnore( "FetchUnviewedTournaments" );
+			List<Arbiter.Tournament> fakeTournaments = new List<Arbiter.Tournament>();
+			fetchUnviewedTournamentsSuccessHandler( fakeTournaments );
+#elif UNITY_IOS
+			_fetchUnviewedTournaments();
 #endif
 		}
 		
@@ -300,7 +330,20 @@ namespace ArbiterInternal {
 			_reportScore( tournamentId, score.ToString() );
 #endif
 		}
-		
+
+
+		const string MARK_VIEWED_TOURNAMENT = "mark_view_tourn";
+		[DllImport ("__Internal")]
+		private static extern void _markViewedTournament( string tournamentId );
+		public static void MarkViewedTournament( string tournamentId, ErrorHandler failure ) {
+			SetSimpleCallbacks( MARK_VIEWED_TOURNAMENT, null, failure );
+#if UNITY_EDITOR
+			ReportIgnore( "MarkViewedTournament" );
+#elif UNITY_IOS
+			_markViewedTournament( tournamentId );
+#endif
+		}
+
 		
 		
 #region Plugin response handling
@@ -356,18 +399,35 @@ namespace ArbiterInternal {
 				fetchTournamentsErrorHandler( getErrors( json ));
 			}
 		}
+		public void FetchUnviewedTournamentsHandler( string jsonString ) {
+			JSONNode json = JSON.Parse( jsonString );
+			
+			if( wasSuccess( json )) {
+				JSONNode tournamentsNode = json["tournaments"];
+				fetchUnviewedTournamentsSuccessHandler( TournamentProtocol.ParseTournaments( tournamentsNode["results"] ));
+			} else {
+					fetchUnviewedTournamentsErrorHandler( getErrors( json ));
+			}
+		}
 
+		public void MarkViewedTournamentHandler( string jsonString ) {
+			SimpleCallback( MARK_VIEWED_TOURNAMENT, jsonString );
+		}
 
 		public void ShowTournamentDetailsPanelHandler( string emptyString ) {
 			SimpleCallback( SHOW_TOURNAMENT_PANEL );
 		}
 		
 		public void ViewPreviousTournamentsHandler( string emptyString ) {
-			SimpleCallback( VIEW_PREIVOUS_TOURNAMENTS );
+			SimpleCallback( SHOW_PREIVOUS_TOURNAMENTS );
 		}
 		
-		public void ViewIncompleteTournamentsHandler( string tournamentId ) {
-			viewIncompleteTournamentsCallback( tournamentId );
+		public void ShowUnviewedTournamentsHandler( string emptyString ) {
+			SimpleCallback( SHOW_UNVIEWED_TOURNAMENTS );
+		}
+		
+		public void ShowIncompleteTournamentsHandler( string tournamentId ) {
+			showIncompleteTournamentsCallback( tournamentId );
 		}
 		
 		

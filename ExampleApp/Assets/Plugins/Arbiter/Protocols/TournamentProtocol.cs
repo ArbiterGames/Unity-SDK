@@ -73,10 +73,15 @@ namespace ArbiterInternal {
 				string username = userNode["username"];
 				bool paid = userNode["paid"].AsBool;
 				string score = userNode["score"];
-				
+
+				// TODO: Parse if the user has viewed this tournament. For now assume they have not
+				bool viewed = false;
+
 				Arbiter.TournamentUser user = new Arbiter.TournamentUser( id );
 				user.Paid = paid;
 				user.Username = username;
+				user.Viewed = viewed;
+				
 				if( score != null && score != "null" && score != "<null>" )                	
 					user.Score = int.Parse( score );
 				

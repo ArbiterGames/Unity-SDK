@@ -20,13 +20,15 @@
 
 @implementation ArbiterPreviousTournamentsView
 
-- (id)init:(Arbiter *)arbiter
+- (id)init:(Arbiter *)arbiter excludeViewed:(BOOL)excludeViewed
 {
     self = [super init:arbiter];
     if ( self ) {
         self.currentPage = 0;
         self.currentHead = 0;
         self.currentTail = 0;
+        self.markAsViewedQueue = [[NSMutableArray alloc] init];
+        self.excludeViewed = excludeViewed;
         [self renderTournamentTable];
         [self getNextPage];
     }
@@ -38,29 +40,36 @@
     self.currentPage++;
     [self.nextButton removeFromSuperview];
     NSString *nextPage = (self.currentPage == 1) ? nil : @"next";
-    [self.arbiter getTournaments:[^(NSDictionary (*responseDict)) {
+    [self.arbiter fetchTournaments:[^(NSDictionary (*responseDict)) {
         NSDictionary *tournamentSerializer = [responseDict objectForKey:@"tournaments"];
         self.tournaments = [tournamentSerializer objectForKey:@"results"];
-        self.total = self.arbiter.previousTournamentsCount;
-        
-        if ( self.currentHead == 0 ) {
-            self.currentHead = 1;
-        } else {
-            self.currentHead += 10;
-        }
-        if ( self.currentTail == 0 && [self.tournaments count] == self.total ) {
-            self.currentTail = self.total;
-        } else {
-            if ( self.currentTail + 10 > self.total ) {
+        if ( [self.tournaments count] > 0 ) {
+            if ( self.excludeViewed ) {
+                [self addCurrentSetToMarkAsViewedQueue];
+            }
+            self.total = self.arbiter.previousTournamentsCount;
+            if ( self.currentHead == 0 ) {
+                self.currentHead = 1;
+            } else {
+                self.currentHead += 10;
+            }
+            if ( self.currentTail == 0 && [self.tournaments count] == self.total ) {
                 self.currentTail = self.total;
             } else {
-                [self renderNextButton];
-                self.currentTail += 10;
+                if ( self.currentTail + 10 > self.total ) {
+                    self.currentTail = self.total;
+                } else {
+                    [self renderNextButton];
+                    self.currentTail += 10;
+                }
             }
+            self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
+        } else {
+            self.title.text = @"No Updates";
         }
-        self.title.text = [NSString stringWithFormat:@"%d-%d of %d", self.currentHead, self.currentTail, self.total];
         [self.tournamentTable reloadData];
-    } copy] page:nextPage isBlocking:YES];
+        
+    } copy] page:nextPage isBlocking:YES excludeViewed:self.excludeViewed];
 }
 
 - (void)renderLayout
@@ -115,6 +124,13 @@
     [self.tournamentTable reloadData];
     [self addSubview:self.tournamentTable];
     [super renderLayout];
+}
+
+- (void)addCurrentSetToMarkAsViewedQueue
+{
+    for ( NSDictionary *tournament in self.tournaments ) {
+        [self.markAsViewedQueue addObject:[tournament objectForKey:@"id"]];
+    }
 }
 
 
@@ -244,6 +260,11 @@
 
 - (void)backButtonClicked:(id)sender
 {
+    if ( [self.markAsViewedQueue count] > 0 ) {
+        [self.arbiter markViewedTournament:^(void) {
+            NSLog(@"Tournaments marked as viewed");
+        } tournamentIds:self.markAsViewedQueue];
+    }
     if ( self.callback ) {
         self.callback();
     }

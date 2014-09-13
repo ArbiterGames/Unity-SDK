@@ -11,7 +11,7 @@ public class ViewResultsButton : MonoBehaviour {
 	}
 	
 	void OnMouseUpAsButton() {
-		Arbiter.DisplayTournamentDetails( game.TournamentId, OnDetailsClosed );
+		Arbiter.ShowTournamentDetails( game.TournamentId, OnDetailsClosed );
 	}
 	
 	void OnDetailsClosed() {

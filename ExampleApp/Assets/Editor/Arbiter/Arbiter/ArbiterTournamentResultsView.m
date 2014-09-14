@@ -92,7 +92,7 @@
     if ( self.callback ) {
         self.callback();
     }
-    [self animateOut];
+    [self.parentWindow hide];
 }
 
 

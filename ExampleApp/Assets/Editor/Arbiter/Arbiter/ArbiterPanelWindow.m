@@ -38,19 +38,50 @@
     self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyDarkEffect]];
     [self.rootViewController.view addSubview:view];
     [self renderPoweredBy];
+
+    CGRect temp = self.rootViewController.view.frame;
+    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        temp.origin.y = temp.size.height;
+    } else {
+        temp.origin.x = temp.size.width;
+    }
+
+    self.rootViewController.view.frame = temp;
+    
+    temp.origin.y = 0.0;
+    temp.origin.x = 0.0;
+    [UIView animateWithDuration:0.3
+                          delay:0.0
+                        options: UIViewAnimationCurveEaseOut
+                     animations:^{
+                         self.rootViewController.view.frame = temp;
+                     }
+                     completion:nil];
 }
 
 - (void)hide
 {
-    for ( UIView *view in [self.rootViewController.view subviews] ) {
-        [view removeFromSuperview];
+    CGRect temp = self.rootViewController.view.frame;
+    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        temp.origin.y = temp.size.height;
+    } else {
+        temp.origin.x = temp.size.width;
     }
-    
-    for ( UIWindow *window in [[UIApplication sharedApplication] windows] ) {
-        if ( window == self.gameWindow ) {
-            [self.gameWindow makeKeyAndVisible];
-        }
-    }
+    [UIView animateWithDuration:0.3
+                          delay:0.0
+                        options: UIViewAnimationCurveEaseOut
+                     animations:^{
+                         self.rootViewController.view.frame = temp;
+                     }completion:^(BOOL finished){
+                         for ( UIWindow *window in [[UIApplication sharedApplication] windows] ) {
+                             for ( UIView *view in [self.rootViewController.view subviews] ) {
+                                 [view removeFromSuperview];
+                             }
+                             if ( window == self.gameWindow ) {
+                                 [self.gameWindow makeKeyAndVisible];
+                             }
+                         }
+                     }];
 }
 
 - (void)renderPoweredBy

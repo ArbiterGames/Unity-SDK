@@ -57,9 +57,8 @@
     [self addSubview:self.activeView];
 }
 
-- (void)onWalletUpdated:(NSMutableDictionary *)wallet
+- (void)onWalletUpdated:(NSDictionary *)wallet
 {
-    NSLog(@"ttt ArbiterWalletDashboardView::OnWalletUpdated!!! wallet=%@, subObs=%@", wallet, self.activeWalletObserver);
     [self.activeWalletObserver onWalletUpdated:wallet];
 }
 
@@ -73,7 +72,6 @@
                                                                     andArbiterInstance:self.arbiter];
         view.delegate = self;
         self.activeWalletObserver = view;
-        NSLog(@"ttt assigning obs...=%@", self.activeWalletObserver);
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
         ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)

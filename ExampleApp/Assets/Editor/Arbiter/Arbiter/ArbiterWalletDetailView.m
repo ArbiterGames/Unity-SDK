@@ -103,7 +103,7 @@
     }
 }
 
-- (void)onWalletUpdated:(NSMutableDictionary *)wallet
+- (void)onWalletUpdated:(NSDictionary *)wallet
 {
     [self.activeWalletField setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[wallet objectForKey:@"balance"]]]];
 }

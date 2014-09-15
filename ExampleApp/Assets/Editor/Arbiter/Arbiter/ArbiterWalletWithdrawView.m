@@ -63,7 +63,7 @@
     }
 }
 
-- (void)onWalletUpdated:(NSMutableDictionary *)wallet
+- (void)onWalletUpdated:(NSDictionary *)wallet
 {
     // No-op, but as a polish feature we could rebuild the UI bar to have the new total. We'd need to consider the UX of doing something like that, though.
 }

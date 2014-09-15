@@ -311,7 +311,6 @@
 
 - (void)addWalletObserver:(id<ArbiterWalletObserver>)observer
 {
-    NSLog(@"ttt Added wallet observer!%@", observer);
     self.walletObserver = observer;
 }
 
@@ -336,22 +335,20 @@
 - (void)showWalletPanel:(void(^)(void))handler
 {
     if ( [self isUserAuthenticated] ) {
-//ttt        [self fetchWallet:^(NSDictionary *responseDict) {
-            void (^populateThenShowPanel)(void) = [^(void) {
-                ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
-                walletDashboard.callback = handler;
-                [self addWalletObserver:walletDashboard];
-                [self.panelWindow show:walletDashboard];
-            } copy];
-            if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-                void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-                    populateThenShowPanel();
-                } copy];
-                [self verifyUser:verifyCallback];
-            } else {
+        void (^populateThenShowPanel)(void) = [^(void) {
+            ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+            walletDashboard.callback = handler;
+            [self addWalletObserver:walletDashboard];
+            [self.panelWindow show:walletDashboard];
+        } copy];
+        if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+            void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
                 populateThenShowPanel();
-            }
-//ttt        } isBlocking:YES];
+            } copy];
+            [self verifyUser:verifyCallback];
+        } else {
+            populateThenShowPanel();
+        }
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }

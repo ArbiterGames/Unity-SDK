@@ -19,6 +19,6 @@
 @property (strong) void (^callback)(void);
 
 - (void)segmentControlClicked:(UISegmentedControl *)segment;
-- (void)onWalletUpdated:(NSMutableDictionary *)wallet;
+- (void)onWalletUpdated:(NSDictionary *)wallet;
 
 @end

@@ -53,7 +53,6 @@ void ClientCallbackWalletUpdated();
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)addWalletObserver:(id<ArbiterWalletObserver>)observer;
-//ttt- (void)addWalletObserver:(void(^)(ArbiterWalletObserver*))observer;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;

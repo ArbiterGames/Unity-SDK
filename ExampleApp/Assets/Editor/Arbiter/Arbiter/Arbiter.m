@@ -293,6 +293,9 @@
 - (void)setWallet:(NSMutableDictionary*)wallet
 {
     self._wallet = wallet;
+    if(self.walletObserver != nil) {
+        [self.walletObserver onWalletUpdated:wallet];
+    }
     ClientCallbackWalletUpdated();
 }
 
@@ -304,6 +307,12 @@
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler
 {
     handler(self.wallet);   
+}
+
+- (void)addWalletObserver:(id<ArbiterWalletObserver>)observer
+{
+    NSLog(@"ttt Added wallet observer!%@", observer);
+    self.walletObserver = observer;
 }
 
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking
@@ -331,6 +340,7 @@
             void (^populateThenShowPanel)(void) = [^(void) {
                 ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
                 walletDashboard.callback = handler;
+                [self addWalletObserver:walletDashboard];
                 [self.panelWindow show:walletDashboard];
             } copy];
             if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {

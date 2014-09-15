@@ -204,6 +204,7 @@ void _reportScore( const char *tournamentId, const char *score )
 
 void _markViewedTournament( const char* tournamentId )
 {
+// ttt fix this warning...
     [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
     }

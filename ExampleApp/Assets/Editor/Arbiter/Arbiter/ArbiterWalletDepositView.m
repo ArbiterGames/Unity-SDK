@@ -59,6 +59,11 @@
     }
 }
 
+- (void)onWalletUpdated:(NSMutableDictionary *)wallet
+{
+    // No-op, since the total is not actually displayed on this screen
+}
+
 
 # pragma mark Rendering methods
 

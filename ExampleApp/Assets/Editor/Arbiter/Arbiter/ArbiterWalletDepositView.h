@@ -17,7 +17,7 @@
 
 @end
 
-@interface ArbiterWalletDepositView : UIView <STPViewDelegate>
+@interface ArbiterWalletDepositView : UIView <STPViewDelegate, ArbiterWalletObserver>
 {
     id <WalletDepositViewDelegate> delegate;
 }

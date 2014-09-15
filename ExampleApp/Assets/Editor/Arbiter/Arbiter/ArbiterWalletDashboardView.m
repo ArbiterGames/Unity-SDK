@@ -35,6 +35,7 @@
     ArbiterWalletDetailView *detailView = [[ArbiterWalletDetailView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, self.maxHeight - segmentedControlHeight - self.titleHeight - self.titleYPos)
                                                                       andArbiterInstance:self.arbiter];
     detailView.delegate = self;
+    self.activeWalletObserver = detailView;
     [self navigateToView:detailView];
     
     UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Overview", @"Deposit", @"Withdraw", nil]];
@@ -56,6 +57,12 @@
     [self addSubview:self.activeView];
 }
 
+- (void)onWalletUpdated:(NSMutableDictionary *)wallet
+{
+    NSLog(@"ttt ArbiterWalletDashboardView::OnWalletUpdated!!! wallet=%@, subObs=%@", wallet, self.activeWalletObserver);
+    [self.activeWalletObserver onWalletUpdated:wallet];
+}
+
 
 # pragma mark click handlers
 
@@ -65,16 +72,20 @@
         ArbiterWalletDetailView *view = [[ArbiterWalletDetailView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                     andArbiterInstance:self.arbiter];
         view.delegate = self;
+        self.activeWalletObserver = view;
+        NSLog(@"ttt assigning obs...=%@", self.activeWalletObserver);
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
         ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                       andArbiterInstance:self.arbiter];
         view.delegate = self;
+        self.activeWalletObserver = view;
         [self navigateToView:view];
     } else {
         ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                         andArbiterInstance:self.arbiter];
         view.delegate = self;
+        self.activeWalletObserver = view;
         [self navigateToView:view];
     }
 }

@@ -10,7 +10,7 @@
 
 @interface ArbiterPanelWindow : UIWindow
 
-@property (retain) UIWindow *gameWindow;
+@property (strong) UIWindow *gameWindow;
 
 - (id)initWithGameWindow:(UIWindow *)gameWindow;
 - (void)show:(UIView *)view;

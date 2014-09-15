@@ -24,7 +24,6 @@
 
 - (id)init:(Arbiter *)arbiterInstance;
 - (void)renderLayout;
-- (void)animateOut;
 - (void)closeButtonClicked:(id)sender;
 
 @end

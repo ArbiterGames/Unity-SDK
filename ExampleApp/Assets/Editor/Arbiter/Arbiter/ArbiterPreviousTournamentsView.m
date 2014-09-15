@@ -268,7 +268,7 @@
     if ( self.callback ) {
         self.callback();
     }
-    [self animateOut];
+    [self.parentWindow hide];
 }
 
 - (void)nextButtonClicked:(id)sender

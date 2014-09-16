@@ -119,12 +119,8 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    NSLog(@"ttt textFieldShouldReturn...");
-    NSLog(@"ttt emailField=%@", self.emailField);
-    NSLog(@"ttt usernameField=%@", self.usernameField);
     self.callback(@{@"email": self.emailField.text,
                     @"username": self.usernameField.text});
-    NSLog(@"ttt textField=%@", textField);
     [textField resignFirstResponder];
     return YES;
 }

@@ -18,6 +18,35 @@
     self = [super init];
     if ( self ) {
         self.callback = callbackBlock;
+
+        self.emailField = [[UITextField alloc] init];
+        self.emailField.textColor = [UIColor whiteColor];
+        self.emailField.autocorrectionType = UITextAutocorrectionTypeNo;
+        self.emailField.keyboardType = UIKeyboardTypeEmailAddress;
+        self.emailField.returnKeyType = UIReturnKeyNext;
+        self.emailField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        self.emailField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        self.emailField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        self.emailField.delegate = self;
+        self.emailField.tag = CELL_EMAIL_FIELD_TAG;
+        self.emailField.text = self.email;
+        self.emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        
+        self.usernameField = [[UITextField alloc] init];
+        self.usernameField.textColor = [UIColor whiteColor];
+        self.usernameField.autocorrectionType = UITextAutocorrectionTypeNo;
+        self.usernameField.keyboardType = UIKeyboardTypeEmailAddress;
+        self.usernameField.returnKeyType = UIReturnKeyDone;
+        self.usernameField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        self.usernameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        self.usernameField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        self.usernameField.delegate = self;
+        self.usernameField.tag = CELL_USERNAME_FIELD_TAG;
+        self.usernameField.text = self.username;
+        self.usernameField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Username"
+                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        self.usernameField.returnKeyType = UIReturnKeyDone;
     }
     return self;
 }
@@ -68,36 +97,13 @@
         [cell.contentView.layer addSublayer:topBorder];
         
         if ( indexPath.row == 0 ) {
-            self.emailField = [[UITextField alloc] initWithFrame:cell.frame];
-            self.emailField.textColor = [UIColor whiteColor];
-            self.emailField.autocorrectionType = UITextAutocorrectionTypeNo;
-            self.emailField.keyboardType = UIKeyboardTypeEmailAddress;
-            self.emailField.returnKeyType = UIReturnKeyNext;
-            self.emailField.clearButtonMode = UITextFieldViewModeWhileEditing;
-            self.emailField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            self.emailField.autocapitalizationType = UITextAutocapitalizationTypeNone;
-            self.emailField.delegate = self;
-            self.emailField.tag = CELL_EMAIL_FIELD_TAG;
+            [self.emailField setFrame:cell.frame];
             self.emailField.text = self.email;
-            self.emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
-                                                                          attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
             [cell.contentView addSubview:self.emailField];
             [self.emailField becomeFirstResponder];
         } else {
-            self.usernameField = [[UITextField alloc] initWithFrame:cell.frame];
-            self.usernameField.textColor = [UIColor whiteColor];
-            self.usernameField.autocorrectionType = UITextAutocorrectionTypeNo;
-            self.usernameField.keyboardType = UIKeyboardTypeEmailAddress;
-            self.usernameField.returnKeyType = UIReturnKeyDone;
-            self.usernameField.clearButtonMode = UITextFieldViewModeWhileEditing;
-            self.usernameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-            self.usernameField.autocapitalizationType = UITextAutocapitalizationTypeNone;
-            self.usernameField.delegate = self;
-            self.usernameField.tag = CELL_USERNAME_FIELD_TAG;
+            [self.usernameField setFrame:cell.frame];
             self.usernameField.text = self.username;
-            self.usernameField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Username"
-                                                                          attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-            self.usernameField.returnKeyType = UIReturnKeyDone;
             [cell.contentView addSubview:self.usernameField];
         }
     } else {

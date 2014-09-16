@@ -203,6 +203,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	public static void SendPromoCredits( string amount, SuccessHandler success, ErrorHandler failure ) {
 		ArbiterBinding.SendPromoCredits( amount, success, failure );
+		walletPoller.Reset();
 	}
 	
 	public delegate void JoinTournamentCallback( Tournament tournament );

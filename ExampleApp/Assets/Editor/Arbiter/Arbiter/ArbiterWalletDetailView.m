@@ -24,6 +24,7 @@
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
+        self.activeWalletField = nil;
         [self renderLayout];
     }
     return self;
@@ -102,6 +103,10 @@
     }
 }
 
+- (void)onWalletUpdated:(NSDictionary *)wallet
+{
+    [self.activeWalletField setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[wallet objectForKey:@"balance"]]]];
+}
 
 #pragma mark Click Handlers
 
@@ -166,6 +171,7 @@
     if ( indexPath.row == 0 ) {
         [label setText:@"Balance"];
         [value setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[self.arbiter.wallet objectForKey:@"balance"]]]];
+        self.activeWalletField = value;
     } else {
         [label setText:@"Username"];
         [value setText:[self.arbiter.user objectForKey:@"username"]];

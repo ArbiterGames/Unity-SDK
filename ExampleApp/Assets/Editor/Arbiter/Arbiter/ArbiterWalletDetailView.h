@@ -17,7 +17,7 @@
 @end
 
 
-@interface ArbiterWalletDetailView : UIView <UITableViewDataSource, UITableViewDelegate>
+@interface ArbiterWalletDetailView : UIView <UITableViewDataSource, UITableViewDelegate, ArbiterWalletObserver>
 {
     id <WalletDetailViewDelegate> delegate;
 }
@@ -25,6 +25,7 @@
 @property (strong) Arbiter *arbiter;
 @property (strong) id delegate;
 @property int activeUI;
+@property (strong) UILabel* activeWalletField;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
 - (void)backButtonClicked:(id)sender;

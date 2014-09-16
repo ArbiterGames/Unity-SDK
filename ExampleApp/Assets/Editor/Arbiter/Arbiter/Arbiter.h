@@ -7,6 +7,7 @@
 
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterPanelWindow.h"
+#import "ArbiterWalletObserver.h"
 
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();
@@ -26,6 +27,7 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
 @property int previousTournamentsCount;
 @property (copy) NSString *currentIncompleteTournamentId;
+@property (strong, atomic) id<ArbiterWalletObserver> walletObserver;
 
 @property (strong, atomic) NSMutableDictionary* _user;
 - (void)setUser:(NSMutableDictionary *)user;
@@ -50,6 +52,7 @@ void ClientCallbackWalletUpdated();
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
+- (void)addWalletObserver:(id<ArbiterWalletObserver>)observer;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;

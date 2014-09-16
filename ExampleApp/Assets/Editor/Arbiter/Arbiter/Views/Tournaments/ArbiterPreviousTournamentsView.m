@@ -233,7 +233,11 @@
     date.text = [dateFormatter stringFromDate:unFormattedDate];
     
     playerScoreLabel.text = @"Your score";
-    playerScoreValue.text = [[self.arbiter getCurrentUserFromTournament:tournament] objectForKey:@"score"];
+    if ( [[NSString stringWithFormat:@"%@", [[self.arbiter getCurrentUserFromTournament:tournament] objectForKey:@"score"]] isEqualToString:@"<null>"] ) {
+        playerScoreValue.text = @"...";
+    } else {
+        playerScoreValue.text = [[self.arbiter getCurrentUserFromTournament:tournament] objectForKey:@"score"];
+    }
     
     if ( opponent ) {
         opponentScoreLabel.text = [NSString stringWithFormat:@"%@'s score", [opponent objectForKey:@"username"]];

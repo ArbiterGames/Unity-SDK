@@ -40,7 +40,6 @@ public class Game : MonoBehaviour {
     }
 
 	private void OnTournamentReturned( Arbiter.Tournament tournament ) {
-		Debug.Log ("ttt OnTournamentReturned. Tourny="+tournament);
 		arbiter.SelectedUnfinishedTournamentId = TournamentId = tournament.Id;
         PlayGame();
     }

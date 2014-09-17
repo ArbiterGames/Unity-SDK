@@ -201,10 +201,10 @@
                           @"success": @"true"});
             } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to Arbiter's terms of service."
+                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
                                                                delegate: self
                                                       cancelButtonTitle:@"Agree"
-                                                      otherButtonTitles:@"View Terms", @"Cancel", nil];
+                                                      otherButtonTitles:@"View terms", @"Cancel", nil];
                 [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [alert show];
@@ -225,11 +225,11 @@
                 [alert setTag:NO_ACTION_ALERT_TAG];
                 [alert show];
             } else {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Enable Location Services"
-                                                                message: @"Before continuing, please enable location services in your phone\'s settings. This is required so we can make sure betting in games is legal in your location.\n\n-Thanks."
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Tournaments are Disabled"
+                                                                message: @"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments."
                                                                delegate: self
-                                                      cancelButtonTitle:@"Close"
-                                                      otherButtonTitles:@"Try again", nil];
+                                                      cancelButtonTitle:@"Keep disabled"
+                                                      otherButtonTitles:@"Check again", nil];
                 [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
                 [alert setTag:ENABLE_LOCATION_ALERT_TAG];
                 [alert show];
@@ -483,7 +483,7 @@
                 NSDate *unFormattedDate = [NSDate dateWithTimeIntervalSince1970:seconds];
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
-                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nBet Size: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
+                NSString *tournamentString = [NSString stringWithFormat:@"%@ \nEntry fee: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
                                                [dateFormatter stringFromDate:unFormattedDate],
                                                [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
                                                [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],

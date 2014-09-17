@@ -40,6 +40,7 @@ public class Game : MonoBehaviour {
     }
 
 	private void OnTournamentReturned( Arbiter.Tournament tournament ) {
+		Debug.Log ("ttt OnTournamentReturned. Tourny="+tournament);
 		arbiter.SelectedUnfinishedTournamentId = TournamentId = tournament.Id;
         PlayGame();
     }
@@ -80,6 +81,7 @@ public class Game : MonoBehaviour {
 
 	private void OnFailure( List<string> errors ) {
 		errors.ForEach( error => Debug.LogError( error ));
+		Problems = errors[0];
 	}
 
 }

@@ -212,6 +212,12 @@ public partial class Arbiter : MonoBehaviour {
 	public delegate void JoinTournamentCallback( Tournament tournament );
 	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback success, ErrorHandler failure ) {
 
+		if( !IsVerified ) {
+			List<string> errors = new List<string>() { "The current user is not verified and cannot play in tournaments." };
+			failure( errors );
+			return;
+		}
+
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
 			return (tournament.Status == Tournament.StatusType.Initializing ||
 			        tournament.Status == Tournament.StatusType.InProgress) &&
@@ -220,7 +226,6 @@ public partial class Arbiter : MonoBehaviour {
 		
 		TournamentsCallback gotTournamentsPollHelper = ( tournaments ) => {
 			List<Tournament> joinableTournaments = tournaments.Where( iTourn => isScorableByCurrentUser( iTourn )).ToList();
-			
 			if( joinableTournaments.Count > 0 ) {
 				tournamentPoller.Stop();
 				success( joinableTournaments[0] );
@@ -229,7 +234,7 @@ public partial class Arbiter : MonoBehaviour {
 		};
 		
 		int retries = 0;
-		const int MAX_RETRIES = 10;
+		const int MAX_RETRIES = 6;
 		Action askAgain = () => {
 			retries++;
 			if( retries > MAX_RETRIES ) {

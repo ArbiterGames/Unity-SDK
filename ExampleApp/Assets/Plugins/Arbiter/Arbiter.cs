@@ -19,12 +19,13 @@ public partial class Arbiter : MonoBehaviour {
 	
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
+	public static bool		HasWallet					{ get { return WalletExists(false); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  	return user.Id; } }
 	public static string    Username                    { get { if( !UserExists ) return null; 		return user.Name; } }
 	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  	return user.Token; } }
 	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  	return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  	return user.LocationApproved; } }
-	public static string    Balance                     { get { if( !WalletExists ) return null;	return wallet.Balance; } }
+	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
 
 
 
@@ -138,37 +139,39 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 
-	private static bool WalletExists { get {
+	private static bool WalletExists( bool warn ) {
 		if( wallet == null ) {
-			Debug.LogWarning( "Wallet does not exist. Ensure that UpdateWallet was successful." );
+			if( warn )
+				Debug.LogWarning( "Wallet does not exist. Ensure that UpdateWallet was successful." );
 			return false;
 		}
 		return true;
-	} }
+	}
 
 
 	/// <summary>
 	/// Returns a human-readable string no longer than X characters long
 	/// </summary>
-	/// <returns>The balance.</returns>
 	public static string FormattedBalance() {
-		if( !WalletExists )
+		if( !WalletExists(true) )
 			return "...";
-		
-		float b = int.Parse( wallet.Balance );
-		
-		if( b >= 1000000000 ) {
+		return FormattedLikeBalance( int.Parse( wallet.Balance ));
+	}
+	/// <summary>
+	/// Returns a human-readable string no longer than X characters long
+	/// </summary>
+	public static string FormattedLikeBalance( int amount ) {
+		if( amount >= 1000000000 ) {
 			return ">999m";
-		} else if( b >= 1000000 ) {
-			return (b / 1000000).ToString("0.0") + "m";
-		} else if( b >= 100000 ) {
-			return (b / 1000 ).ToString("0.0") + "k";
-		} else if( b >= 1000 ) {
-			return (b / 1000).ToString("0") + "," + (b % 1000).ToString("000");
+		} else if( amount >= 1000000 ) {
+			return (amount / 1000000).ToString("0.0") + "m";
+		} else if( amount >= 100000 ) {
+			return (amount / 1000 ).ToString("0.0") + "k";
+		} else if( amount >= 1000 ) {
+			return Mathf.FloorToInt(amount / 1000).ToString() + "," + (amount % 1000).ToString("000");
 		} else {
-			return b.ToString();
+			return amount.ToString();
 		}
-		
 	}
 
 

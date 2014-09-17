@@ -16,7 +16,8 @@ public class BalancePoller : MonoBehaviour {
 
 
 	void OnGUI () {
-		textField.text = Arbiter.FormattedBalance();
+		if( Arbiter.HasWallet )
+			textField.text = Arbiter.FormattedBalance();
     }
 
 

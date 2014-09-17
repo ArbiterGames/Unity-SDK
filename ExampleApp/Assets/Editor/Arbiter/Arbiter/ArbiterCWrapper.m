@@ -211,6 +211,15 @@ void _markViewedTournament( const char* tournamentId )
      ];
 }
 
+void _showWalkThrough( const char* walkThroughId )
+{
+    [ArbiterInstance() showWalkThrough:^(void) {
+        UnitySendMessage("ArbiterBinding", "ShowWalkThroughHandler", EMPTY_STRING );
+    }
+                         walkThroughId:[[NSString alloc] initWithUTF8String:walkThroughId]
+     ];
+}
+
 void _showTournamentDetailsPanel( const char *tournamentId )
 {
     [ArbiterInstance() showTournamentDetailsPanel:^(void) {

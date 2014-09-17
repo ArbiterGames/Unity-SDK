@@ -343,6 +343,20 @@ namespace ArbiterInternal {
 			_markViewedTournament( tournamentId );
 #endif
 		}
+		
+		
+		
+		const string SHOW_WALK_THROUGH = "show_walk_through";
+		[DllImport ("__Internal")]
+		private static extern void _showWalkThrough( string walkThroughId );
+		public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
+			SetSimpleCallbacks( SHOW_WALK_THROUGH, callback, null );
+			#if UNITY_EDITOR
+			ReportIgnore( "ShowWalkThrough" );
+			#elif UNITY_IOS
+			_showWalkThrough( walkThroughId );
+			#endif
+		}
 
 		
 		
@@ -428,6 +442,10 @@ namespace ArbiterInternal {
 		
 		public void ShowIncompleteTournamentsHandler( string tournamentId ) {
 			showIncompleteTournamentsCallback( tournamentId );
+		}
+		
+		public void ShowWalkThroughHandler( string emptyString ) {
+			SimpleCallback( SHOW_WALK_THROUGH );
 		}
 		
 		

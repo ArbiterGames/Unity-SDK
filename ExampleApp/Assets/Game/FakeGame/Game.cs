@@ -80,6 +80,7 @@ public class Game : MonoBehaviour {
 
 	private void OnFailure( List<string> errors ) {
 		errors.ForEach( error => Debug.LogError( error ));
+		Problems = errors[0];
 	}
 
 }

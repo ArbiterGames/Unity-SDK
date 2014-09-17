@@ -63,6 +63,7 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
+        self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
@@ -217,24 +218,31 @@
             }
         } else {
             if ( self.user == nil ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Arbiter Error"
-                                                                message: @"No user is currently logged in. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
-                                                               delegate: self
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
+                                                                message:@"No user is currently logged in. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
+                                                               delegate:self
                                                       cancelButtonTitle:@"Close"
                                                       otherButtonTitles:nil];
                 [alert setTag:NO_ACTION_ALERT_TAG];
                 [alert show];
             } else {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Tournaments are Disabled"
-                                                                message: @"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments."
-                                                               delegate: self
-                                                      cancelButtonTitle:@"Keep disabled"
-                                                      otherButtonTitles:@"Check again", nil];
-                [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
-                [alert setTag:ENABLE_LOCATION_ALERT_TAG];
-                [alert show];
+                if ( self.locationVerificationAttempts < 4 ) {
+                    [NSThread sleepForTimeInterval:2 * self.locationVerificationAttempts];
+                    self.locationVerificationAttempts++;
+                    [self verifyUser:handler];
+                } else {
+                    if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
+                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
+                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments."
+                                                                       delegate:self
+                                                              cancelButtonTitle:@"Keep disabled"
+                                                              otherButtonTitles:@"Check again", nil];
+                        [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
+                        [alert setTag:ENABLE_LOCATION_ALERT_TAG];
+                        [alert show];
+                    }
+                }
             }
-            
         }
     };
     
@@ -246,7 +254,7 @@
             locationCallback(@{@"success": @"false"});
         } else {
             locationCallback(@{@"success": @"true",
-                           @"postalCode": [self.user objectForKey:@"postal_code"]});
+                               @"postalCode": [self.user objectForKey:@"postal_code"]});
         }
     }
 }
@@ -276,7 +284,6 @@
     
     [geocoder reverseGeocodeLocation:location completionHandler:^(NSArray *placemarks, NSError *error) {
         NSMutableDictionary *response = [[NSMutableDictionary alloc] initWithDictionary:@{@"success": @false}];
-        
         if ( error ) {
             handler(response);
         } else {
@@ -778,8 +785,10 @@
         }
 
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
+        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
+        [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
         if (buttonIndex == 1) {
-            [self verifyUser:[_alertViewHandlerRegistry objectForKey:@"enableLocationServices"]];
+            [self verifyUser:handler];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

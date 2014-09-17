@@ -26,6 +26,7 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *nextPageIncompleteTournamentsUrl;
 @property (copy) NSString *previousPageIncompleteTournamentsUrl;
 @property int previousTournamentsCount;
+@property int locationVerificationAttempts;
 @property (copy) NSString *currentIncompleteTournamentId;
 @property (strong, atomic) id<ArbiterWalletObserver> walletObserver;
 

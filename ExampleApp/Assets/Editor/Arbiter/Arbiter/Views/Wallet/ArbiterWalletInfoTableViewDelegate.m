@@ -53,7 +53,7 @@
         message = (UILabel *)[cell.contentView viewWithTag:CELL_MESSAGE_TAG];
     }
     
-    message.text = @"Your wallet stores your betting credits.\n\nYou can purchase credits using the DEPOSIT button below. Next time you play, you will be able to bet credits against other players.\n\nUse the WITHDRAW button to exchange your credits for cash.";
+    message.text = @"Your wallet stores your tournament credits.\n\nYou can purchase credits using the DEPOSIT button below. Next time you play, you will be able to use credits to enter tournaments against other players.\n\nUse the WITHDRAW button to exchange your credits for cash.";
     
     return cell;
 }

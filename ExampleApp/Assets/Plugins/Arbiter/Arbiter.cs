@@ -317,6 +317,10 @@ public partial class Arbiter : MonoBehaviour {
 		}
 		ArbiterBinding.ShowUnviewedTournaments( callback, defaultErrorHandler ); 
 	}
+	
+	public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
+		ArbiterBinding.ShowWalkThrough( walkThroughId, callback );
+	}
 
 	
 	private static void defaultErrorHandler( List<string> errors ) {

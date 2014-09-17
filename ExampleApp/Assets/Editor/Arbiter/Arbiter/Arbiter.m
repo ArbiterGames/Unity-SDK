@@ -13,6 +13,7 @@
 #import "ArbiterWalletDashboardView.h"
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
+#import "ArbiterWalkThrough.h"
 #import "STPView.h"
 
 #define LOGIN_ALERT_TAG 329
@@ -528,6 +529,13 @@
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
 {
     [self httpPost:APITournamentMarkAsViewed params:@{@"tournaments": tournamentIds} isBlocking:NO handler:[handler copy]];
+}
+
+- (void)showWalkThrough:(void (^)(void))handler walkThroughId:(NSString *)walkThroughId
+{
+    ArbiterWalkThrough *view = [[ArbiterWalkThrough alloc] initWithWalkThroughId:walkThroughId arbiterInstance:self];
+    view.callback = handler;
+    [self.panelWindow show:view];
 }
 
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId

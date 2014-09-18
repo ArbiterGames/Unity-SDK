@@ -12,6 +12,7 @@
 
 @property (strong) NSString *email;
 @property (strong) NSString *fullName;
+@property (strong) UITableView *tableView;
 @property (strong) void (^callback)(NSDictionary *);
 
 @property (strong) IBOutlet UITextField *emailField;

@@ -91,7 +91,7 @@
 
 - (void)setupEmailFieldLayout
 {
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
         self.email = [updatedFields objectForKey:@"email"];
         self.username = [updatedFields objectForKey:@"username"];

@@ -61,7 +61,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 2;
+    return 4;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
@@ -83,6 +83,9 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
+    if ( self.tableView == nil ) {
+        self.tableView = tableView;
+    }
     static NSString *i = @"ContactInfoCell";
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
     
@@ -94,17 +97,18 @@
         topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
         topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
         topBorder.opacity = 0.2;
-        [cell.contentView.layer addSublayer:topBorder];
         
         if ( indexPath.row == 0 ) {
             [self.emailField setFrame:cell.frame];
             self.emailField.text = self.email;
             [cell.contentView addSubview:self.emailField];
             [self.emailField becomeFirstResponder];
-        } else {
+            [cell.contentView.layer addSublayer:topBorder];
+        } else if ( indexPath.row == 1 ) {
             [self.usernameField setFrame:cell.frame];
             self.usernameField.text = self.username;
             [cell.contentView addSubview:self.usernameField];
+            [cell.contentView.layer addSublayer:topBorder];
         }
     } else {
         self.emailField = (UITextField *)[cell.contentView viewWithTag:CELL_EMAIL_FIELD_TAG];
@@ -117,11 +121,21 @@
 
 #pragma mark TextField Delegates
 
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
+{
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    return YES;
+}
+
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    self.callback(@{@"email": self.emailField.text,
-                    @"username": self.usernameField.text});
-    [textField resignFirstResponder];
+    if ( textField.tag == CELL_EMAIL_FIELD_TAG ) {
+        [self.usernameField becomeFirstResponder];
+    } else {
+        self.callback(@{@"email": self.emailField.text,
+                        @"username": self.usernameField.text});
+    }
     return YES;
 }
 

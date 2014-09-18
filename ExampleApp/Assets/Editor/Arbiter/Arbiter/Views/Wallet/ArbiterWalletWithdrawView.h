@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Arbiter.h"
-#import "STPView.h"
+#import "PTKView.h"
 
 @protocol WalletWithdrawViewDelegate
 
@@ -17,7 +17,7 @@
 @end
 
 
-@interface ArbiterWalletWithdrawView : UIView <STPViewDelegate, ArbiterWalletObserver>
+@interface ArbiterWalletWithdrawView : UIView <PTKViewDelegate, ArbiterWalletObserver>
 {
     id <WalletWithdrawViewDelegate> delegate;
 }

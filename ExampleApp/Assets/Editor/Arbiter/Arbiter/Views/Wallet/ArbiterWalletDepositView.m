@@ -13,6 +13,8 @@
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import <PassKit/PassKit.h>
+#import "Stripe.h"
 
 #define BUNDLE_SELECT_UI_TAG 667
 #define CONTACT_INFO_UI_TAG 668
@@ -49,7 +51,7 @@
     } else if ( self.activeViewIndex == 0 ) {
         [self setupBundleSelect];
     } else if ( self.activeViewIndex == 1 ) {
-        [self setupEmailFieldLayout];
+        [self setupContactInfoLayout];
     } else if ( self.activeViewIndex == 2 ) {
         [self setupBillingInfoLayout];
     } else if ( self.activeViewIndex == 3 ) {
@@ -89,7 +91,7 @@
     } copy]];
 }
 
-- (void)setupEmailFieldLayout
+- (void)setupContactInfoLayout
 {
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
@@ -111,25 +113,29 @@
 
 - (void)setupBillingInfoLayout
 {
-    NSString *stripePublishableKey;
-    if ( self.stripeView == nil ) {
-        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-            stripePublishableKey = StripeLivePublishableKey;
-        } else {
-            stripePublishableKey = StripeTestPublishableKey;
-        }
-        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
-        self.stripeView.delegate = self;
-    }
-    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
-                                                          initWithStripeView:self.stripeView];
+    // TODO: While building out the ApplePay flow, just replace all of this with the ApplePay flow
+    NSLog(@"apple pay");
+    PKPaymentRequest *request = [Stripe pay];
     
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    tableView.tag = BILLING_INFO_UI_TAG;
-    [tableView reloadData];
-    [self addSubview:tableView];
+    //    NSString *stripePublishableKey;
+//    if ( self.stripeView == nil ) {
+//        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+//            stripePublishableKey = StripeLivePublishableKey;
+//        } else {
+//            stripePublishableKey = StripeTestPublishableKey;
+//        }
+//        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
+//        self.stripeView.delegate = self;
+//    }
+//    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
+//                                                          initWithStripeView:self.stripeView];
+//    
+//    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+//    tableView.delegate = tableDelegate;
+//    tableView.dataSource = tableDelegate;
+//    tableView.tag = BILLING_INFO_UI_TAG;
+//    [tableView reloadData];
+//    [self addSubview:tableView];
 }
 
 - (void)getTokenAndSubmitPayment

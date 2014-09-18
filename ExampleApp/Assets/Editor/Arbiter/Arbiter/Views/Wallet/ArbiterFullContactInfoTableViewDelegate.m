@@ -19,6 +19,38 @@
     self = [super init];
     if ( self ) {
         self.callback = callbackBlock;
+        
+        
+        self.emailField = [[UITextField alloc] init];
+        self.emailField.textColor = [UIColor whiteColor];
+        self.emailField.autocorrectionType = UITextAutocorrectionTypeNo;
+        self.emailField.keyboardType = UIKeyboardTypeEmailAddress;
+        self.emailField.returnKeyType = UIReturnKeyNext;
+        self.emailField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        self.emailField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        self.emailField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        self.emailField.delegate = self;
+        self.emailField.tag = EMAIL_FIELD_TAG;
+        self.emailField.text = self.email;
+        self.emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
+                                                                                attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        
+        self.nameField = [[UITextField alloc] init];
+        self.nameField.textColor = [UIColor whiteColor];
+        self.nameField.autocorrectionType = UITextAutocorrectionTypeNo;
+        self.nameField.keyboardType = UIKeyboardTypeEmailAddress;
+        self.nameField.returnKeyType = UIReturnKeyDone;
+        self.nameField.clearButtonMode = UITextFieldViewModeWhileEditing;
+        self.nameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
+        self.nameField.autocapitalizationType = UITextAutocapitalizationTypeNone;
+        self.nameField.delegate = self;
+        self.nameField.tag = NAME_FIELD_TAG;
+        self.nameField.text = self.fullName;
+        self.nameField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Name"
+                                                                                   attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
+        self.nameField.returnKeyType = UIReturnKeyDone;
+
+        
     }
     return self;
 }
@@ -33,7 +65,7 @@
 
 - (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
 {
-    return 2;
+    return 4;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
@@ -55,52 +87,41 @@
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    UITextField *field;
     UITableViewCell *cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:nil];
     cell.backgroundColor = [UIColor clearColor];
-    
-    if ( indexPath.row == 0 ) {
-        self.emailField = [[UITextField alloc] initWithFrame:cell.frame];
-        field = self.emailField;
-        if ( self.email != nil ) {
-            field.text = self.email;
-        }
-        field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
-                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-        field.tag = EMAIL_FIELD_TAG;
-        [field becomeFirstResponder];
-    } else {
-        self.nameField = [[UITextField alloc] initWithFrame:cell.frame];
-        field = self.nameField;
-        if ( self.fullName != nil ) {
-            field.text = self.fullName;
-        }
-        field.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Name as it appears on your debit card"
-                                                                      attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-        field.tag = NAME_FIELD_TAG;
-    }
-    
-    field.textColor = [UIColor whiteColor];
-    field.autocorrectionType = UITextAutocorrectionTypeNo;
-    field.keyboardType = UIKeyboardTypeEmailAddress;
-    field.returnKeyType = UIReturnKeyDone;
-    field.clearButtonMode = UITextFieldViewModeWhileEditing;
-    field.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
-    field.autocapitalizationType = UITextAutocapitalizationTypeNone;
-    field.delegate = self;
-    [cell.contentView addSubview:field];
-    
     CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
     topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
     topBorder.opacity = 0.2;
-    [cell.contentView.layer addSublayer:topBorder];
     
+    if ( self.tableView == nil ) {
+        self.tableView = tableView;
+    }
+    
+    if ( indexPath.row == 0 ) {
+        self.emailField.text = self.email;
+        [self.emailField setFrame:cell.frame];
+        [cell.contentView.layer addSublayer:topBorder];
+        [cell.contentView addSubview:self.emailField];
+        [self.emailField becomeFirstResponder];
+    } else if ( indexPath.row == 1 ) {
+        self.nameField.text = self.fullName;
+        [self.nameField setFrame:cell.frame];
+        [cell.contentView.layer addSublayer:topBorder];
+        [cell.contentView addSubview:self.nameField];
+    }
     return cell;
 }
 
 
 #pragma mark TextField Delegates
+
+- (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
+{
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
+    return YES;
+}
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
@@ -108,11 +129,11 @@
         [self.nameField becomeFirstResponder];
     } else {
         if ( self.email == nil || self.fullName == nil ) {
+            // TODO: Need to alert the user that these fields are required
             NSLog(@"email: %@", self.email);
             NSLog(@"fullname: %@", self.fullName);
         } else {
             self.callback(@{@"email": self.email, @"fullName": self.fullName});
-            [textField resignFirstResponder];
         }
     }
     return YES;

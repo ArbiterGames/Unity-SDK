@@ -2,5 +2,5 @@
 	path = ExampleApp/Assets/Editor/Arbiter/Stripe
 	url = git@github.com:ArbiterGames/stripe-ios.git
 [submodule "ExampleApp/Assets/Editor/Arbiter/PaymentKit"]
-    path = ExampleApp/Assets/Editor/Arbiter/PaymentKit
-    url = git@github.com:ArbiterGames/PaymentKit.git
+	path = ExampleApp/Assets/Editor/Arbiter/PaymentKit
+	url = https://github.com/ArbiterGames/PaymentKit

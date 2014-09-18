@@ -20,7 +20,6 @@
     if ( self ) {
         self.callback = callbackBlock;
         
-        
         self.emailField = [[UITextField alloc] init];
         self.emailField.textColor = [UIColor whiteColor];
         self.emailField.autocorrectionType = UITextAutocorrectionTypeNo;
@@ -34,11 +33,11 @@
         self.emailField.text = self.email;
         self.emailField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Email"
                                                                                 attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-        
         self.nameField = [[UITextField alloc] init];
         self.nameField.textColor = [UIColor whiteColor];
         self.nameField.autocorrectionType = UITextAutocorrectionTypeNo;
         self.nameField.keyboardType = UIKeyboardTypeEmailAddress;
+        self.nameField.returnKeyType = UIReturnKeyDone;
         self.nameField.returnKeyType = UIReturnKeyDone;
         self.nameField.clearButtonMode = UITextFieldViewModeWhileEditing;
         self.nameField.contentVerticalAlignment = UIControlContentVerticalAlignmentCenter;
@@ -47,10 +46,7 @@
         self.nameField.tag = NAME_FIELD_TAG;
         self.nameField.text = self.fullName;
         self.nameField.attributedPlaceholder = [[NSAttributedString alloc] initWithString:@"Name"
-                                                                                   attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
-        self.nameField.returnKeyType = UIReturnKeyDone;
-
-        
+                                                                               attributes:@{NSForegroundColorAttributeName:[UIColor lightGrayColor]}];
     }
     return self;
 }
@@ -128,12 +124,21 @@
     if ( textField.tag == EMAIL_FIELD_TAG ) {
         [self.nameField becomeFirstResponder];
     } else {
-        if ( self.email == nil || self.fullName == nil ) {
-            // TODO: Need to alert the user that these fields are required
-            NSLog(@"email: %@", self.email);
-            NSLog(@"fullname: %@", self.fullName);
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
+                                                        message:@""
+                                                       delegate:nil
+                                              cancelButtonTitle:@"OK"
+                                              otherButtonTitles:nil];
+        if ( [self.emailField.text isEqualToString:@""] ) {
+            alert.title = @"We need your email";
+            alert.message = @"Please enter your email before continuing.";
+            [alert show];
+        } else if ( [self.nameField.text isEqualToString:@""] ) {
+            alert.title = @"We need your name";
+            alert.message = @"Please enter your full name as it appears on your debit card before continuing.";
+            [alert show];
         } else {
-            self.callback(@{@"email": self.email, @"fullName": self.fullName});
+            self.callback(@{@"email": self.emailField.text, @"fullName": self.nameField.text});
         }
     }
     return YES;

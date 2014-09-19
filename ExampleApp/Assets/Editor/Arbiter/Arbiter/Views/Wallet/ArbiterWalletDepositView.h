@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 #import "Arbiter.h"
-#import "STPView.h"
+#import "PTKView.h"
 
 
 @protocol WalletDepositViewDelegate

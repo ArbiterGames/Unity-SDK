@@ -45,7 +45,7 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         cell.backgroundColor = [UIColor clearColor];
-        message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width + 80, 180.0)];
+        message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width, 220.0)];
         message.textColor = [UIColor whiteColor];
         message.numberOfLines = 0;
         [cell.contentView addSubview:message];

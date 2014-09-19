@@ -149,7 +149,7 @@
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         [cell setBackgroundColor:[UIColor clearColor]];
         
-        label = [[UILabel alloc] initWithFrame:CGRectMake(-80.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
         [label setTag:CELL_LABEL_TAG];
         [label setTextColor:[UIColor whiteColor]];
         [label setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
@@ -176,7 +176,7 @@
         [label setText:@"Username"];
         [value setText:[self.arbiter.user objectForKey:@"username"]];
         CALayer *topBorder = [CALayer layer];
-        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
         topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
         topBorder.opacity = 0.2;
         [cell.contentView.layer addSublayer:topBorder];

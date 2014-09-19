@@ -12,16 +12,22 @@
 
 - (id)init:(Arbiter *)arbiterInstance
 {
-    CGRect frame = CGRectMake(0.0f, 0.0f, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height);
-    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        frame = CGRectMake(0.0f, 0.0f, [[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    }
-
-    self = [super initWithFrame:frame];
+    self = [super init];
     if ( self ) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
         
+        float padding = 10.0;
+        CGRect frame = [[UIApplication sharedApplication] keyWindow].frame;
+        if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+            frame.size.height = frame.size.width;
+            frame.size.width = [[UIApplication sharedApplication] keyWindow].frame.size.height - padding * 2;
+            frame.origin.y = padding;
+        } else {
+            frame.size.width = frame.size.width - padding * 2;
+            frame.origin.x = padding;
+        }
+ 
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
         self.maxHeight = 320.0;
@@ -29,11 +35,10 @@
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
         if ( frame.size.width > self.maxWidth ) {
-            self.marginizedFrame = CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
-                                              self.maxWidth, self.maxHeight);
-            [self setFrame:self.marginizedFrame];
+            [self setFrame:CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
+                                      self.maxWidth, self.maxHeight)];
         } else {
-            self.marginizedFrame = frame;
+            [self setFrame:frame];
         }
         [self renderLayout];
     }
@@ -47,13 +52,13 @@
 
 - (void)updatePositionOnScreen
 {
-    float finalHeight = 0.0;
-    for ( UIView *subview in self.subviews ) {
-        finalHeight += subview.frame.size.height;
-    }
-    
-    [self setFrame:CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
-                              self.frame.size.width, finalHeight)];
+//    float finalHeight = 0.0;
+//    for ( UIView *subview in self.subviews ) {
+//        finalHeight += subview.frame.size.height;
+//    }
+//    
+//    [self setFrame:CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
+//                              self.frame.size.width, finalHeight)];
 }
 
 

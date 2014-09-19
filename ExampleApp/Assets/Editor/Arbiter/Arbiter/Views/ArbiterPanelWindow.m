@@ -39,15 +39,15 @@
     [self.rootViewController.view addSubview:view];
     [self renderPoweredBy];
 
-    CGRect temp = self.rootViewController.view.frame;
+    CGRect temp = self.frame;
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        temp.origin.y = temp.size.height;
+        temp.origin.x = temp.size.height;
+        
     } else {
         temp.origin.x = temp.size.width;
     }
 
     self.rootViewController.view.frame = temp;
-    
     temp.origin.y = 0.0;
     temp.origin.x = 0.0;
     [UIView animateWithDuration:0.3
@@ -63,7 +63,7 @@
 {
     CGRect temp = self.rootViewController.view.frame;
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        temp.origin.y = temp.size.height;
+        temp.origin.x = temp.size.height;
     } else {
         temp.origin.x = temp.size.width;
     }

@@ -13,8 +13,8 @@
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import "PTKView.h"
 #import <PassKit/PassKit.h>
-#import "Stripe.h"
 
 #define BUNDLE_SELECT_UI_TAG 667
 #define CONTACT_INFO_UI_TAG 668
@@ -115,7 +115,6 @@
 {
     // TODO: While building out the ApplePay flow, just replace all of this with the ApplePay flow
     NSLog(@"apple pay");
-    PKPaymentRequest *request = [Stripe pay];
     
     //    NSString *stripePublishableKey;
 //    if ( self.stripeView == nil ) {
@@ -140,26 +139,27 @@
 
 - (void)getTokenAndSubmitPayment
 {
-    [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
-        if (error) {
-            [self handleError:[error localizedDescription]];
-        } else {
-            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
-                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
-                                     @"email": self.email,
-                                     @"username": self.username};
-            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-                if ([[responseDict objectForKey:@"errors"] count]) {
-                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
-                } else {
-                    self.arbiter.user = [responseDict objectForKey:@"user"];
-                    self.activeViewIndex++;
-                    [self navigateToActiveView];
-                    self.purchaseCompleted = YES;
-                }
-            } copy]];
-        }
-    } copy]];
+// TODO: Update this to take the PaymentKit data and pass it along to the stripeView
+//    [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
+//        if (error) {
+//            [self handleError:[error localizedDescription]];
+//        } else {
+//            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
+//                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
+//                                     @"email": self.email,
+//                                     @"username": self.username};
+//            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
+//                if ([[responseDict objectForKey:@"errors"] count]) {
+//                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+//                } else {
+//                    self.arbiter.user = [responseDict objectForKey:@"user"];
+//                    self.activeViewIndex++;
+//                    [self navigateToActiveView];
+//                    self.purchaseCompleted = YES;
+//                }
+//            } copy]];
+//        }
+//    } copy]];
 }
 
 - (void)setupSuccessMessage
@@ -238,7 +238,7 @@
 
 # pragma mark Stripe View Delegate Methods
 
-- (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
+- (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
 {
     [self renderNextButton];
 }

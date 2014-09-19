@@ -14,7 +14,6 @@
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "ArbiterWalkThrough.h"
-#import "STPView.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -24,8 +23,6 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
-
-#define SYSTEM_VERSION_GREATER_THAN_OR_EQUAL_TO(v)  ([[[UIDevice currentDevice] systemVersion] compare:v options:NSNumericSearch] != NSOrderedAscending)
 
 
 @implementation Arbiter
@@ -273,11 +270,19 @@
     if (nil == locationManager)
         locationManager = [[CLLocationManager alloc] init];
     
+    
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
     locationManager.distanceFilter = 500;
+    
+    NSLog(@"Should we request location authorization?");
+    if ( [locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] ) {
+        [locationManager requestWhenInUseAuthorization];
+        NSLog(@"YES!!");
+    }
+    
     [locationManager startUpdatingLocation];
-    [self->locationManager startUpdatingLocation];
+//    [self->locationManager startUpdatingLocation];
     
     CLLocation *location = [locationManager location];
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];

@@ -17,14 +17,14 @@
 
 @end
 
-@interface ArbiterWalletDepositView : UIView <STPViewDelegate, ArbiterWalletObserver>
+@interface ArbiterWalletDepositView : UIView <PTKViewDelegate, ArbiterWalletObserver>
 {
     id <WalletDepositViewDelegate> delegate;
 }
 
 @property (strong) id delegate;
 @property (strong) Arbiter *arbiter;
-@property (strong) STPView *stripeView;
+@property (strong) PTKView *stripeView;
 @property (strong) NSDictionary *selectedBundle;
 @property (strong) NSString *email;
 @property (strong) NSString *username;

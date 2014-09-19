@@ -44,7 +44,7 @@ for key in project.get_ids():
     fileref = obj.get('fileRef')
 
     try:
-        if 'Stripe' in path:
+        if 'PaymentKit' in path or 'Stripe' in path:
             build_files = project.get_build_files(key)
             if build_files is not None:
                 for build_file in build_files:

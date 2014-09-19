@@ -19,19 +19,18 @@
         
         float padding = 10.0;
         CGRect frame = [[UIApplication sharedApplication] keyWindow].frame;
+        frame.origin.x = padding;
         if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
             frame.size.height = frame.size.width;
             frame.size.width = [[UIApplication sharedApplication] keyWindow].frame.size.height - padding * 2;
-            frame.origin.y = padding;
         } else {
             frame.size.width = frame.size.width - padding * 2;
-            frame.origin.x = padding;
         }
  
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
         self.maxHeight = 320.0;
-        self.availableHeight = self.frame.size.height;
+        self.availableHeight = frame.size.height;
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
         if ( frame.size.width > self.maxWidth ) {
@@ -52,13 +51,20 @@
 
 - (void)updatePositionOnScreen
 {
-//    float finalHeight = 0.0;
-//    for ( UIView *subview in self.subviews ) {
-//        finalHeight += subview.frame.size.height;
-//    }
-//    
-//    [self setFrame:CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
-//                              self.frame.size.width, finalHeight)];
+    float finalHeight = 0.0;
+    for ( UIView *subview in self.subviews ) {
+        finalHeight += subview.frame.size.height;
+    }
+    CGRect frame = CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
+                              self.frame.size.width, finalHeight);
+    
+    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        float tempY = frame.origin.y;
+        frame.origin.y = frame.origin.x;
+        frame.origin.x = tempY;
+    }
+    
+    [self setFrame:frame];
 }
 
 

@@ -152,16 +152,12 @@
         label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
         [label setTag:CELL_LABEL_TAG];
         [label setTextColor:[UIColor whiteColor]];
-        [label setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
-        [label setBackgroundColor:[UIColor clearColor]];
         [cell.contentView addSubview:label];
         
-        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2 - 20, cell.frame.size.height)];
         [value setTag:CELL_VALUE_TAG];
         [value setTextAlignment:NSTextAlignmentRight];
         [value setTextColor:[UIColor whiteColor]];
-        [value setBackgroundColor:[UIColor clearColor]];
-        [value setAutoresizingMask:UIViewAutoresizingFlexibleLeftMargin | UIViewAutoresizingFlexibleHeight];
         [cell.contentView addSubview:value];
     } else {
         label = (UILabel *)[cell.contentView viewWithTag:CELL_LABEL_TAG];

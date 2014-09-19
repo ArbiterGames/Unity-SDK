@@ -78,9 +78,13 @@ public class Game : MonoBehaviour {
     }
 
 
-	private void OnFailure( List<string> errors ) {
+	private void OnFailure( List<string> errors, List<string> descriptions ) {
 		errors.ForEach( error => Debug.LogError( error ));
-		Problems = errors[0];
+		if( descriptions.Count == 0 )
+			Problems = "No description. See debug log.";
+		else
+			Problems = descriptions[0];
 	}
+	
 
 }

@@ -358,6 +358,12 @@ namespace ArbiterInternal {
 			#endif
 		}
 
+
+		[DllImport ("__Internal")]
+		private static extern void _dumpLogs();
+		public static void DumpLogs() {
+			_dumpLogs();
+		}
 		
 		
 #region Plugin response handling

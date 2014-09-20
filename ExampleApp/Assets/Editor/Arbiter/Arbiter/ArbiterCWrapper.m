@@ -7,6 +7,7 @@
 
 
 #import "Arbiter.h"
+#import "ArbiterLogger.h"
 
 
 Arbiter* _arbiter = nil;
@@ -225,4 +226,13 @@ void _showTournamentDetailsPanel( const char *tournamentId )
     [ArbiterInstance() showTournamentDetailsPanel:^(void) {
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", EMPTY_STRING );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
+}
+
+
+ArbiterLogger* _logger = nil;
+void _dumpLogs() 
+{
+    if( _logger == nil )
+        _logger = [ArbiterLogger alloc];
+    [_logger dumpLogs];
 }

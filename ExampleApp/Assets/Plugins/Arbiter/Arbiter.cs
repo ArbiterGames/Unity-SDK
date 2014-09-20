@@ -356,6 +356,11 @@ public partial class Arbiter : MonoBehaviour {
 		}
 	}
 
+
+	internal static void DumpLogs() {
+		ArbiterBinding.DumpLogs();
+	}
+
 	
 	private static string _gameApiKey;
 	private static string _accessToken;

@@ -46,6 +46,13 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
     }
 }
 
+NSDictionary* JsonToDict( const char* jsonString )
+{
+    NSLog(@"ttt json to dictionary");
+    NSDictionary* dict = [[NSDictionary alloc] init];
+    return dict;
+}
+
 
 void ClientCallbackNewUser()
 {
@@ -230,11 +237,11 @@ void _showTournamentDetailsPanel( const char *tournamentId )
 
 
 ArbiterLogger* _logger = nil;
-void _dumpLogs() 
+void _dumpLogs( const char *jsonData ) 
 {
     if( _logger == nil )
         _logger = [ArbiterLogger alloc];
-    NSMutableDictionary* data = [_logger startDump];
+    NSMutableDictionary* data = [_logger startDump:JsonToDict(jsonData)];
     [ArbiterInstance() addLogs:data];
     [_logger finishDump:data];
 }

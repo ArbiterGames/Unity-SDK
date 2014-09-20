@@ -140,7 +140,6 @@
     card.expMonth = self.pkView.card.expMonth;
     card.expYear = self.pkView.card.expYear;
     card.cvc = self.pkView.card.cvc;
-    NSLog(@"number: %@", self.pkView.card.number);
 
     if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
         [Stripe setDefaultPublishableKey:StripeLivePublishableKey];

@@ -13,6 +13,8 @@
 #import "ArbiterFullContactInfoTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import "Stripe.h"
+#import "PTKView.h"
 
 #define AMOUNT_SELECTION_UI_TAG 100
 #define CONTACT_INFO_UI_TAG 101
@@ -169,19 +171,15 @@
 
 - (void)setupBillingInfoUI
 {
-    NSString *stripePublishableKey;
-    if ( self.stripeView == nil ) {
-        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-            stripePublishableKey = StripeLivePublishableKey;
-        } else {
-            stripePublishableKey = StripeTestPublishableKey;
-        }
-        NSLog(@"TODO: init the payment kit form correctly");
-//        self.stripeView = [[PTKView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
-        self.stripeView.delegate = self;
+    if ( self.pkView == nil ) {
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(15,20,290,55)];
+        self.pkView = view;
+        self.pkView.delegate = self;
     }
-    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
-                                                          initWithStripeView:self.stripeView];
+    
+    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc] init];
+    tableDelegate.pkView = self.pkView;
+    
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
@@ -217,31 +215,42 @@
 
 - (void)getTokenAndSubmitWithdraw
 {
-// TODO: Update this to take the paymentkit data and pass it along to the stripe view
-//    [self.stripeView createToken:^(STPToken *token, NSError *error) {
-//        if (error) {
-//            [self handleError:[error localizedDescription]];
-//        } else {
-//            NSDictionary *params = @{@"card_token": token.tokenId,
-//                                     @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
-//                                     @"email": self.email,
-//                                     @"card_name": self.fullName};
-//            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-//                if ([[responseDict objectForKey:@"errors"] count]) {
-//                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
-//                    [self.nextButton removeFromSuperview];
-//                    self.activeViewIndex--;
-//                    [self navigateToActiveView];
-//                } else {
-//                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
-//                    self.arbiter.user = [responseDict objectForKey:@"user"];
-//                    self.activeViewIndex++;
-//                    [self navigateToActiveView];
-//                    self.withdrawComplete = YES;
-//                }
-//            } copy]];
-//        }
-//    }];
+    STPCard *card = [[STPCard alloc] init];
+    card.number = self.pkView.card.number;
+    card.expMonth = self.pkView.card.expMonth;
+    card.expYear = self.pkView.card.expYear;
+    card.cvc = self.pkView.card.cvc;
+    
+    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
+    } else {
+        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
+    }
+    
+    [Stripe createTokenWithCard:card completion:[^(STPToken *token, NSError *error) {
+        if (error) {
+            [self handleError:[error localizedDescription]];
+        } else {
+            NSDictionary *params = @{@"card_token": token.tokenId,
+                                     @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
+                                     @"email": self.email,
+                                     @"card_name": self.fullName};
+            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
+                if ([[responseDict objectForKey:@"errors"] count]) {
+                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                    [self.nextButton removeFromSuperview];
+                    self.activeViewIndex--;
+                    [self navigateToActiveView];
+                } else {
+                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
+                    self.arbiter.user = [responseDict objectForKey:@"user"];
+                    self.activeViewIndex++;
+                    [self navigateToActiveView];
+                    self.withdrawComplete = YES;
+                }
+            } copy]];
+        }
+    } copy]];
 }
 
 
@@ -276,7 +285,6 @@
 
 # pragma mark Stripe View Delegate Methods
 
-// TODO: Figure out what the PaymentKit delegeat methods are
 - (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
 {
     [self renderNextButton];

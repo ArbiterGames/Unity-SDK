@@ -24,7 +24,7 @@
 
 @property (strong) id delegate;
 @property (strong) Arbiter *arbiter;
-@property (strong) PTKView *stripeView;
+@property (strong) PTKView *pkView;
 @property (strong) NSString *email;
 @property (strong) NSString *fullName;
 @property float withdrawAmount;

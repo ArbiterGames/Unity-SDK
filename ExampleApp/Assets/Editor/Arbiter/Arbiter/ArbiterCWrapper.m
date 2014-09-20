@@ -234,5 +234,7 @@ void _dumpLogs()
 {
     if( _logger == nil )
         _logger = [ArbiterLogger alloc];
-    [_logger dumpLogs];
+    NSMutableDictionary* data = [_logger startDump];
+    [ArbiterInstance() addLogs:data];
+    [_logger finishDump:data];
 }

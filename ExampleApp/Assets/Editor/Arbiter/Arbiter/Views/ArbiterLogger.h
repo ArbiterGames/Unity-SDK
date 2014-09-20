@@ -1,7 +1,13 @@
+@protocol Loggable
+
+-(void) addLogs:(NSMutableDictionary*)data;
+
+@end
 
 
 @interface ArbiterLogger : NSObject
 
--(void) dumpLogs;
+-(NSMutableDictionary*) startDump;
+-(void) finishDump:(NSMutableDictionary*)data;
 
 @end

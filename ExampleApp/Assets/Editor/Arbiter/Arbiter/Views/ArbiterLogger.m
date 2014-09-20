@@ -7,9 +7,17 @@
 
 }
 
--(void) dumpLogs
+-(NSMutableDictionary*) startDump
 {
-	NSLog(@"ttt dump some logs");
+	NSLog(@"ttt start dump");
+    NSMutableDictionary* data = [[NSMutableDictionary alloc] init];
+    return data;
 }
+
+-(void) finishDump:(NSMutableDictionary*)data
+{
+	NSLog(@"ttt add some data");
+}
+
 
 @end

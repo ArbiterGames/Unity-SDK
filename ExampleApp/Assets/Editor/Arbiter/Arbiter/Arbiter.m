@@ -92,7 +92,6 @@
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-#if __IPHONE_7_0
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         handler(@{@"success": @"false",
@@ -100,30 +99,31 @@
         return;
     }
     
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        handler(responseDict);
-    } copy];
-    [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
-        if (error) {
-            connectionHandler( @{@"success": @"false",
-                                 @"errors": @[[error localizedDescription]]});
-        } else {
-            NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
-                                         @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
-                                         @"signature":[signature base64EncodedStringWithOptions:0],
-                                         @"salt":[salt base64EncodedStringWithOptions:0],
-                                         @"playerID":localPlayer.playerID,
-                                         @"game_center_username": localPlayer.alias,
-                                         @"bundleID":[[NSBundle mainBundle] bundleIdentifier]};
-            [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
-        }
-    }];
-#else
-    handler(@{@"success": @"false",
-              @"errors": @[@"Linking a Game Center account requires iOS >= 7.0"]});
-#endif
+    if ( [localPlayer respondsToSelector:@selector(generateIdentityVerificationSignatureWithCompletionHandler:)] ) {
+        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            handler(responseDict);
+        } copy];
+        [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+            if (error) {
+                connectionHandler( @{@"success": @"false",
+                                     @"errors": @[[error localizedDescription]]});
+            } else {
+                NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
+                                             @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
+                                             @"signature":[signature base64EncodedStringWithOptions:0],
+                                             @"salt":[salt base64EncodedStringWithOptions:0],
+                                             @"playerID":localPlayer.playerID,
+                                             @"game_center_username": localPlayer.alias,
+                                             @"bundleID":[[NSBundle mainBundle] bundleIdentifier]};
+                [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
+            }
+        }];
+    } else {
+        handler(@{@"success": @"false",
+                  @"errors": @[@"Linking a Game Center account requires iOS >= 7.0"]});
+    };
 }
 
 - (void)login:(void(^)(NSDictionary *))handler
@@ -275,14 +275,11 @@
     locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
     locationManager.distanceFilter = 500;
     
-    NSLog(@"Should we request location authorization?");
     if ( [locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] ) {
         [locationManager requestWhenInUseAuthorization];
-        NSLog(@"YES!!");
     }
     
     [locationManager startUpdatingLocation];
-//    [self->locationManager startUpdatingLocation];
     
     CLLocation *location = [locationManager location];
     CLGeocoder *geocoder = [[CLGeocoder alloc] init];

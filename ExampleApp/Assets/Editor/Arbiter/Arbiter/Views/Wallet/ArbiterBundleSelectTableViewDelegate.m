@@ -51,7 +51,7 @@
     label.frame = CGRectMake(0.0, 10.0, tableView.frame.size.width, 20.0);
     label.font = [UIFont boldSystemFontOfSize:17.0];
     label.textColor = [UIColor whiteColor];
-    label.text = @"How many credits would you like to purchase?";
+    label.text = @"How many credits?";
     UIView *headerView = [[UIView alloc] init];
     [headerView addSubview:label];
     return headerView;
@@ -73,7 +73,7 @@
         label.textColor = [UIColor whiteColor];
         [cell.contentView addSubview:label];
         
-        value = [[UILabel alloc] initWithFrame:CGRectMake((cell.frame.size.width / 2) + 80.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2 - 20.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
         value.tag = CELL_VALUE_TAG;
         value.textAlignment = NSTextAlignmentRight;
         value.textColor = [UIColor whiteColor];
@@ -87,7 +87,7 @@
     [value setText:[NSString stringWithFormat:@"$%@ USD", [bundle objectForKey:@"price"]]];
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
     topBorder.opacity = 0.2;
     [cell.contentView.layer addSublayer:topBorder];

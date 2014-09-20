@@ -12,8 +12,6 @@
 
 @interface ArbiterBillingInfoTableViewDelegate : UIView <UITableViewDataSource, UITableViewDelegate>
 
-@property (strong) PTKView *stripeView;
-
-- (id)initWithStripeView:(PTKView *)stripeView;
+@property (strong) PTKView *pkView;
 
 @end

@@ -6,6 +6,7 @@
 //
 //
 
+#import <PassKit/PassKit.h>
 #import "ArbiterConstants.h"
 #import "ArbiterUITableView.h"
 #import "ArbiterWalletDepositView.h"
@@ -14,7 +15,8 @@
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
 #import "PTKView.h"
-#import <PassKit/PassKit.h>
+#import "STPCard.h"
+#import "Stripe.h"
 
 #define BUNDLE_SELECT_UI_TAG 667
 #define CONTACT_INFO_UI_TAG 668
@@ -113,53 +115,60 @@
 
 - (void)setupBillingInfoLayout
 {
-    // TODO: While building out the ApplePay flow, just replace all of this with the ApplePay flow
-    NSLog(@"apple pay");
+    // TODO: Make it an option to fill in a credit card
+    if ( self.pkView == nil ) {
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(15,20,290,55)];
+        self.pkView = view;
+        self.pkView.delegate = self;
+    }
     
-    //    NSString *stripePublishableKey;
-//    if ( self.stripeView == nil ) {
-//        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-//            stripePublishableKey = StripeLivePublishableKey;
-//        } else {
-//            stripePublishableKey = StripeTestPublishableKey;
-//        }
-//        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
-//        self.stripeView.delegate = self;
-//    }
-//    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
-//                                                          initWithStripeView:self.stripeView];
-//    
-//    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-//    tableView.delegate = tableDelegate;
-//    tableView.dataSource = tableDelegate;
-//    tableView.tag = BILLING_INFO_UI_TAG;
-//    [tableView reloadData];
-//    [self addSubview:tableView];
+    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc] init];
+    tableDelegate.pkView = self.pkView;
+    
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    tableView.tag = BILLING_INFO_UI_TAG;
+    [tableView reloadData];
+    [self addSubview:tableView];
 }
 
 - (void)getTokenAndSubmitPayment
 {
-// TODO: Update this to take the PaymentKit data and pass it along to the stripeView
-//    [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
-//        if (error) {
-//            [self handleError:[error localizedDescription]];
-//        } else {
-//            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
-//                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
-//                                     @"email": self.email,
-//                                     @"username": self.username};
-//            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-//                if ([[responseDict objectForKey:@"errors"] count]) {
-//                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
-//                } else {
-//                    self.arbiter.user = [responseDict objectForKey:@"user"];
-//                    self.activeViewIndex++;
-//                    [self navigateToActiveView];
-//                    self.purchaseCompleted = YES;
-//                }
-//            } copy]];
-//        }
-//    } copy]];
+    STPCard *card = [[STPCard alloc] init];
+    card.number = self.pkView.card.number;
+    card.expMonth = self.pkView.card.expMonth;
+    card.expYear = self.pkView.card.expYear;
+    card.cvc = self.pkView.card.cvc;
+    NSLog(@"number: %@", self.pkView.card.number);
+
+    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
+    } else {
+        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
+    }
+    
+    [Stripe createTokenWithCard:card completion:[^(STPToken *stripeToken, NSError *error) {
+        if (error) {
+            [self handleError:[error localizedDescription]];
+        } else {
+            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
+                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
+                                     @"email": self.email,
+                                     @"username": self.username};
+            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
+                if ([[responseDict objectForKey:@"errors"] count]) {
+                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                } else {
+                    self.arbiter.user = [responseDict objectForKey:@"user"];
+                    self.activeViewIndex++;
+                    [self navigateToActiveView];
+                    self.purchaseCompleted = YES;
+                }
+            } copy]];
+        }
+
+    } copy]];
 }
 
 - (void)setupSuccessMessage

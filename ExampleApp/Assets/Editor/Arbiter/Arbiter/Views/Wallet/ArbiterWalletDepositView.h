@@ -24,7 +24,7 @@
 
 @property (strong) id delegate;
 @property (strong) Arbiter *arbiter;
-@property (strong) PTKView *stripeView;
+@property (strong) PTKView *pkView;
 @property (strong) NSDictionary *selectedBundle;
 @property (strong) NSString *email;
 @property (strong) NSString *username;

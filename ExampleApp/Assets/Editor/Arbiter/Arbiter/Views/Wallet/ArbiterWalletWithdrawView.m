@@ -105,7 +105,7 @@
     self.withdrawAmount = ( self.withdrawAmount ) ? self.withdrawAmount : roundl(( walletBalance + 100.0 ) / 2);
     
     if ( walletBalance < 100 ) {
-        UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 70.0, self.frame.size.width, 50.0)];
+        UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 70.0, self.frame.size.width, 100.0)];
         message.numberOfLines = 0;
         message.tag = AMOUNT_SELECTION_UI_TAG;
         message.textColor = [UIColor whiteColor];

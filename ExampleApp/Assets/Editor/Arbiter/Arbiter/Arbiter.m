@@ -943,10 +943,12 @@
     return topWindow;
 }
 
+
 #pragma mark Logging Methods
+
 -(void) addLogs:(NSMutableDictionary*)data
 {
-    NSLog(@"ttt Arbiter.AddLogs");
+    [data setObject:self.user forKey:@"user"];
 }
 
 @end

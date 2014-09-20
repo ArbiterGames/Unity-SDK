@@ -16,7 +16,7 @@
 
 -(void) finishDump:(NSMutableDictionary*)data
 {
-	NSLog(@"ttt add some data");
+	NSLog(@"ttt send this data somewhere. data=\n%@", data);
 }
 
 

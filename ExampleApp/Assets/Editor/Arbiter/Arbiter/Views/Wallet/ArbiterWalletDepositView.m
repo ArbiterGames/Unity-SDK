@@ -12,18 +12,25 @@
 #import "ArbiterWalletDepositView.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
+#import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
 #import "PTKView.h"
 #import "STPCard.h"
 #import "Stripe.h"
 
-#define BUNDLE_SELECT_UI_TAG 667
-#define CONTACT_INFO_UI_TAG 668
-#define BILLING_INFO_UI_TAG 669
-#define GET_BUNDLE_REQUEST_TAG 671
-#define POST_DEPOSIT_REQUEST_TAG 672
-#define SUCCESS_MESSAGE_UI_TAG 673
+#define BUNDLE_SELECT_VIEW_TAG 1
+#define CONTACT_INFO_VIEW_TAG 2
+#define PAYMENT_OPTIONS_VIEW_TAG 3
+#define APPLE_PAY_VIEW_TAG 4
+#define CARD_INFO_VIEW_TAG 5
+#define GET_TOKEN_VIEW_TAG 6
+#define SUCCESS_MESSAGE_VIEW_TAG 7
+
+#define GET_BUNDLE_REQUEST_TAG 10
+#define POST_DEPOSIT_REQUEST_TAG 11
+
+
 
 
 @implementation ArbiterWalletDepositView
@@ -35,7 +42,7 @@
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
-        self.activeViewIndex = 0;
+        self.activeViewIndex = BUNDLE_SELECT_VIEW_TAG;
         [self renderBackButton];
         [self navigateToActiveView];
     }
@@ -44,21 +51,27 @@
 
 - (void)navigateToActiveView
 {
-    [self removeUIWithTag:BUNDLE_SELECT_UI_TAG];
-    [self removeUIWithTag:CONTACT_INFO_UI_TAG];
-    [self removeUIWithTag:BILLING_INFO_UI_TAG];
+    [self removeUIWithTag:BUNDLE_SELECT_VIEW_TAG];
+    [self removeUIWithTag:CONTACT_INFO_VIEW_TAG];
+    [self removeUIWithTag:PAYMENT_OPTIONS_VIEW_TAG];
+    [self removeUIWithTag:APPLE_PAY_VIEW_TAG];
+    [self removeUIWithTag:CARD_INFO_VIEW_TAG];
     
     if ( self.purchaseCompleted ) {
         [self.delegate handleBackButton];
-    } else if ( self.activeViewIndex == 0 ) {
+    } else if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self setupBundleSelect];
-    } else if ( self.activeViewIndex == 1 ) {
+    } else if ( self.activeViewIndex == CONTACT_INFO_VIEW_TAG ) {
         [self setupContactInfoLayout];
-    } else if ( self.activeViewIndex == 2 ) {
-        [self setupBillingInfoLayout];
-    } else if ( self.activeViewIndex == 3 ) {
+    } else if ( self.activeViewIndex == PAYMENT_OPTIONS_VIEW_TAG ) {
+        [self setupPaymentOptionsLayout];
+    }  else if ( self.activeViewIndex == APPLE_PAY_VIEW_TAG ) {
+        [self setupApplePayLayout];
+    } else if ( self.activeViewIndex == CARD_INFO_VIEW_TAG ) {
+        [self setupCreditCardInfoLayout];
+    } else if ( self.activeViewIndex == GET_TOKEN_VIEW_TAG ) {
         [self getTokenAndSubmitPayment];
-    } else if ( self.activeViewIndex == 4 ) {
+    } else if ( self.activeViewIndex == SUCCESS_MESSAGE_VIEW_TAG ) {
         [self setupSuccessMessage];
     }
 }
@@ -85,7 +98,7 @@
         ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
         tableView.delegate = selectView;
         tableView.dataSource = selectView;
-        tableView.tag = BUNDLE_SELECT_UI_TAG;
+        tableView.tag = BUNDLE_SELECT_VIEW_TAG;
         tableView.scrollEnabled = YES;
         tableView.allowsSelection = YES;
         [tableView reloadData];
@@ -108,14 +121,32 @@
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.scrollEnabled = YES;
-    tableView.tag = CONTACT_INFO_UI_TAG;
+    tableView.tag = CONTACT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
 }
 
-- (void)setupBillingInfoLayout
+- (void)setupPaymentOptionsLayout
 {
-    // TODO: Make it an option to fill in a credit card
+    ArbiterUITableView *table = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
+    ArbiterPaymentOptionsTableViewDelegate *tDelegate = [[ArbiterPaymentOptionsTableViewDelegate alloc] initWithCallback:[^(NSString *selectedOption) {
+        if ( [selectedOption isEqualToString:@"ApplePay"] ) {
+            self.activeViewIndex = APPLE_PAY_VIEW_TAG;
+        } else {
+            self.activeViewIndex = CARD_INFO_VIEW_TAG;
+        }
+        [self navigateToActiveView];
+    } copy]];
+    
+    table.delegate = tDelegate;
+    table.dataSource = tDelegate;
+    table.tag = PAYMENT_OPTIONS_VIEW_TAG;
+    [table reloadData];
+    [self addSubview:table];
+}
+
+- (void)setupCreditCardInfoLayout
+{
     if ( self.pkView == nil ) {
         PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(15,20,290,55)];
         self.pkView = view;
@@ -128,9 +159,14 @@
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
-    tableView.tag = BILLING_INFO_UI_TAG;
+    tableView.tag = CARD_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
+}
+
+- (void)setupApplePayLayout
+{
+    NSLog(@"APPLE PAY");
 }
 
 - (void)getTokenAndSubmitPayment
@@ -180,7 +216,7 @@
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
-    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
+    tableView.tag = SUCCESS_MESSAGE_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
     [self.backButton removeFromSuperview];

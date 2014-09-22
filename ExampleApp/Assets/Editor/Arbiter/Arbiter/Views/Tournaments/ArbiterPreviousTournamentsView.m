@@ -241,8 +241,11 @@
     
     if ( opponent ) {
         opponentScoreLabel.text = [NSString stringWithFormat:@"%@'s score", [opponent objectForKey:@"username"]];
-        opponentScoreValue.text = [opponent objectForKey:@"score"];
-
+        if ( [[NSString stringWithFormat:@"%@", [[self.arbiter getOpponentFromTournament:tournament] objectForKey:@"score"]] isEqualToString:@"<null>"] ) {
+            opponentScoreValue.text = @"...";
+        } else {
+            opponentScoreValue.text = [[self.arbiter getOpponentFromTournament:tournament] objectForKey:@"score"];
+        }
     } else {
         opponentScoreLabel.text = @"Waiting for opponent";
         opponentScoreValue.text = @"...";

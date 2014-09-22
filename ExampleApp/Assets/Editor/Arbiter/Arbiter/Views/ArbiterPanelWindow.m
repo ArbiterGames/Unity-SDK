@@ -93,9 +93,15 @@
 
 - (void)renderPoweredBy
 {
-    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake((self.rootViewController.view.frame.size.width - 100) / 2,
-                                                                   self.rootViewController.view.frame.size.height - 40,
-                                                                   100.0, 40.0)];
+    BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+    BOOL IS_LANDSCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+    float yOrigin = self.rootViewController.view.frame.size.height - 40;
+    float xOrigin = (self.rootViewController.view.frame.size.width - 100) / 2;
+    if ( IS_LESS_THAN_IOS8 && IS_LANDSCAPE ) {
+        yOrigin = self.rootViewController.view.frame.size.width - 40;
+        xOrigin = (self.rootViewController.view.frame.size.height - 100) / 2;
+    }
+    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake(xOrigin, yOrigin, 100.0, 40.0)];
     poweredBy.text = @"powered by Arbiter";
     poweredBy.font = [UIFont systemFontOfSize:11.0];
     poweredBy.textColor = [UIColor whiteColor];

@@ -141,7 +141,7 @@
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
+    UITableViewCell *cell = [self getCellFromTextField:textField];
     [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     return YES;
 }
@@ -151,5 +151,18 @@
     [self handleNextButton];
     return YES;
 }
+
+
+// iOS 7 renders the cells 1 class deeper than iOS 8.
+- (UITableViewCell*)getCellFromTextField:(UITextField *)textField
+{
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
+    if ( [cell isKindOfClass:[UITableView class]] == NO ) {
+        cell = (UITableViewCell *)textField.superview.superview.superview;
+    }
+    return cell;
+
+}
+
 
 @end

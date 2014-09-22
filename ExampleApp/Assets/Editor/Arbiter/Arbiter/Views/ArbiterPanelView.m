@@ -55,16 +55,16 @@
     for ( UIView *subview in self.subviews ) {
         finalHeight += subview.frame.size.height;
     }
-    CGRect frame = CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
-                              self.frame.size.width, finalHeight);
     
-    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        float tempY = frame.origin.y;
-        frame.origin.y = frame.origin.x;
-        frame.origin.x = tempY;
+    CGRect nonCenteredFrame = CGRectMake(0.0, 0.0, self.frame.size.width, finalHeight);
+    CGRect screenFrame = [[UIApplication sharedApplication] keyWindow].frame;
+    BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+    BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+    if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
+        [self setFrame:CGRectMake((screenFrame.size.height - nonCenteredFrame.size.width) / 2, (screenFrame.size.width - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
+    } else {
+        [self setFrame:CGRectMake((screenFrame.size.width - nonCenteredFrame.size.width) / 2, (screenFrame.size.height - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
     }
-    
-    [self setFrame:frame];
 }
 
 

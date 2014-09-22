@@ -6,7 +6,6 @@
 //
 //
 
-#import <PassKit/PassKit.h>
 #import "ArbiterConstants.h"
 #import "ArbiterUITableView.h"
 #import "ArbiterWalletDepositView.h"
@@ -15,7 +14,6 @@
 #import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
-#import "ArbiterPKViewController.h"
 #import "PTKView.h"
 #import "STPCard.h"
 #import "Stripe.h"

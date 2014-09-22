@@ -12,29 +12,38 @@
 
 - (id)init:(Arbiter *)arbiterInstance
 {
-    CGRect frame = CGRectMake(0.0f, 0.0f, [[UIScreen mainScreen] bounds].size.width, [[UIScreen mainScreen] bounds].size.height);
-    if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
-        frame = CGRectMake(0.0f, 0.0f, [[UIScreen mainScreen] bounds].size.height, [[UIScreen mainScreen] bounds].size.width);
-    }
-
-    self = [super initWithFrame:frame];
+    self = [super init];
     if ( self ) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
+
+        BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+        BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+        float padding = 10.0;
+        CGRect frame = [[UIApplication sharedApplication] keyWindow].frame;
+        frame.origin.x = padding;
         
+        if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
+            frame.size.height = frame.size.width;
+            frame.size.width = [[UIApplication sharedApplication] keyWindow].frame.size.height - padding * 2;
+        } else {
+            frame.size.width = frame.size.width - padding * 2;
+        }
+ 
         self.arbiter = arbiterInstance;
         self.maxWidth = 400.0;
         self.maxHeight = 320.0;
-        self.availableHeight = self.frame.size.height;
+        self.availableHeight = frame.size.height;
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
+        
         if ( frame.size.width > self.maxWidth ) {
-            self.marginizedFrame = CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
-                                              self.maxWidth, self.maxHeight);
-            [self setFrame:self.marginizedFrame];
+            [self setFrame:CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
+                                      self.maxWidth, self.maxHeight)];
         } else {
-            self.marginizedFrame = frame;
+            [self setFrame:frame];
         }
+        
         [self renderLayout];
     }
     return self;
@@ -52,8 +61,15 @@
         finalHeight += subview.frame.size.height;
     }
     
-    [self setFrame:CGRectMake(self.frame.origin.x, (self.availableHeight - finalHeight) / 2,
-                              self.frame.size.width, finalHeight)];
+    CGRect nonCenteredFrame = CGRectMake(0.0, 0.0, self.frame.size.width, finalHeight);
+    CGRect screenFrame = [[UIApplication sharedApplication] keyWindow].frame;
+    BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+    BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+    if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
+        [self setFrame:CGRectMake((screenFrame.size.height - nonCenteredFrame.size.width) / 2, (screenFrame.size.width - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
+    } else {
+        [self setFrame:CGRectMake((screenFrame.size.width - nonCenteredFrame.size.width) / 2, (screenFrame.size.height - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
+    }
 }
 
 

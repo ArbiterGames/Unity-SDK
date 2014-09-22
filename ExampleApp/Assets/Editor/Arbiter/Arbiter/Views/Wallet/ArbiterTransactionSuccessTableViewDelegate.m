@@ -46,17 +46,16 @@
         [cell setBackgroundColor:[UIColor clearColor]];
         
         if ( indexPath.row == 0 ) {
-            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, cell.frame.size.height)];
-            [label setTag:CELL_LABEL_TAG];
-            [label setTextColor:[UIColor whiteColor]];
-            [label setTextAlignment:NSTextAlignmentCenter];
-            [label setText:@"Your request was successful!"];
+            UILabel *label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width, cell.frame.size.height)];
+            label.tag = CELL_LABEL_TAG;
+            label.textAlignment = NSTextAlignmentCenter;
+            label.textColor = [UIColor whiteColor];
+            label.text = @"Your request was successful!";
             [cell.contentView addSubview:label];
         } else if ( indexPath.row == 1 ) {
             UIButton *backButton = [UIButton buttonWithType:UIButtonTypeSystem];
-            [backButton setFrame:CGRectMake(0.0 , 0.0, cell.frame.size.width + 80.0, cell.frame.size.height)];
+            [backButton setFrame:CGRectMake(0.0 , 0.0, cell.frame.size.width, cell.frame.size.height)];
             [backButton setTitle:@"Back to your Game" forState:UIControlStateNormal];
-            [backButton.titleLabel setTextAlignment:NSTextAlignmentCenter];
             [backButton.titleLabel setFont:[UIFont boldSystemFontOfSize:17.0]];
             [backButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
             [backButton addTarget:self action:@selector(backButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
@@ -69,7 +68,7 @@
 
 - (void)backButtonClicked:(id)sender
 {
-    self.callback();
+    [self callback];
 }
 
 

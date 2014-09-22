@@ -11,27 +11,35 @@
 #import "ArbiterWalletDepositView.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
+#import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import "PTKView.h"
+#import "STPCard.h"
+#import "Stripe.h"
 
-#define BUNDLE_SELECT_UI_TAG 667
-#define CONTACT_INFO_UI_TAG 668
-#define BILLING_INFO_UI_TAG 669
-#define GET_BUNDLE_REQUEST_TAG 671
-#define POST_DEPOSIT_REQUEST_TAG 672
-#define SUCCESS_MESSAGE_UI_TAG 673
+#define BUNDLE_SELECT_VIEW_TAG 1
+#define CONTACT_INFO_VIEW_TAG 2
+#define CARD_INFO_VIEW_TAG 3
+#define GET_TOKEN_VIEW_TAG 4
+#define SUCCESS_MESSAGE_VIEW_TAG 5
+
+#define GET_BUNDLE_REQUEST_TAG 10
+#define POST_DEPOSIT_REQUEST_TAG 11
+
 
 
 @implementation ArbiterWalletDepositView
 
-@synthesize delegate = _delegate;
+@synthesize parentDelegate = _parentDelegate;
+@synthesize childDelegate = _childDelegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
-        self.activeViewIndex = 0;
+        self.activeViewIndex = BUNDLE_SELECT_VIEW_TAG;
         [self renderBackButton];
         [self navigateToActiveView];
     }
@@ -40,22 +48,26 @@
 
 - (void)navigateToActiveView
 {
-    [self removeUIWithTag:BUNDLE_SELECT_UI_TAG];
-    [self removeUIWithTag:CONTACT_INFO_UI_TAG];
-    [self removeUIWithTag:BILLING_INFO_UI_TAG];
+    [self removeUIWithTag:BUNDLE_SELECT_VIEW_TAG];
+    [self removeUIWithTag:CONTACT_INFO_VIEW_TAG];
+    [self removeUIWithTag:CARD_INFO_VIEW_TAG];
+    [self.nextButton removeFromSuperview];
+    self.childDelegate = nil;
     
     if ( self.purchaseCompleted ) {
-        [self.delegate handleBackButton];
-    } else if ( self.activeViewIndex == 0 ) {
+        [self.parentDelegate handleBackButton];
+    } else if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self setupBundleSelect];
-    } else if ( self.activeViewIndex == 1 ) {
-        [self setupEmailFieldLayout];
-    } else if ( self.activeViewIndex == 2 ) {
-        [self setupBillingInfoLayout];
-    } else if ( self.activeViewIndex == 3 ) {
+    } else if ( self.activeViewIndex == CONTACT_INFO_VIEW_TAG ) {
+        [self setupContactInfoLayout];
+    } else if ( self.activeViewIndex == CARD_INFO_VIEW_TAG ) {
+        [self setupCreditCardInfoLayout];
+    } else if ( self.activeViewIndex == GET_TOKEN_VIEW_TAG ) {
         [self getTokenAndSubmitPayment];
-    } else if ( self.activeViewIndex == 4 ) {
+    } else if ( self.activeViewIndex == SUCCESS_MESSAGE_VIEW_TAG ) {
         [self setupSuccessMessage];
+    } else {
+        [self.parentDelegate handleNextButton];
     }
 }
 
@@ -81,7 +93,7 @@
         ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
         tableView.delegate = selectView;
         tableView.dataSource = selectView;
-        tableView.tag = BUNDLE_SELECT_UI_TAG;
+        tableView.tag = BUNDLE_SELECT_VIEW_TAG;
         tableView.scrollEnabled = YES;
         tableView.allowsSelection = YES;
         [tableView reloadData];
@@ -89,7 +101,7 @@
     } copy]];
 }
 
-- (void)setupEmailFieldLayout
+- (void)setupContactInfoLayout
 {
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
@@ -101,40 +113,53 @@
     
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
     tableDelegate.username = [self.arbiter.user objectForKey:@"username"];
+    tableDelegate.tag = CONTACT_INFO_VIEW_TAG;
+    [self renderNextButtonWithText:@"Next"];
+    self.childDelegate = tableDelegate;
+    
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.scrollEnabled = YES;
-    tableView.tag = CONTACT_INFO_UI_TAG;
+    tableView.tag = CONTACT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
 }
 
-- (void)setupBillingInfoLayout
+- (void)setupCreditCardInfoLayout
 {
-    NSString *stripePublishableKey;
-    if ( self.stripeView == nil ) {
-        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-            stripePublishableKey = StripeLivePublishableKey;
-        } else {
-            stripePublishableKey = StripeTestPublishableKey;
-        }
-        self.stripeView = [[STPView alloc] initWithFrame:self.frame andKey:stripePublishableKey];
-        self.stripeView.delegate = self;
+    if ( self.pkView == nil ) {
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
+        self.pkView = view;
+        self.pkView.delegate = self;
     }
-    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc]
-                                                          initWithStripeView:self.stripeView];
+    
+    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc] init];
+    tableDelegate.pkView = self.pkView;
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
-    tableView.tag = BILLING_INFO_UI_TAG;
+    tableView.tag = CARD_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
 }
 
+
 - (void)getTokenAndSubmitPayment
 {
-    [self.stripeView createToken:[^(STPToken *stripeToken, NSError *error) {
+    STPCard *card = [[STPCard alloc] init];
+    card.number = self.pkView.card.number;
+    card.expMonth = self.pkView.card.expMonth;
+    card.expYear = self.pkView.card.expYear;
+    card.cvc = self.pkView.card.cvc;
+
+    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
+    } else {
+        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
+    }
+    
+    [Stripe createTokenWithCard:card completion:[^(STPToken *stripeToken, NSError *error) {
         if (error) {
             [self handleError:[error localizedDescription]];
         } else {
@@ -153,6 +178,7 @@
                 }
             } copy]];
         }
+
     } copy]];
 }
 
@@ -160,30 +186,33 @@
 {
     ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
                                                           initWithCallback:[^(void) {
-        [self.delegate handleBackButton];
+        [self.parentDelegate handleBackButton];
     } copy]];
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
-    tableView.tag = SUCCESS_MESSAGE_UI_TAG;
+    tableView.tag = SUCCESS_MESSAGE_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
     [self.backButton removeFromSuperview];
-    self.nextButton.titleLabel.text = @"Close";
+    [self renderNextButtonWithText:@"Close"];
 }
 
-- (void)renderNextButton
+- (void)renderNextButtonWithText:(NSString *)btnText
 {
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 80.0;
-    float btnHeight = 50.0;
-    [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
-    [self.nextButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
-    self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    if ( self.nextButton == nil ) {
+        self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        float btnWidth = 80.0;
+        float btnHeight = 50.0;
+        [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
+        self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    }
+    
+    [self.nextButton setTitle:btnText forState:UIControlStateNormal];
     [self addSubview:self.nextButton];
 }
 
@@ -215,15 +244,22 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    self.activeViewIndex++;
-    [self navigateToActiveView];
+    if ( self.childDelegate ) {
+        [self.childDelegate handleNextButton];
+    } else {
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    }
 }
 
 - (void)backButtonClicked:(id)sender
 {
-    if ( self.activeViewIndex == 0 ) {
-        [self.delegate handleBackButton];
+    if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
+        [self.parentDelegate handleBackButton];
     } else {
+        if ( self.childDelegate ) {
+            [self.childDelegate handleBackButton];
+        }
         self.activeViewIndex--;
         [self navigateToActiveView];
     }
@@ -232,9 +268,9 @@
 
 # pragma mark Stripe View Delegate Methods
 
-- (void)stripeView:(STPView *)view withCard:(PKCard *)card isValid:(BOOL)valid
+- (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
 {
-    [self renderNextButton];
+    [self renderNextButtonWithText:@"Submit"];
 }
 
 - (void)handleError:(NSString *)error

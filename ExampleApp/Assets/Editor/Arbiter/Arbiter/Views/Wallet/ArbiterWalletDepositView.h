@@ -8,23 +8,26 @@
 
 #import <UIKit/UIKit.h>
 #import "Arbiter.h"
-#import "STPView.h"
+#import "PTKView.h"
 
 
 @protocol WalletDepositViewDelegate
 
 - (void)handleBackButton;
+- (void)handleNextButton;
 
 @end
 
-@interface ArbiterWalletDepositView : UIView <STPViewDelegate, ArbiterWalletObserver>
+@interface ArbiterWalletDepositView : UIView <PTKViewDelegate, ArbiterWalletObserver>
 {
-    id <WalletDepositViewDelegate> delegate;
+    id <WalletDepositViewDelegate> parentDelegate;
+    id <WalletDepositViewDelegate> childDelegate;
 }
 
-@property (strong) id delegate;
+@property (strong) id parentDelegate;
+@property (strong) id childDelegate;
 @property (strong) Arbiter *arbiter;
-@property (strong) STPView *stripeView;
+@property (strong) PTKView *pkView;
 @property (strong) NSDictionary *selectedBundle;
 @property (strong) NSString *email;
 @property (strong) NSString *username;

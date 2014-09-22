@@ -106,6 +106,7 @@
         [cell.contentView.layer addSublayer:topBorder];
         [cell.contentView addSubview:self.nameField];
     }
+    
     return cell;
 }
 
@@ -114,14 +115,40 @@
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    UITableViewCell *cell = [self getCellFromTextField:textField];
     [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     return YES;
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if ( textField.tag == EMAIL_FIELD_TAG ) {
+    [self handleNextButton];
+    return YES;
+}
+
+// iOS 7 renders the cells 1 class deeper than iOS 8.
+- (UITableViewCell*)getCellFromTextField:(UITextField *)textField
+{
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
+    if ( [cell isKindOfClass:[UITableView class]] == NO ) {
+        cell = (UITableViewCell *)textField.superview.superview.superview;
+    }
+    return cell;
+    
+}
+
+
+#pragma mark WalletWithdrawView delegate methods
+
+- (void)handleBackButton
+{
+    // No-op, unless we want to have this start toggling backwards through the fields.
+    // Not doing that now to simplify to parentView navigation logic
+}
+
+- (void)handleNextButton
+{
+    if ( [self.emailField isFirstResponder] ) {
         [self.nameField becomeFirstResponder];
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
@@ -141,7 +168,6 @@
             self.callback(@{@"email": self.emailField.text, @"fullName": self.nameField.text});
         }
     }
-    return YES;
 }
 
 

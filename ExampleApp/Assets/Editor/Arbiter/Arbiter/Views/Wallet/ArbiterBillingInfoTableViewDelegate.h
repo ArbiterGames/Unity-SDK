@@ -7,11 +7,11 @@
 //
 
 #import <UIKit/UIKit.h>
-#import "STPView.h"
+#import "PTKView.h"
 
 
 @interface ArbiterBillingInfoTableViewDelegate : UIView <UITableViewDataSource, UITableViewDelegate>
 
-- (id)initWithStripeView:(STPView *)stripeView;
+@property (strong) PTKView *pkView;
 
 @end

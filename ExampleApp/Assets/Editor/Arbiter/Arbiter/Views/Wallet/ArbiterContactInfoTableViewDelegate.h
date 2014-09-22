@@ -7,17 +7,22 @@
 //
 
 #import <UIKit/UIKit.h>
+#import "ArbiterWalletDepositView.h"
 
 
-@interface ArbiterContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate>
+@interface ArbiterContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, WalletDepositViewDelegate>
 
 @property (strong) NSString *email;
 @property (strong) NSString *username;
 @property (strong) void (^callback)(NSDictionary *);
 @property (strong) UITableView *tableView;
+
 @property (strong) IBOutlet UITextField *emailField;
 @property (strong) IBOutlet UITextField *usernameField;
 
 - (id)initWithCallback:(void(^)(NSDictionary *))callback;
+
+- (void)handleNextButton;
+- (void)handleBackButton;
 
 @end

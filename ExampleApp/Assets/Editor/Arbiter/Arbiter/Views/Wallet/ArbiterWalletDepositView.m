@@ -15,6 +15,7 @@
 #import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import "ArbiterPKViewController.h"
 #import "PTKView.h"
 #import "STPCard.h"
 #import "Stripe.h"
@@ -166,8 +167,21 @@
 
 - (void)setupApplePayLayout
 {
-    NSLog(@"APPLE PAY");
+    PKPaymentRequest *request = [Stripe
+                                 paymentRequestWithMerchantIdentifier:@"merchant.arbiter.Arbiter-Example"
+                                 amount:[NSDecimalNumber decimalNumberWithString:@"10.00"]
+                                 currency:@"USD"
+                                 description:@"Premium llama food"];
+    NSLog(@"request: %@", request);
+    NSLog(@"canSubmit?: %hhd", [Stripe canSubmitPaymentRequest:request]);
+    if ([Stripe canSubmitPaymentRequest:request]) {
+        NSLog(@"init'ing ArbiterPKViewController");
+        [[ArbiterPKViewController alloc] initWithRequest:request];
+    } else {
+        NSLog(@"show credit card form");
+    }
 }
+
 
 - (void)getTokenAndSubmitPayment
 {

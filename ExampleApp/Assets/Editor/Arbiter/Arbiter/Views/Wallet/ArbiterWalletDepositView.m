@@ -113,12 +113,12 @@
         [self navigateToActiveView];
     } copy]];
     
-    [self renderNextButtonWithText:@"Next"];
-    self.childDelegate = tableDelegate;
-    
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
     tableDelegate.username = [self.arbiter.user objectForKey:@"username"];
     tableDelegate.tag = CONTACT_INFO_VIEW_TAG;
+    [self renderNextButtonWithText:@"Next"];
+    self.childDelegate = tableDelegate;
+    
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.scrollEnabled = YES;

@@ -16,7 +16,7 @@
 
 - (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock
 {
-    self = [super initWithFrame:CGRectMake(0.0, 0.0, 0.0, 0.0)];
+    self = [super init];
     if ( self ) {
         self.callback = callbackBlock;
 
@@ -112,9 +112,6 @@
             [cell.contentView addSubview:self.usernameField];
             [cell.contentView.layer addSublayer:topBorder];
         }
-    } else {
-        self.emailField = (UITextField *)[cell.contentView viewWithTag:CELL_EMAIL_FIELD_TAG];
-        self.usernameField = (UITextField *)[cell.contentView viewWithTag:CELL_USERNAME_FIELD_TAG];
     }
     
     return cell;
@@ -126,7 +123,7 @@
 - (void)handleBackButton
 {
     // No-op, unless we want to have this start toggling backwards through the fields.
-    // Not doing that now to simplify to parentView navigation logic
+    // Not doing that now to simplify the parentView navigation logic
 }
 
 - (void)handleNextButton
@@ -144,7 +141,7 @@
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
     [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     return YES;
 }

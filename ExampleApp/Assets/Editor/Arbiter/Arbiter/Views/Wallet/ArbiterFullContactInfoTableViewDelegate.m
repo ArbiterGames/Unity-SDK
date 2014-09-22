@@ -106,6 +106,7 @@
         [cell.contentView.layer addSublayer:topBorder];
         [cell.contentView addSubview:self.nameField];
     }
+    
     return cell;
 }
 
@@ -114,7 +115,7 @@
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
     [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     return YES;
 }

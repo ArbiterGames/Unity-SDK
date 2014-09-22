@@ -7,6 +7,8 @@ using ArbiterInternal;
 
 public delegate void SuccessHandler();
 public delegate void ErrorHandler( List<string> errors );
+public delegate void FriendlyErrorHandler( List<string> errors, List<string> descriptions );
+
 
 public partial class Arbiter : MonoBehaviour {
 
@@ -210,13 +212,14 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	public delegate void JoinTournamentCallback( Tournament tournament );
-	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback success, ErrorHandler failure ) {
+	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback success, FriendlyErrorHandler failure ) {
 
+		/* ttt keep this check clientside for now...
 		if( !IsVerified ) {
 			List<string> errors = new List<string>() { "The current user is not verified and cannot play in tournaments." };
-			failure( errors );
+			failure( errors, errors );
 			return;
-		}
+		}*/
 
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
 			return (tournament.Status == Tournament.StatusType.Initializing ||
@@ -240,7 +243,9 @@ public partial class Arbiter : MonoBehaviour {
 			if( retries > MAX_RETRIES ) {
 				List<string> errors = new List<string>();
 				errors.Add( "Tournament request limit exceeded. Ceasing new requests." );
-				failure( errors );
+				List<string> descriptions = new List<string>();
+				descriptions.Add( "The tournament timed-out. Please try again later." );
+				failure( errors, descriptions );
 				tournamentPoller.Stop();
 			} else {
 				ArbiterBinding.FetchTournaments( gotTournamentsPollHelper, failure );
@@ -263,7 +268,7 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.FetchTournaments( gotTournamentsFirstTimeHelper, failure );
 	}
 
-	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler callback, ErrorHandler failure ) {
+	public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler callback, FriendlyErrorHandler failure ) {
 		if( filters == null ) {
 			filters = new Dictionary<string,string>();
 		}
@@ -271,7 +276,7 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	
-	public static void FetchTournaments( SuccessHandler success, ErrorHandler failure ) {
+	public static void FetchTournaments( SuccessHandler success, FriendlyErrorHandler failure ) {
 		fetchedTournamentsCallback = () => { 
 			success();
 		};

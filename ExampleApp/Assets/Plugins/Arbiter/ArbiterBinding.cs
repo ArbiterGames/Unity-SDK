@@ -67,7 +67,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _init( string gameApiKey, string accessToken );
 		public static void Init( string gameApiKey, string accessToken, SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( INIT, success, failure );
+			SetCallbacksWithErrors( INIT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Initialize" );
 			success();
@@ -81,7 +81,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginAsAnonymous();
 		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( LOGIN_ANONYMOUS, success, failure );
+			SetCallbacksWithErrors( LOGIN_ANONYMOUS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:Anonymous" );
 			User user = new User();
@@ -99,7 +99,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
 		public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( LOGIN_GAME_CENTER, success, failure );
+			SetCallbacksWithErrors( LOGIN_GAME_CENTER, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:GameCenter" );
 			User user = new User();
@@ -117,7 +117,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _login();
 		public static void Login( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( LOGIN, success, failure );
+			SetCallbacksWithErrors( LOGIN, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Login:BasicAuth" );
 			User user = new User();
@@ -134,7 +134,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _logout();
 		public static void Logout( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( LOGOUT, success, failure );
+			SetCallbacksWithErrors( LOGOUT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Logout" );
 			success();
@@ -148,7 +148,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _verifyUser();
 		public static void VerifyUser( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( VERIFY, success, failure );
+			SetCallbacksWithErrors( VERIFY, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "VerifyUser" );
 			User user = new User();
@@ -167,7 +167,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _fetchWallet();
 		public static void FetchWallet( SuccessHandler success, ErrorHandler failure ) {
-			simpleCallbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure );
+			callbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure, ( e,d ) => {} );
 #if UNITY_EDITOR
 			ReportIgnore( "FetchWallet" );
 			Arbiter.wallet = new Wallet();
@@ -198,7 +198,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _sendPromoCredits( string amount );
 		public static void SendPromoCredits( string amount, SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( SEND_PROMO_CREDITS, success, failure );
+			SetCallbacksWithErrors( SEND_PROMO_CREDITS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "SendPromoCredits" );
 			if( success != null )
@@ -212,8 +212,8 @@ namespace ArbiterInternal {
 		const string REQUEST_TOURNAMENT = "request_tournament";
 		[DllImport ("__Internal")]
 		private static extern void _requestTournament( string buyIn, string filters );
-		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( REQUEST_TOURNAMENT, success, failure );
+		public static void RequestTournament( string buyIn, Dictionary<string,string> filters, SuccessHandler success, FriendlyErrorHandler failure ) {
+			SetCallbacksWithFriendlyErrors( REQUEST_TOURNAMENT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "RequestTournament" );
 			if( success != null )
@@ -243,8 +243,8 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _fetchTournaments();
 		private static Arbiter.TournamentsCallback fetchTournamentsSuccessHandler;
-		private static ErrorHandler fetchTournamentsErrorHandler;
-		public static void FetchTournaments( Arbiter.TournamentsCallback success, ErrorHandler failure ) {
+		private static FriendlyErrorHandler fetchTournamentsErrorHandler;
+		public static void FetchTournaments( Arbiter.TournamentsCallback success, FriendlyErrorHandler failure ) {
 			fetchTournamentsSuccessHandler = success;
 			fetchTournamentsErrorHandler = failure;
 #if UNITY_EDITOR
@@ -261,7 +261,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _showPreviousTournaments();
 		public static void ShowPreviousTournaments( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( SHOW_PREIVOUS_TOURNAMENTS, success, failure );
+			SetCallbacksWithErrors( SHOW_PREIVOUS_TOURNAMENTS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "ViewPreviousTournaments" );
 			success();
@@ -288,7 +288,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _showUnviewedTournaments();
 		public static void ShowUnviewedTournaments( SuccessHandler success, ErrorHandler failure ) {
-			SetSimpleCallbacks( SHOW_UNVIEWED_TOURNAMENTS, success, failure );
+			SetCallbacksWithErrors( SHOW_UNVIEWED_TOURNAMENTS, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "ShowUnviewedTournaments" );
 			success();
@@ -332,12 +332,13 @@ namespace ArbiterInternal {
 		}
 
 
+
 // TODO: This still needs to be implemented on the obj-c side
 //		const string MARK_VIEWED_TOURNAMENT = "mark_view_tourn";
 //		[DllImport ("__Internal")]
 //		private static extern void _markViewedTournament( string tournamentId );
 //		public static void MarkViewedTournament( string tournamentId, ErrorHandler failure ) {
-//			SetSimpleCallbacks( MARK_VIEWED_TOURNAMENT, null, failure );
+//			SetCallbacksWithErrors( MARK_VIEWED_TOURNAMENT, null, failure );
 //#if UNITY_EDITOR
 //			ReportIgnore( "MarkViewedTournament" );
 //#elif UNITY_IOS
@@ -351,7 +352,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _showWalkThrough( string walkThroughId );
 		public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
-			SetSimpleCallbacks( SHOW_WALK_THROUGH, callback, null );
+			SetCallbacksWithErrors( SHOW_WALK_THROUGH, callback, null );
 			#if UNITY_EDITOR
 			ReportIgnore( "ShowWalkThrough" );
 			#elif UNITY_IOS
@@ -411,7 +412,7 @@ namespace ArbiterInternal {
 				JSONNode tournamentsNode = json["tournaments"];
 				fetchTournamentsSuccessHandler( TournamentProtocol.ParseTournaments( tournamentsNode["results"] ));
 			} else {
-				fetchTournamentsErrorHandler( getErrors( json ));
+				fetchTournamentsErrorHandler( getErrors( json ), getDescriptions( json ));
 			}
 		}
 		public void FetchUnviewedTournamentsHandler( string jsonString ) {
@@ -465,36 +466,47 @@ namespace ArbiterInternal {
 
 
 		public struct CallbackTuple {
-			public CallbackTuple( SuccessHandler success, ErrorHandler failure ) {
+			public CallbackTuple( SuccessHandler success, ErrorHandler failure, FriendlyErrorHandler friendlyFailure ) {
 				Success = success;
 				Failure = failure;
+				FriendlyFailure = friendlyFailure;
 			}
 			public SuccessHandler Success;
 			public ErrorHandler Failure;
+			public FriendlyErrorHandler FriendlyFailure;
 		}
-		private static Dictionary<string,CallbackTuple> simpleCallbacks = new Dictionary<string,CallbackTuple>();
-		private static void SetSimpleCallbacks( string key, SuccessHandler success, ErrorHandler failure ) {
+		private static Dictionary<string,CallbackTuple> callbacks = new Dictionary<string,CallbackTuple>();
+		private static void SetCallbacksWithFriendlyErrors( string key, SuccessHandler success, FriendlyErrorHandler failure ) {
+			if( success == null )
+				success = () => {};
+			if( failure == null )
+				failure = (e,d) => {};
+			callbacks[ key ] = new CallbackTuple( success, ( e ) => {}, failure );
+		}
+		private static void SetCallbacksWithErrors( string key, SuccessHandler success, ErrorHandler failure ) {
 			if( success == null )
 				success = () => {};
 			if( failure == null )
 				failure = (e) => {};
-			simpleCallbacks[ key ] = new CallbackTuple( success, failure );
+			callbacks[ key ] = new CallbackTuple( success, failure, ( e,d ) => {} );
 		}
 		private static void SetSimpleCallback( string key, SuccessHandler callback ) {
 			if( callback == null )
 				callback = () => {};
-			simpleCallbacks[ key ] = new CallbackTuple( callback, ( e ) => {} );
+			callbacks[ key ] = new CallbackTuple( callback, ( e ) => {}, ( e,d ) => {} );
 		}
 		private void SimpleCallback( string callKey, string pluginResponse ) {
 			JSONNode json = JSON.Parse( pluginResponse );
+			CallbackTuple callback = callbacks[ callKey ];
 			if( wasSuccess( json )) {
-				simpleCallbacks[ callKey ].Success();
+				callback.Success();
 			} else {
-				simpleCallbacks[ callKey ].Failure( getErrors( json ));
+				callback.Failure( getErrors( json ));
+				callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
 			}
 		}
 		private void SimpleCallback( string callKey ) {
-			simpleCallbacks[ callKey ].Success();
+			callbacks[ callKey ].Success();
 		}
 #endregion
 
@@ -519,6 +531,15 @@ namespace ArbiterInternal {
 		private List<string> getErrors( JSONNode json ) {
 			List<string> rv = new List<string>();
 			JSONArray errors = json["errors"].AsArray;
+			IEnumerator enumerator = errors.GetEnumerator();
+			while( enumerator.MoveNext() ) {
+				rv.Add( ((JSONData)(enumerator.Current)).Value );
+			}
+			return rv;
+		}
+		private List<string> getDescriptions( JSONNode json ) {
+			List<string> rv = new List<string>();
+			JSONArray errors = json["descriptions"].AsArray;
 			IEnumerator enumerator = errors.GetEnumerator();
 			while( enumerator.MoveNext() ) {
 				rv.Add( ((JSONData)(enumerator.Current)).Value );

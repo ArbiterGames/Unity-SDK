@@ -37,7 +37,6 @@
     view.parentWindow = self;
     self.rootViewController.view.backgroundColor = [UIColor colorWithPatternImage:[image applyDarkEffect]];
     [self.rootViewController.view addSubview:view];
-    [self renderPoweredBy];
 
     CGRect temp = self.frame;
     if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
@@ -57,6 +56,8 @@
                          self.rootViewController.view.frame = temp;
                      }
                      completion:nil];
+
+    [self renderPoweredBy];
 }
 
 - (void)hide
@@ -86,8 +87,8 @@
 
 - (void)renderPoweredBy
 {
-    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake((self.rootViewController.view.bounds.size.width - 100) / 2,
-                                                                   self.rootViewController.view.bounds.size.height - 40,
+    UILabel *poweredBy = [[UILabel alloc] initWithFrame:CGRectMake((self.rootViewController.view.frame.size.width - 100) / 2,
+                                                                   self.rootViewController.view.frame.size.height - 40,
                                                                    100.0, 40.0)];
     poweredBy.text = @"powered by Arbiter";
     poweredBy.font = [UIFont systemFontOfSize:11.0];

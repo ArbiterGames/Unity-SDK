@@ -16,11 +16,14 @@
     if ( self ) {
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidShow:) name:UIKeyboardDidShowNotification object:nil];
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
-        
+
+        BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+        BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
         float padding = 10.0;
         CGRect frame = [[UIApplication sharedApplication] keyWindow].frame;
         frame.origin.x = padding;
-        if ( UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]) ) {
+        
+        if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
             frame.size.height = frame.size.width;
             frame.size.width = [[UIApplication sharedApplication] keyWindow].frame.size.height - padding * 2;
         } else {
@@ -33,12 +36,14 @@
         self.availableHeight = frame.size.height;
         self.titleHeight = 40.0;
         self.titleYPos = 10.0;
+        
         if ( frame.size.width > self.maxWidth ) {
             [self setFrame:CGRectMake((frame.size.width - self.maxWidth) / 2, (self.availableHeight - self.maxHeight) / 2,
                                       self.maxWidth, self.maxHeight)];
         } else {
             [self setFrame:frame];
         }
+        
         [self renderLayout];
     }
     return self;

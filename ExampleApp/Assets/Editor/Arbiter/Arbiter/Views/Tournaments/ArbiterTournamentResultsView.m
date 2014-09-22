@@ -118,15 +118,14 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         cell.backgroundColor = [UIColor clearColor];
-        float adjustedWidth = (cell.frame.size.width + 80.0) / 2;
         
-        label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, adjustedWidth, cell.frame.size.height)];
+        label = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
         label.tag = CELL_LABEL_TAG;
         label.textColor = [UIColor whiteColor];
         label.textAlignment = NSTextAlignmentLeft;
         [cell.contentView addSubview:label];
         
-        value = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, 0.0, adjustedWidth, cell.frame.size.height)];
+        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
         value.tag = CELL_VALUE_TAG;
         value.textColor = [UIColor whiteColor];
         value.textAlignment = NSTextAlignmentRight;
@@ -137,7 +136,7 @@
     }
     
     CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
     topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
     topBorder.opacity = 0.2;
     
@@ -150,14 +149,14 @@
             label.text = [NSString stringWithFormat:@"%@'s score", [opponent objectForKey:@"username"]];
             value.text = [opponent objectForKey:@"score"];
         } else {
-            label.text = @"Waiting for opponent";
+            label.text = @"Opponent score";
             value.text = @"...";
         }
         [cell.contentView.layer addSublayer:topBorder];
     } else if ( indexPath.row == 2 ) {
         NSString *status = [self.tournament objectForKey:@"status"];
         if ( ([status  isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"]) || [[self.tournament objectForKey:@"winners"] containsObject:[self.arbiter.user objectForKey:@"id"]] ) {
-            label.text = @"Payout";
+            label.text = @"Prize";
             value.text = [NSString stringWithFormat:@"%@ credits", [self.tournament objectForKey:@"payout"]];
             [cell.contentView.layer addSublayer:topBorder];
         }

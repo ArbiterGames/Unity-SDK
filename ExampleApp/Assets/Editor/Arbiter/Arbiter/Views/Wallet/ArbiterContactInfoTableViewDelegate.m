@@ -13,9 +13,10 @@
 
 @implementation ArbiterContactInfoTableViewDelegate
 
+
 - (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock
 {
-    self = [super init];
+    self = [super initWithFrame:CGRectMake(0.0, 0.0, 0.0, 0.0)];
     if ( self ) {
         self.callback = callbackBlock;
 
@@ -50,6 +51,7 @@
     }
     return self;
 }
+
 
 
 # pragma mark TableView Delegate Methods
@@ -119,7 +121,26 @@
 }
 
 
-#pragma mark TextField Delegates
+#pragma mark WalletDepositView delegate methods
+
+- (void)handleBackButton
+{
+    // No-op, unless we want to have this start toggling backwards through the fields.
+    // Not doing that now to simplify to parentView navigation logic
+}
+
+- (void)handleNextButton
+{
+    if ( [self.emailField isFirstResponder] ) {
+        [self.usernameField becomeFirstResponder];
+    } else {
+        self.callback(@{@"email": self.emailField.text,
+                        @"username": self.usernameField.text});
+    }
+}
+
+
+#pragma mark TextField Delegate methods
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
@@ -130,12 +151,7 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if ( textField.tag == CELL_EMAIL_FIELD_TAG ) {
-        [self.usernameField becomeFirstResponder];
-    } else {
-        self.callback(@{@"email": self.emailField.text,
-                        @"username": self.usernameField.text});
-    }
+    [self handleNextButton];
     return YES;
 }
 

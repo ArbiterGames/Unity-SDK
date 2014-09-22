@@ -16,24 +16,26 @@
 #import "Stripe.h"
 #import "PTKView.h"
 
-#define AMOUNT_SELECTION_UI_TAG 100
-#define CONTACT_INFO_UI_TAG 101
-#define BILLING_INFO_UI_TAG 102
-#define SUCCESS_MESSAGE_UI_TAG 103
+#define AMOUNT_SELECTION_UI_TAG 1
+#define CONTACT_INFO_UI_TAG 2
+#define BILLING_INFO_UI_TAG 3
+#define TOKEN_REQUEST_UI_TAG 4
+#define SUCCESS_MESSAGE_UI_TAG 5
 
 #define POST_WITHDRAWAL_REQUEST_TAG 200
 
 
 @implementation ArbiterWalletWithdrawView
 
-@synthesize delegate = _delegate;
+@synthesize parentDelegate = _parentDelegate;
+@synthesize childDelegate = _childDelegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
 {
     self = [super initWithFrame:frame];
     if ( self ) {
         self.arbiter = arbiterInstance;
-        self.activeViewIndex = 0;
+        self.activeViewIndex = AMOUNT_SELECTION_UI_TAG;
         self.email = [self.arbiter.user objectForKey:@"email"];
         self.fullName = [self.arbiter.user objectForKey:@"full_name"];
         [self renderBackButton];
@@ -49,19 +51,22 @@
     [self removeUIWithTag:BILLING_INFO_UI_TAG];
     [self removeUIWithTag:SUCCESS_MESSAGE_UI_TAG];
     [self.nextButton removeFromSuperview];
+    self.childDelegate = nil;
     
     if ( self.withdrawComplete ) {
-        [self.delegate handleBackButton];
-    } else if ( self.activeViewIndex == 0 ) {
+        [self.parentDelegate handleBackButton];
+    } else if ( self.activeViewIndex == AMOUNT_SELECTION_UI_TAG ) {
         [self setupAmountSelectionUI];
-    } else if ( self.activeViewIndex == 1 ) {
+    } else if ( self.activeViewIndex == CONTACT_INFO_UI_TAG ) {
         [self setupContactInfoUI];
-    } else if ( self.activeViewIndex == 2 ) {
+    } else if ( self.activeViewIndex == BILLING_INFO_UI_TAG ) {
         [self setupBillingInfoUI];
-    } else if ( self.activeViewIndex == 3 ) {
+    } else if ( self.activeViewIndex == TOKEN_REQUEST_UI_TAG ) {
         [self getTokenAndSubmitWithdraw];
-    } else if ( self.activeViewIndex == 4 ) {
+    } else if ( self.activeViewIndex == SUCCESS_MESSAGE_UI_TAG ) {
         [self setupSuccessMessageUI];
+    } else {
+        [self.parentDelegate handleNextButton];
     }
 }
 
@@ -73,17 +78,20 @@
 
 # pragma mark Render Methods
 
-- (void)renderNextButton
+- (void)renderNextButtonWithText:(NSString *)btnText
 {
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 60.0;
-    float btnHeight = 50.0;
-    [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
-    [self.nextButton setTitle:@"Next" forState:UIControlStateNormal];
-    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
-    self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    if ( self.nextButton == nil ) {
+        self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        float btnWidth = 60.0;
+        float btnHeight = 50.0;
+        [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+        [self.nextButton setTitle:btnText forState:UIControlStateNormal];
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
+        self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    }
+    [self.nextButton setTitle:btnText forState:UIControlStateNormal];
     [self addSubview:self.nextButton];
 }
 
@@ -114,7 +122,7 @@
         message.text = [NSString stringWithFormat:@"Your current wallet balance (%.f credits) is below the withdraw minimum (100 credits).", walletBalance];
         [self addSubview:message];
     } else {
-        [self renderNextButton];
+        [self renderNextButtonWithText:@"Next"];
         
         UILabel *message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 70.0, self.bounds.size.width, 50.0)];
         message.numberOfLines = 0;
@@ -160,6 +168,8 @@
     } copy]];
     tableDelegate.email = self.email;
     tableDelegate.fullName = self.fullName;
+    self.childDelegate = tableDelegate;
+    
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.scrollEnabled = YES;
     tableView.delegate = tableDelegate;
@@ -167,12 +177,13 @@
     tableView.tag = CONTACT_INFO_UI_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
+    [self renderNextButtonWithText:@"Next"];
 }
 
 - (void)setupBillingInfoUI
 {
     if ( self.pkView == nil ) {
-        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(15,20,290,55)];
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
         self.pkView = view;
         self.pkView.delegate = self;
     }
@@ -192,7 +203,7 @@
 {
     ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
                                                                  initWithCallback:[^(void) {
-        [self.delegate handleBackButton];
+        [self.parentDelegate handleBackButton];
     } copy]];
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.delegate = tableDelegate;
@@ -201,7 +212,7 @@
     [tableView reloadData];
     [self addSubview:tableView];
     [self.backButton removeFromSuperview];
-    [self.nextButton setTitle:@"Close" forState:UIControlStateNormal];
+    [self renderNextButtonWithText:@"Close"];
 }
 
 - (void)removeUIWithTag:(int)tag
@@ -258,15 +269,22 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    self.activeViewIndex++;
-    [self navigateToActiveView];
+    if ( self.childDelegate ) {
+        [self.childDelegate handleNextButton];
+    } else {
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    }
 }
 
 - (void)backButtonClicked:(id)sender
 {
     if ( self.activeViewIndex == 0 ) {
-        [self.delegate handleBackButton];
+        [self.parentDelegate handleBackButton];
     } else {
+        if ( self.childDelegate ) {
+            [self.childDelegate handleBackButton];
+        }
         self.activeViewIndex--;
         [self navigateToActiveView];
     }
@@ -287,8 +305,7 @@
 
 - (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
 {
-    [self renderNextButton];
-    [self.nextButton setTitle:@"Submit" forState:UIControlStateNormal];
+    [self renderNextButtonWithText:@"Submit"];
 }
 
 - (void)handleError:(NSString *)error

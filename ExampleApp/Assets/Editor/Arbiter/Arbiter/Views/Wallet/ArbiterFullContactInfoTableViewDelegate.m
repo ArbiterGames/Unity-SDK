@@ -121,7 +121,22 @@
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if ( textField.tag == EMAIL_FIELD_TAG ) {
+    [self handleNextButton];
+    return YES;
+}
+
+
+#pragma mark WalletWithdrawView delegate methods
+
+- (void)handleBackButton
+{
+    // No-op, unless we want to have this start toggling backwards through the fields.
+    // Not doing that now to simplify to parentView navigation logic
+}
+
+- (void)handleNextButton
+{
+    if ( [self.emailField isFirstResponder] ) {
         [self.nameField becomeFirstResponder];
     } else {
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@""
@@ -141,7 +156,6 @@
             self.callback(@{@"email": self.emailField.text, @"fullName": self.nameField.text});
         }
     }
-    return YES;
 }
 
 

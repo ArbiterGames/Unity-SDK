@@ -68,7 +68,7 @@
 
 - (void)backButtonClicked:(id)sender
 {
-    self.callback();
+    [self callback];
 }
 
 

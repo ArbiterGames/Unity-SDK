@@ -22,21 +22,19 @@
 
 #define BUNDLE_SELECT_VIEW_TAG 1
 #define CONTACT_INFO_VIEW_TAG 2
-#define PAYMENT_OPTIONS_VIEW_TAG 3
-#define APPLE_PAY_VIEW_TAG 4
-#define CARD_INFO_VIEW_TAG 5
-#define GET_TOKEN_VIEW_TAG 6
-#define SUCCESS_MESSAGE_VIEW_TAG 7
+#define CARD_INFO_VIEW_TAG 3
+#define GET_TOKEN_VIEW_TAG 4
+#define SUCCESS_MESSAGE_VIEW_TAG 5
 
 #define GET_BUNDLE_REQUEST_TAG 10
 #define POST_DEPOSIT_REQUEST_TAG 11
 
 
 
-
 @implementation ArbiterWalletDepositView
 
-@synthesize delegate = _delegate;
+@synthesize parentDelegate = _parentDelegate;
+@synthesize childDelegate = _childDelegate;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance
 {
@@ -54,26 +52,24 @@
 {
     [self removeUIWithTag:BUNDLE_SELECT_VIEW_TAG];
     [self removeUIWithTag:CONTACT_INFO_VIEW_TAG];
-    [self removeUIWithTag:PAYMENT_OPTIONS_VIEW_TAG];
-    [self removeUIWithTag:APPLE_PAY_VIEW_TAG];
     [self removeUIWithTag:CARD_INFO_VIEW_TAG];
+    [self.nextButton removeFromSuperview];
+    self.childDelegate = nil;
     
     if ( self.purchaseCompleted ) {
-        [self.delegate handleBackButton];
+        [self.parentDelegate handleBackButton];
     } else if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self setupBundleSelect];
     } else if ( self.activeViewIndex == CONTACT_INFO_VIEW_TAG ) {
         [self setupContactInfoLayout];
-    } else if ( self.activeViewIndex == PAYMENT_OPTIONS_VIEW_TAG ) {
-        [self setupPaymentOptionsLayout];
-    }  else if ( self.activeViewIndex == APPLE_PAY_VIEW_TAG ) {
-        [self setupApplePayLayout];
     } else if ( self.activeViewIndex == CARD_INFO_VIEW_TAG ) {
         [self setupCreditCardInfoLayout];
     } else if ( self.activeViewIndex == GET_TOKEN_VIEW_TAG ) {
         [self getTokenAndSubmitPayment];
     } else if ( self.activeViewIndex == SUCCESS_MESSAGE_VIEW_TAG ) {
         [self setupSuccessMessage];
+    } else {
+        [self.parentDelegate handleNextButton];
     }
 }
 
@@ -117,8 +113,12 @@
         [self navigateToActiveView];
     } copy]];
     
+    [self renderNextButtonWithText:@"Next"];
+    self.childDelegate = tableDelegate;
+    
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
     tableDelegate.username = [self.arbiter.user objectForKey:@"username"];
+    tableDelegate.tag = CONTACT_INFO_VIEW_TAG;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.scrollEnabled = YES;
@@ -127,29 +127,10 @@
     [self addSubview:tableView];
 }
 
-- (void)setupPaymentOptionsLayout
-{
-    ArbiterUITableView *table = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
-    ArbiterPaymentOptionsTableViewDelegate *tDelegate = [[ArbiterPaymentOptionsTableViewDelegate alloc] initWithCallback:[^(NSString *selectedOption) {
-        if ( [selectedOption isEqualToString:@"ApplePay"] ) {
-            self.activeViewIndex = APPLE_PAY_VIEW_TAG;
-        } else {
-            self.activeViewIndex = CARD_INFO_VIEW_TAG;
-        }
-        [self navigateToActiveView];
-    } copy]];
-    
-    table.delegate = tDelegate;
-    table.dataSource = tDelegate;
-    table.tag = PAYMENT_OPTIONS_VIEW_TAG;
-    [table reloadData];
-    [self addSubview:table];
-}
-
 - (void)setupCreditCardInfoLayout
 {
     if ( self.pkView == nil ) {
-        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(15,20,290,55)];
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
         self.pkView = view;
         self.pkView.delegate = self;
     }
@@ -163,23 +144,6 @@
     tableView.tag = CARD_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
-}
-
-- (void)setupApplePayLayout
-{
-    PKPaymentRequest *request = [Stripe
-                                 paymentRequestWithMerchantIdentifier:@"merchant.arbiter.Arbiter-Example"
-                                 amount:[NSDecimalNumber decimalNumberWithString:@"10.00"]
-                                 currency:@"USD"
-                                 description:@"Premium llama food"];
-    NSLog(@"request: %@", request);
-    NSLog(@"canSubmit?: %hhd", [Stripe canSubmitPaymentRequest:request]);
-    if ([Stripe canSubmitPaymentRequest:request]) {
-        NSLog(@"init'ing ArbiterPKViewController");
-        [[ArbiterPKViewController alloc] initWithRequest:request];
-    } else {
-        NSLog(@"show credit card form");
-    }
 }
 
 
@@ -224,7 +188,7 @@
 {
     ArbiterTransactionSuccessTableViewDelegate *tableDelegate = [[ArbiterTransactionSuccessTableViewDelegate alloc]
                                                           initWithCallback:[^(void) {
-        [self.delegate handleBackButton];
+        [self.parentDelegate handleBackButton];
     } copy]];
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
@@ -234,20 +198,23 @@
     [tableView reloadData];
     [self addSubview:tableView];
     [self.backButton removeFromSuperview];
-    self.nextButton.titleLabel.text = @"Close";
+    [self renderNextButtonWithText:@"Close"];
 }
 
-- (void)renderNextButton
+- (void)renderNextButtonWithText:(NSString *)btnText
 {
-    self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
-    float btnWidth = 80.0;
-    float btnHeight = 50.0;
-    [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
-    [self.nextButton setTitle:@"Submit" forState:UIControlStateNormal];
-    [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
-    [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
-    self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
-    self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    if ( self.nextButton == nil ) {
+        self.nextButton = [UIButton buttonWithType:UIButtonTypeSystem];
+        float btnWidth = 80.0;
+        float btnHeight = 50.0;
+        [self.nextButton setFrame:CGRectMake(self.bounds.size.width - btnWidth, 5.0, btnWidth, btnHeight)];
+        [self.nextButton setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
+        [self.nextButton addTarget:self action:@selector(nextButtonClicked:) forControlEvents:UIControlEventTouchUpInside];
+        self.nextButton.titleLabel.textAlignment = NSTextAlignmentRight;
+        self.nextButton.titleLabel.font = [UIFont boldSystemFontOfSize:17.0];
+    }
+    
+    [self.nextButton setTitle:btnText forState:UIControlStateNormal];
     [self addSubview:self.nextButton];
 }
 
@@ -279,15 +246,22 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    self.activeViewIndex++;
-    [self navigateToActiveView];
+    if ( self.childDelegate ) {
+        [self.childDelegate handleNextButton];
+    } else {
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    }
 }
 
 - (void)backButtonClicked:(id)sender
 {
-    if ( self.activeViewIndex == 0 ) {
-        [self.delegate handleBackButton];
+    if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
+        [self.parentDelegate handleBackButton];
     } else {
+        if ( self.childDelegate ) {
+            [self.childDelegate handleBackButton];
+        }
         self.activeViewIndex--;
         [self navigateToActiveView];
     }
@@ -298,7 +272,7 @@
 
 - (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
 {
-    [self renderNextButton];
+    [self renderNextButtonWithText:@"Submit"];
 }
 
 - (void)handleError:(NSString *)error

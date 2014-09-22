@@ -14,15 +14,18 @@
 @protocol WalletDepositViewDelegate
 
 - (void)handleBackButton;
+- (void)handleNextButton;
 
 @end
 
 @interface ArbiterWalletDepositView : UIView <PTKViewDelegate, ArbiterWalletObserver>
 {
-    id <WalletDepositViewDelegate> delegate;
+    id <WalletDepositViewDelegate> parentDelegate;
+    id <WalletDepositViewDelegate> childDelegate;
 }
 
-@property (strong) id delegate;
+@property (strong) id parentDelegate;
+@property (strong) id childDelegate;
 @property (strong) Arbiter *arbiter;
 @property (strong) PTKView *pkView;
 @property (strong) NSDictionary *selectedBundle;

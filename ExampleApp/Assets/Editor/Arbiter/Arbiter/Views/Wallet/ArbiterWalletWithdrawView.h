@@ -13,16 +13,19 @@
 @protocol WalletWithdrawViewDelegate
 
 - (void)handleBackButton;
+- (void)handleNextButton;
 
 @end
 
 
 @interface ArbiterWalletWithdrawView : UIView <PTKViewDelegate, ArbiterWalletObserver>
 {
-    id <WalletWithdrawViewDelegate> delegate;
+    id <WalletWithdrawViewDelegate> parentDelegate;
+    id <WalletWithdrawViewDelegate> childDelegate;
 }
 
-@property (strong) id delegate;
+@property (strong) id parentDelegate;
+@property (strong) id childDelegate;
 @property (strong) Arbiter *arbiter;
 @property (strong) PTKView *pkView;
 @property (strong) NSString *email;

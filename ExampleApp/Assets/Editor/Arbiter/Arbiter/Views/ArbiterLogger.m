@@ -9,13 +9,13 @@
 
 -(NSMutableDictionary*) startDump:(NSMutableDictionary*)data
 {
-	NSLog(@"ttt start dump");
+	NSLog(@"TODO: Add stuff about system/platform as able");
     return data;
 }
 
 -(void) finishDump:(NSMutableDictionary*)data
 {
-	NSLog(@"ttt send this data somewhere. data=\n%@", data);
+	NSLog(@"TODO: send this data somewhere. data=\n%@", data);
 }
 
 

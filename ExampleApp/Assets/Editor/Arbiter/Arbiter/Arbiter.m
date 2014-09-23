@@ -950,16 +950,7 @@
 
 -(void) addLogs:(NSMutableDictionary*)data
 {
-    NSLog(@"ttt check a");
-    NSLog(@"data=%@, user=%@",data, self.user);
-    /* ttt
-    [data setObject:self.user forKey:@"user"];
-    */
-    //data[@"user"] = [self.user mutableCopy];
-    NSMutableDictionary* user = [self.user mutableCopy];
-    NSLog(@"ttt check aa");
-    [data setObject:user forKey:@"user"];
-    NSLog(@"ttt check a");
+    data[@"user"] = [self.user mutableCopy];
 }
 
 @end

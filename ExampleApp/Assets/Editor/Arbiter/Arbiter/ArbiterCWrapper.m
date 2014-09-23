@@ -48,7 +48,6 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
 
 NSMutableDictionary* JsonToDict( const char* jsonString )
 {
-    NSLog(@"ttt json to dictionary");
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     return dict;
 }
@@ -244,9 +243,6 @@ void _dumpLogs( const char *jsonData )
     if( _logger == nil )
         _logger = [ArbiterLogger alloc];
     NSMutableDictionary* data = [_logger startDump:JsonToDict(jsonData)];
-    NSLog(@"ttt back from startDump.");
     [ArbiterInstance() addLogs:data];
-    NSLog(@"ttt back from addLogs.");
     [_logger finishDump:data];
-    NSLog(@"ttt back from finishDump.");
 }

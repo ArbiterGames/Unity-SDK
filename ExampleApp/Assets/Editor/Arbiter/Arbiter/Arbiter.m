@@ -14,6 +14,7 @@
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "ArbiterWalkThrough.h"
+#import "ArbiterLogQueue.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -92,6 +93,8 @@
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
+    // TODO: Remove this before committing
+    [[ArbiterLogQueue sharedManager] addLog:@{@"event": @"loginWithGameCenterPlayer"}];
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         handler(@{@"success": @"false",
@@ -844,6 +847,8 @@
 
 -(void)getGameSettings
 {
+    // TODO: Remove this before committing
+    [[ArbiterLogQueue sharedManager] addLog:@{@"event": @"getGameSettings"}];
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
     } copy];

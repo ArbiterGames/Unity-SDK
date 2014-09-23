@@ -46,10 +46,10 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
     }
 }
 
-NSDictionary* JsonToDict( const char* jsonString )
+NSMutableDictionary* JsonToDict( const char* jsonString )
 {
     NSLog(@"ttt json to dictionary");
-    NSDictionary* dict = [[NSDictionary alloc] init];
+    NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     return dict;
 }
 

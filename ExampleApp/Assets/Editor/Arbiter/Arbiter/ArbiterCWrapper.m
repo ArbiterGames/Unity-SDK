@@ -244,6 +244,9 @@ void _dumpLogs( const char *jsonData )
     if( _logger == nil )
         _logger = [ArbiterLogger alloc];
     NSMutableDictionary* data = [_logger startDump:JsonToDict(jsonData)];
+    NSLog(@"ttt back from startDump.");
     [ArbiterInstance() addLogs:data];
+    NSLog(@"ttt back from addLogs.");
     [_logger finishDump:data];
+    NSLog(@"ttt back from finishDump.");
 }

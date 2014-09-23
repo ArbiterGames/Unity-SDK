@@ -7,10 +7,9 @@
 
 }
 
--(NSMutableDictionary*) startDump
+-(NSMutableDictionary*) startDump:(NSMutableDictionary*)data
 {
 	NSLog(@"ttt start dump");
-    NSMutableDictionary* data = [[NSMutableDictionary alloc] init];
     return data;
 }
 

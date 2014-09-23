@@ -7,7 +7,7 @@
 
 @interface ArbiterLogger : NSObject
 
--(NSMutableDictionary*) startDump;
+-(NSMutableDictionary*) startDump:(NSMutableDictionary*)data;
 -(void) finishDump:(NSMutableDictionary*)data;
 
 @end

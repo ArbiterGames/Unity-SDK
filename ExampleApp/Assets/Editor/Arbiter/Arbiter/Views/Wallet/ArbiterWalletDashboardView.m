@@ -76,13 +76,13 @@
     } else if ( segment.selectedSegmentIndex == 1 ) {
         ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                       andArbiterInstance:self.arbiter];
-        view.delegate = self;
+        view.parentDelegate = self;
         self.activeWalletObserver = view;
         [self navigateToView:view];
     } else {
         ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                         andArbiterInstance:self.arbiter];
-        view.delegate = self;
+        view.parentDelegate = self;
         self.activeWalletObserver = view;
         [self navigateToView:view];
     }
@@ -94,7 +94,15 @@
 - (void)handleBackButton
 {
     if ( self.callback ) {
-        self.callback();
+        [self callback];
+    }
+    [self.parentWindow hide];
+}
+
+- (void)handleNextButton
+{
+    if ( self.callback ) {
+        [self callback];
     }
     [self.parentWindow hide];
 }

@@ -7,22 +7,12 @@
 //
 
 #import "ArbiterBillingInfoTableViewDelegate.h"
-#import "STPView.h"
+#import "PTKView.h"
 
 
 @implementation ArbiterBillingInfoTableViewDelegate
-{
-    STPView *_stripeView;
-}
 
-- (id)initWithStripeView:(STPView *)stripeView
-{
-    self = [super init];
-    if ( self ) {
-        _stripeView = stripeView;
-    }
-    return self;
-}
+@synthesize pkView;
 
 
 # pragma mark TableView Delegate Methods
@@ -61,8 +51,8 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         [cell setBackgroundColor:[UIColor clearColor]];
-        [cell.contentView addSubview:_stripeView];
-        [_stripeView.paymentView.cardNumberField becomeFirstResponder];
+        [cell.contentView addSubview:self.pkView];
+        [self.pkView.cardNumberField becomeFirstResponder];
     }
     CALayer *topBorder = [CALayer layer];
     topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);

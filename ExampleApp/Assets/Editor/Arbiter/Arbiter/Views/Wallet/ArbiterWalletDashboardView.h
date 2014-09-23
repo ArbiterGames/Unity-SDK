@@ -15,7 +15,6 @@
 
 @property (strong) UIView *activeView;
 @property (strong) id <ArbiterWalletObserver> activeWalletObserver;
-@property CGRect marginizedFrame;
 @property (strong) void (^callback)(void);
 
 - (void)segmentControlClicked:(UISegmentedControl *)segment;

@@ -13,6 +13,7 @@
 
 @implementation ArbiterContactInfoTableViewDelegate
 
+
 - (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock
 {
     self = [super init];
@@ -50,6 +51,7 @@
     }
     return self;
 }
+
 
 
 # pragma mark TableView Delegate Methods
@@ -110,33 +112,57 @@
             [cell.contentView addSubview:self.usernameField];
             [cell.contentView.layer addSublayer:topBorder];
         }
-    } else {
-        self.emailField = (UITextField *)[cell.contentView viewWithTag:CELL_EMAIL_FIELD_TAG];
-        self.usernameField = (UITextField *)[cell.contentView viewWithTag:CELL_USERNAME_FIELD_TAG];
     }
     
     return cell;
 }
 
 
-#pragma mark TextField Delegates
+#pragma mark WalletDepositView delegate methods
+
+- (void)handleBackButton
+{
+    // No-op, unless we want to have this start toggling backwards through the fields.
+    // Not doing that now to simplify the parentView navigation logic
+}
+
+- (void)handleNextButton
+{
+    if ( [self.emailField isFirstResponder] ) {
+        [self.usernameField becomeFirstResponder];
+    } else {
+        self.callback(@{@"email": self.emailField.text,
+                        @"username": self.usernameField.text});
+    }
+}
+
+
+#pragma mark TextField Delegate methods
 
 - (BOOL)textFieldShouldBeginEditing:(UITextField *)textField
 {
-    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview.superview;
+    UITableViewCell *cell = [self getCellFromTextField:textField];
     [self.tableView scrollToRowAtIndexPath:[self.tableView indexPathForCell:cell] atScrollPosition:UITableViewScrollPositionTop animated:YES];
     return YES;
 }
 
 - (BOOL)textFieldShouldReturn:(UITextField *)textField
 {
-    if ( textField.tag == CELL_EMAIL_FIELD_TAG ) {
-        [self.usernameField becomeFirstResponder];
-    } else {
-        self.callback(@{@"email": self.emailField.text,
-                        @"username": self.usernameField.text});
-    }
+    [self handleNextButton];
     return YES;
 }
+
+
+// iOS 7 renders the cells 1 class deeper than iOS 8.
+- (UITableViewCell*)getCellFromTextField:(UITextField *)textField
+{
+    UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
+    if ( [cell isKindOfClass:[UITableViewCell class]] == NO ) {
+        cell = (UITableViewCell *)textField.superview.superview.superview;
+    }
+    return cell;
+
+}
+
 
 @end

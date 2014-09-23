@@ -15,7 +15,6 @@
 @property (strong) Arbiter *arbiter;
 @property (strong) ArbiterPanelWindow *parentWindow;
 
-@property CGRect marginizedFrame;
 @property float maxWidth;
 @property float maxHeight;
 @property float availableHeight;

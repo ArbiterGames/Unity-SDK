@@ -315,10 +315,10 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 	
-	// TODO: Currently this is only required on the obj-c side.
-	public static void MarkViewedTournament( string tournamentId ) {
-		ArbiterBinding.MarkViewedTournament( tournamentId, defaultErrorHandler );
-	}
+// TODO: This still needs to be implemented on the obj-c side
+//	public static void MarkViewedTournament( string tournamentId ) {
+//		ArbiterBinding.MarkViewedTournament( tournamentId, defaultErrorHandler );
+//	}
 
 	public static void ShowUnviewedTournaments( SuccessHandler callback ) {
 		if( !UserExists ) {

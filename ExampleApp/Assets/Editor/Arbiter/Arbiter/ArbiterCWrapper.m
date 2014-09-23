@@ -210,14 +210,16 @@ void _reportScore( const char *tournamentId, const char *score )
      ];
 }
 
-void _markViewedTournament( const char* tournamentId )
-{
-    [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
-    }
-            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
-     ];
-}
+// TODO: This needs to accept an array of tournamentIds.
+//       Commenting out for now and coming back to deal with this
+//void _markViewedTournament( const char* tournamentId )
+//{
+//    [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
+//        UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
+//    }
+//            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
+//     ];
+//}
 
 void _showWalkThrough( const char* walkThroughId )
 {

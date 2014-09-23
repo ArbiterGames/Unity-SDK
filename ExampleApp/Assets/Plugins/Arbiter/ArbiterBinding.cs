@@ -332,17 +332,19 @@ namespace ArbiterInternal {
 		}
 
 
-		const string MARK_VIEWED_TOURNAMENT = "mark_view_tourn";
-		[DllImport ("__Internal")]
-		private static extern void _markViewedTournament( string tournamentId );
-		public static void MarkViewedTournament( string tournamentId, ErrorHandler failure ) {
-			SetCallbacksWithErrors( MARK_VIEWED_TOURNAMENT, null, failure );
-#if UNITY_EDITOR
-			ReportIgnore( "MarkViewedTournament" );
-#elif UNITY_IOS
-			_markViewedTournament( tournamentId );
-#endif
-		}
+
+// TODO: This still needs to be implemented on the obj-c side
+//		const string MARK_VIEWED_TOURNAMENT = "mark_view_tourn";
+//		[DllImport ("__Internal")]
+//		private static extern void _markViewedTournament( string tournamentId );
+//		public static void MarkViewedTournament( string tournamentId, ErrorHandler failure ) {
+//			SetCallbacksWithErrors( MARK_VIEWED_TOURNAMENT, null, failure );
+//#if UNITY_EDITOR
+//			ReportIgnore( "MarkViewedTournament" );
+//#elif UNITY_IOS
+//			_markViewedTournament( tournamentId );
+//#endif
+//		}
 		
 		
 		
@@ -434,9 +436,10 @@ namespace ArbiterInternal {
 			}
 		}
 
-		public void MarkViewedTournamentHandler( string jsonString ) {
-			SimpleCallback( MARK_VIEWED_TOURNAMENT, jsonString );
-		}
+// TODO: This still needs to be implemented on the obj-c side
+//		public void MarkViewedTournamentHandler( string jsonString ) {
+//			SimpleCallback( MARK_VIEWED_TOURNAMENT, jsonString );
+//		}
 
 		public void ShowTournamentDetailsPanelHandler( string emptyString ) {
 			SimpleCallback( SHOW_TOURNAMENT_PANEL );

@@ -945,4 +945,12 @@
     return topWindow;
 }
 
+
+#pragma mark Logging Methods
+
+-(void) addLogs:(NSMutableDictionary*)data
+{
+    [data setObject:self.user forKey:@"user"];
+}
+
 @end

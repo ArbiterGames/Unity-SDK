@@ -8,11 +8,12 @@
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterPanelWindow.h"
 #import "ArbiterWalletObserver.h"
+#import "ArbiterLogger.h"
 
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();
 
-@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
+@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate, Loggable>
 
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
@@ -37,6 +38,8 @@ void ClientCallbackWalletUpdated();
 @property (strong, atomic) NSMutableDictionary* _wallet;
 - (void)setWallet:(NSMutableDictionary *)wallet;
 - (NSMutableDictionary *)wallet;
+
+- (void) addLogs:(NSMutableDictionary*)data;
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;

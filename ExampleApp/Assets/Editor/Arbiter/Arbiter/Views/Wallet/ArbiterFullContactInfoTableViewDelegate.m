@@ -130,7 +130,7 @@
 - (UITableViewCell*)getCellFromTextField:(UITextField *)textField
 {
     UITableViewCell *cell = (UITableViewCell *)textField.superview.superview;
-    if ( [cell isKindOfClass:[UITableView class]] == NO ) {
+    if ( [cell isKindOfClass:[UITableViewCell class]] == NO ) {
         cell = (UITableViewCell *)textField.superview.superview.superview;
     }
     return cell;

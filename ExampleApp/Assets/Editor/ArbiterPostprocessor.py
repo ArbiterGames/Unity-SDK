@@ -15,7 +15,7 @@ frameworks_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS
 # Add required libraries
 ############################
 project.add_file(frameworks_path + 'Security.framework', tree='SDKROOT')
-project.add_file(frameworks_path + 'PassKit.framework', tree='SDKROOT')
+project.add_file(frameworks_path + 'PassKit.framework', tree='SDKROOT', weak=True)
 
 # Add all files in /Assets/Editor/Arbiter/
 files_in_dir = os.listdir(fileToAddPath)

@@ -362,12 +362,12 @@ namespace ArbiterInternal {
 
 
 		[DllImport ("__Internal")]
-		private static extern void _dumpLogs();
-		public static void DumpLogs() {
+		private static extern void _dumpLogs( string jsonData );
+		public static void DumpLogs( Dictionary<string,string> data ) {
 #if UNITY_EDITOR
 			ReportIgnore( "DumpLogs" );
 #elif UNITY_IOS
-			_dumpLogs();
+			_dumpLogs( SerializeDictionary( data ));
 #endif
 		}
 		

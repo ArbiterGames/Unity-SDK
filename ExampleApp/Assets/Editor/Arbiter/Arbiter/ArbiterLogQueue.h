@@ -8,9 +8,9 @@
 
 #import <Foundation/Foundation.h>
 
-@interface ArbiterLogQueue : NSObject
+@interface ArbiterLogQueue : NSObject <NSURLConnectionDelegate>
 
 + (ArbiterLogQueue *)sharedManager;
-- (void)addLog:(NSDictionary *)log;
+- (void)reportLog:(NSDictionary *)log;
 
 @end

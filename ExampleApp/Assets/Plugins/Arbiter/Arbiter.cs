@@ -361,14 +361,11 @@ public partial class Arbiter : MonoBehaviour {
 	/// A debug logger that adds the given custom data to some state in the SDK and logs in Arbiter debug servers.
 	/// </summary>
 	/// <param name="gameDataToInclude">Game data to include with the debug log report.</param>
-	public static void DumpLogs( string gameDataToInclude ) {
-		Dictionary<string,string> data = new Dictionary<string,string>();
-		data["game_custom"] = gameDataToInclude;
-		ArbiterBinding.DumpLogs( data );
+	public static void DumpLogs( string logData ) {
+		ArbiterBinding.DumpLogs( logData );
 	}
 	internal static void DumpLogs() {
-		Dictionary<string,string> data = new Dictionary<string,string>();
-		ArbiterBinding.DumpLogs( data );
+		ArbiterBinding.DumpLogs( "" );
 	}
 
 	

@@ -50,6 +50,7 @@ NSMutableDictionary* JsonToDict( const char* jsonString )
 {
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
     // TODO: parse the json into a dictionary
+    NSLog(@"TODO: Parse this string into a dictionary. string=%s", jsonString);
     return dict;
 }
 

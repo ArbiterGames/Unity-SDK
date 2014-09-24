@@ -14,6 +14,7 @@
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "ArbiterWalkThrough.h"
+#import "ArbiterLogger.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330

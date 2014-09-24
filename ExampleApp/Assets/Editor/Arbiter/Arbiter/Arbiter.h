@@ -8,6 +8,7 @@
 #import <CoreLocation/CoreLocation.h>
 #import "ArbiterPanelWindow.h"
 #import "ArbiterWalletObserver.h"
+#import "ArbiterLogger.h"
 
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();

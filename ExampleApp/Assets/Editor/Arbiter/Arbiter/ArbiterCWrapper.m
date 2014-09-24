@@ -7,6 +7,7 @@
 
 
 #import "Arbiter.h"
+#import "ArbiterLogger.h"
 
 
 Arbiter* _arbiter = nil;
@@ -43,6 +44,13 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
         const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         return jsonChar;
     }
+}
+
+NSMutableDictionary* JsonToDict( const char* jsonString )
+{
+    NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
+    // TODO: parse the json into a dictionary
+    return dict;
 }
 
 
@@ -227,4 +235,10 @@ void _showTournamentDetailsPanel( const char *tournamentId )
     [ArbiterInstance() showTournamentDetailsPanel:^(void) {
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", EMPTY_STRING );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
+}
+
+
+void _dumpLogs( const char *jsonData ) 
+{
+     [[ArbiterLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:ArbiterInstance()];
 }

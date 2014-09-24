@@ -16,6 +16,7 @@
 -(void) finishDump:(NSMutableDictionary*)data
 {
 	NSLog(@"TODO: send this data somewhere. data=\n%@", data);
+	// TODO: Also free the dictionary
 }
 
 

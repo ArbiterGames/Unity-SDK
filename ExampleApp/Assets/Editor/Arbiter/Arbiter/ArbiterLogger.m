@@ -37,13 +37,25 @@ static ArbiterLogger* instance;
         logQueue = [[NSMutableArray alloc] init];
     }
     
-    // TODO: collect all the other info we need about the current arbiter state
+    NSDictionary *device = @{@"name": [[UIDevice currentDevice] name],
+                             @"version": [[UIDevice currentDevice] systemVersion],
+                             @"model": [[UIDevice currentDevice] systemName]};
+    [log setObject:device forKey:@"device"];
+    
     if ( arbiterState.user != nil ) {
         [log setObject:arbiterState.user forKey:@"user"];
     }
     
-    // TODO: collect all the other info we need about the device
-    [log setObject:[[UIDevice currentDevice] name] forKey:@"device"];
+    if ( arbiterState.game != nil ) {
+        NSString *version = [[NSBundle mainBundle] objectForInfoDictionaryKey:(NSString *)kCFBundleVersionKey];
+        NSDictionary *game = @{@"name": [arbiterState.game objectForKey:@"name"],
+                               @"is_active": [arbiterState.game objectForKey:@"is_active"],
+                               @"is_live": [arbiterState.game objectForKey:@"is_live"],
+                               @"skill_predominance": [arbiterState.game objectForKey:@"skill_predominance"],
+                               @"version": version};
+        [log setObject:game forKey:@"game"];
+    }
+
     
     [logQueue addObject:log];
     [self unloadQueueToServer];

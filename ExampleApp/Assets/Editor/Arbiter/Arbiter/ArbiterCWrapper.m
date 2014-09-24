@@ -49,6 +49,7 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
 NSMutableDictionary* JsonToDict( const char* jsonString )
 {
     NSMutableDictionary* dict = [[NSMutableDictionary alloc] init];
+    // TODO: parse the json into a dictionary
     return dict;
 }
 

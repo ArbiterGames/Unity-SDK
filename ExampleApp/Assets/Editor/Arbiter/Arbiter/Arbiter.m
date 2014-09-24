@@ -845,9 +845,6 @@
 
 -(void)getGameSettings
 {
-    NSMutableDictionary *log = [[NSMutableDictionary alloc] init];
-    [log setObject:@"gameCenterSettings" forKey:@"event"];
-    [[ArbiterLogger sharedManager] reportLog:log arbiterState:self];
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
     } copy];

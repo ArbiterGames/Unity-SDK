@@ -8,7 +8,7 @@
 
 #import "Arbiter.h"
 
-// To prevent compil
+// Prevents errors from compilation ordering
 @class Arbiter;
 
 @interface ArbiterLogger : NSObject <NSURLConnectionDelegate>

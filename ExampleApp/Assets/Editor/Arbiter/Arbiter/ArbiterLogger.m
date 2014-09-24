@@ -37,11 +37,12 @@ static ArbiterLogger* instance;
         logQueue = [[NSMutableArray alloc] init];
     }
     
-    // TODO:
-    // Get all the info I need from the arbiter state
-    NSLog(@"arbiterState: %@", arbiterState);
+    // TODO: collect all the other info we need about the current arbiter state
+    if ( arbiterState.user != nil ) {
+        [log setObject:arbiterState.user forKey:@"user"];
+    }
     
-    // This is an example of adding to the log. Repeat this for all other default info we want to grab
+    // TODO: collect all the other info we need about the device
     [log setObject:[[UIDevice currentDevice] name] forKey:@"device"];
     
     [logQueue addObject:log];
@@ -52,7 +53,6 @@ static ArbiterLogger* instance;
 {
     // TODO:
     // Check if there is a connection
-    // If so, loop through each log in the queue
     // Hook up to notification center to get notified when there is a connection
     
     NSArray *logCopy = [[NSArray alloc] initWithArray:logQueue copyItems:YES];
@@ -80,11 +80,11 @@ static ArbiterLogger* instance;
 # pragma mark NSURL Connection Delegate Methods
 
 - (void)connection:(NSURLConnection *)connection didReceiveResponse:(NSURLResponse *)response {
-    NSLog(@"didReceiveResponse");
+    // No-op since we don't need any info back
 }
 
 - (void)connection:(NSURLConnection *)connection didReceiveData:(NSData *)data {
-    NSLog(@"didReceiveData");
+    // No-op since we don't need any info back
 }
 
 - (NSCachedURLResponse *)connection:(NSURLConnection *)connection
@@ -93,7 +93,7 @@ static ArbiterLogger* instance;
 }
 
 - (void)connectionDidFinishLoading:(NSURLConnection *)connection {
-    NSLog(@"didFinishLoading");
+    // No-op since we don't need any info back
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {

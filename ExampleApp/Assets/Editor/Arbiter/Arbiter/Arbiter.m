@@ -946,4 +946,12 @@
     return topWindow;
 }
 
+
+#pragma mark Logging Methods
+
+-(void) addLogs:(NSMutableDictionary*)data
+{
+    data[@"user"] = [self.user mutableCopy];
+}
+
 @end

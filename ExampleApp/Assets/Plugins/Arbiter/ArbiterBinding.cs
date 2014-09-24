@@ -360,6 +360,16 @@ namespace ArbiterInternal {
 			#endif
 		}
 
+
+		[DllImport ("__Internal")]
+		private static extern void _dumpLogs();
+		public static void DumpLogs() {
+#if UNITY_EDITOR
+			ReportIgnore( "DumpLogs" );
+#elif UNITY_IOS
+			_dumpLogs();
+#endif
+		}
 		
 		
 #region Plugin response handling

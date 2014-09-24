@@ -1,41 +1,49 @@
 //
-//  ArbiterLogQueue.m
+//  ArbiterLogger.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/23/14.
 //
 //
 
-#import "ArbiterLogQueue.h"
+#import "ArbiterLogger.h"
 
-@implementation ArbiterLogQueue
+
+@implementation ArbiterLogger
 {
-    NSMutableArray *logQueue;
+        NSMutableArray *logQueue;
 }
 
-static ArbiterLogQueue* instance;
-
+static ArbiterLogger* instance;
 
 /**
-    Example usage:
-    #import "ArbiterLogQueue.h"
-    [[ArbiterLogQueue sharedManager] reportLog:@{@"event": @"getGameSettings"}];
-*/
+ Example usage:
+ #import "ArbiterLogQueue.h"
+ [[ArbiterLogger sharedManager] reportLog:[NSMutableDictionary]} arbiterState:arbiter];
+ */
 
-+ (ArbiterLogQueue *)sharedManager
++ (ArbiterLogger *)sharedManager
 {
     static dispatch_once_t dispatchOnceToken;
     dispatch_once(&dispatchOnceToken, ^{
-        instance = [[ArbiterLogQueue alloc] init];
+        instance = [[ArbiterLogger alloc] init];
     });
     return instance;
 }
 
-- (void)reportLog:(NSDictionary *)log
+- (void)reportLog:(NSMutableDictionary *)log arbiterState:(Arbiter *)arbiterState
 {
     if ( logQueue == nil ) {
         logQueue = [[NSMutableArray alloc] init];
     }
+    
+    // TODO:
+    // Get all the info I need from the arbiter state
+    NSLog(@"arbiterState: %@", arbiterState);
+    
+    // This is an example of adding to the log. Repeat this for all other default info we want to grab
+    [log setObject:[[UIDevice currentDevice] name] forKey:@"device"];
+    
     [logQueue addObject:log];
     [self unloadQueueToServer];
 }
@@ -67,6 +75,7 @@ static ArbiterLogQueue* instance;
         logIndex++;
     }
 }
+
 
 # pragma mark NSURL Connection Delegate Methods
 

@@ -13,7 +13,7 @@
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();
 
-@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate, Loggable>
+@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
@@ -38,8 +38,6 @@ void ClientCallbackWalletUpdated();
 @property (strong, atomic) NSMutableDictionary* _wallet;
 - (void)setWallet:(NSMutableDictionary *)wallet;
 - (NSMutableDictionary *)wallet;
-
-- (void) addLogs:(NSMutableDictionary*)data;
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;

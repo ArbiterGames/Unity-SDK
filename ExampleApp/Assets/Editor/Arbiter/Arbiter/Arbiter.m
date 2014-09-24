@@ -14,7 +14,7 @@
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "ArbiterWalkThrough.h"
-#import "ArbiterLogQueue.h"
+#import "ArbiterLogger.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -845,6 +845,9 @@
 
 -(void)getGameSettings
 {
+    NSMutableDictionary *log = [[NSMutableDictionary alloc] init];
+    [log setObject:@"gameCenterSettings" forKey:@"event"];
+    [[ArbiterLogger sharedManager] reportLog:log arbiterState:self];
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
     } copy];
@@ -944,14 +947,6 @@
         topWindow = [[clientApp windows] objectAtIndex:0];
     
     return topWindow;
-}
-
-
-#pragma mark Logging Methods
-
--(void) addLogs:(NSMutableDictionary*)data
-{
-    data[@"user"] = [self.user mutableCopy];
 }
 
 @end

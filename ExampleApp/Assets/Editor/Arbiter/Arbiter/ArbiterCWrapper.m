@@ -238,12 +238,7 @@ void _showTournamentDetailsPanel( const char *tournamentId )
 }
 
 
-ArbiterLogger* _logger = nil;
 void _dumpLogs( const char *jsonData ) 
 {
-    if( _logger == nil )
-        _logger = [ArbiterLogger alloc];
-    NSMutableDictionary* data = [_logger startDump:JsonToDict(jsonData)];
-    [ArbiterInstance() addLogs:data];
-    [_logger finishDump:data];
+     [[ArbiterLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:ArbiterInstance()];
 }

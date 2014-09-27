@@ -568,6 +568,30 @@
         handler(responseDict);
     } copy]];
 }
+
+- (void)acceptScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
+{
+    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeAcceptURLPart2];
+    [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy]];
+}
+
+- (void)rejectScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
+{
+    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeRejectURLPart2];
+    [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy]];
+}
+
+- (void)reportScoreForChallenge:(void (^)(NSDictionary *))handler challengeId:(NSString *)challengeId score:(NSString *)score
+{
+    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeReportURLPart2];
+    [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy]];
+}
         
 
 

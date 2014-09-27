@@ -330,8 +330,22 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	
-	public static void RequestScoreChallenge( string entryFee, SuccessHandler callback, FriendlyErrorHandler failure ) {
+	public delegate void RequestScoreChallengeCallback( ScoreChallenge scoreChallenge );
+	public static void RequestScoreChallenge( string entryFee, RequestScoreChallengeCallback callback, FriendlyErrorHandler failure ) {
 		ArbiterBinding.RequestScoreChallenge( entryFee, callback, failure );
+	}
+	
+	public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, ErrorHandler failure ) {
+		ArbiterBinding.AcceptScoreChallenge( challengeId, success, failure );
+	}
+	
+	public static void RejectScoreChallenge( string challengeId, SuccessHandler success ) {
+		ArbiterBinding.RejectScoreChallenge( challengeId, success );
+	}
+	
+	public delegate void ReportScoreForChallengeCallback( ScoreChallenge scoreChallenge );
+	public static void ReportScoreForChallenge( string challengeId, string score, Arbiter.ReportScoreForChallengeCallback success, FriendlyErrorHandler failure ) {
+		ArbiterBinding.ReportScoreForChallenge( challengeId, score, success, failure );
 	}
 	
 	

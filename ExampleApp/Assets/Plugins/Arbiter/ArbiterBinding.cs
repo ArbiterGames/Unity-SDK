@@ -347,18 +347,64 @@ namespace ArbiterInternal {
 //		}
 
 
-		const string REQUEST_SCORE_CHALLENGE = "request_score_challenge";
 		[DllImport ("__Internal")]
 		private static extern void _requestScoreChallenge( string entryFee );
-		public static void RequestScoreChallenge( string entryFee, SuccessHandler success, FriendlyErrorHandler failure ) {
-			SetCallbacksWithFriendlyErrors( REQUEST_SCORE_CHALLENGE, success, failure );
-			#if UNITY_EDITOR
+		private static Arbiter.RequestScoreChallengeCallback requestScoreChallengeSuccessHandler;
+		private static FriendlyErrorHandler requestScoreChallengeErrorHandler;
+		public static void RequestScoreChallenge( string entryFee, Arbiter.RequestScoreChallengeCallback success, FriendlyErrorHandler failure ) {
+			requestScoreChallengeSuccessHandler = success;
+			requestScoreChallengeErrorHandler = failure;
+#if UNITY_EDITOR
 			ReportIgnore( "RequestScoreChallenge" );
 			if( success != null )
-				success();
-			#elif UNITY_IOS
+				success( new Arbiter.ScoreChallenge( "1234", "55", Arbiter.ScoreChallenge.StatusType.Busy, null ));
+#elif UNITY_IOS
 			_requestScoreChallenge( entryFee );
-			#endif
+#endif
+		}
+		
+		
+		const string ACCEPT_SCORE_CHALLENGE = "accept_score_challenge";
+		[DllImport ("__Internal")]
+		private static extern void _acceptScoreChallenge( string challengeId );
+		public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, ErrorHandler failure ) {
+			SetCallbacksWithErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
+#if UNITY_EDITOR
+			ReportIgnore( "AcceptScoreChallenge" );
+#elif UNITY_IOS
+			_acceptScoreChallenge( challengeId );
+#endif
+		}
+		
+		
+		const string REJECT_SCORE_CHALLENGE = "reject_score_challenge";
+		[DllImport ("__Internal")]
+		private static extern void _rejectScoreChallenge( string challengeId );
+		public static void RejectScoreChallenge( string challengeId, SuccessHandler callback ) {
+			SetSimpleCallback( REJECT_SCORE_CHALLENGE, callback );
+#if UNITY_EDITOR
+			ReportIgnore( "RejectScoreChallenge" );
+			if( callback != null )
+				callback();
+#elif UNITY_IOS
+			_rejectScoreChallenge( challengeId );
+#endif
+		}
+		
+		
+		
+		[DllImport ("__Internal")]
+		private static extern void _reportScoreForChallenge( string challengeId, string score );
+		private static Arbiter.ReportScoreForChallengeCallback reportScoreForChallengeSuccessHandler;
+		private static FriendlyErrorHandler reportScoreForChallengeErrorHandler;
+		public static void ReportScoreForChallenge( string challengeId, string score, Arbiter.ReportScoreForChallengeCallback success, FriendlyErrorHandler failure ) {
+			reportScoreForChallengeSuccessHandler = success;
+			reportScoreForChallengeErrorHandler = failure;
+#if UNITY_EDITOR
+			ReportIgnore( "ReportScoreForChallenge" );
+#elif UNITY_IOS
+			_reportScoreForChallenge( challengeId, score );
+#endif
 		}
 		
 		
@@ -472,6 +518,36 @@ namespace ArbiterInternal {
 			showIncompleteTournamentsCallback( tournamentId );
 		}	
 		
+		
+		public void RequestScoreChallengeHandler( string jsonString ) {
+			JSONNode json = JSON.Parse( jsonString );
+			if( wasSuccess( json )) {
+				JSONClass challenge = json["challenge"] as JSONClass;
+				requestScoreChallengeSuccessHandler( ScoreChallengeProtocol.ParseScoreChallenge( challenge ) );
+			} else {
+				requestScoreChallengeErrorHandler( getErrors( json ), getDescriptions( json ));
+			}
+		}
+		
+		public void AcceptScoreChallengeHandler( string jsonString ) {
+			SimpleCallback( ACCEPT_SCORE_CHALLENGE, jsonString );
+		}
+		
+		public void RejectScoreChallengeHandler( string emptyString ) {
+			SimpleCallback( REJECT_SCORE_CHALLENGE );
+		}
+		
+		public void ReportScoreForChallengeHandler( string jsonString ) {
+			JSONNode json = JSON.Parse( jsonString );
+			if( wasSuccess( json )) {
+				JSONClass challenge = json["challenge"] as JSONClass;
+				reportScoreForChallengeSuccessHandler( ScoreChallengeProtocol.ParseScoreChallenge( challenge ) );
+			} else {
+				reportScoreForChallengeErrorHandler( getErrors( json ), getDescriptions( json ));
+			}
+		}
+		
+		
 		public void ShowWalkThroughHandler( string emptyString ) {
 			SimpleCallback( SHOW_WALK_THROUGH );
 		}
@@ -487,10 +563,6 @@ namespace ArbiterInternal {
 			} else {
 				reportScoreErrorHandler( getErrors( json ));
 			}
-		}
-		
-		public void RequestScoreChallengeHandler( string jsonString ) {
-			SimpleCallback( REQUEST_SCORE_CHALLENGE, jsonString );
 		}
 
 

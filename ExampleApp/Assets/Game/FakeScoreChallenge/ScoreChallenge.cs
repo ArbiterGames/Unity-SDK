@@ -13,7 +13,6 @@ public class ScoreChallenge : MonoBehaviour {
 	public string Score;
 	public string Problems = "---";
 	public string ChallengeId = "???";
-	public string ChallengeStatus;
 	public string ResultsDescription = "???";
 	
 	private Arbiter arbiter;
@@ -31,7 +30,6 @@ public class ScoreChallenge : MonoBehaviour {
 
 	void OnChallengeCreated( Arbiter.ScoreChallenge challenge ) {
 		ChallengeId = challenge.Id;
-		ChallengeStatus = challenge.Status;
 		ScoreToBeat = challenge.ScoreToBeat;
 	}
 	
@@ -42,7 +40,6 @@ public class ScoreChallenge : MonoBehaviour {
 	}
 	
 	private void DisplayResults( Arbiter.ScoreChallenge challenge ) {
-		Debug.Log ("Display Results for challenge: " + challenge);
 		if ( challenge.Status == Arbiter.ScoreChallenge.StatusType.Closed ) {
 			if ( challenge.Winner != null ) {
 				if ( challenge.Winner.Id == Arbiter.UserId ) {

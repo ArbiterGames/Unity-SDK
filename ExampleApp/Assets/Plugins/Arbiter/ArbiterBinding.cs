@@ -345,6 +345,21 @@ namespace ArbiterInternal {
 //			_markViewedTournament( tournamentId );
 //#endif
 //		}
+
+
+		const string REQUEST_SCORE_CHALLENGE = "request_score_challenge";
+		[DllImport ("__Internal")]
+		private static extern void _requestScoreChallenge( string entryFee );
+		public static void RequestScoreChallenge( string entryFee, SuccessHandler success, FriendlyErrorHandler failure ) {
+			SetCallbacksWithFriendlyErrors( REQUEST_SCORE_CHALLENGE, success, failure );
+			#if UNITY_EDITOR
+			ReportIgnore( "RequestScoreChallenge" );
+			if( success != null )
+				success();
+			#elif UNITY_IOS
+			_requestScoreChallenge( entryFee );
+			#endif
+		}
 		
 		
 		
@@ -455,7 +470,7 @@ namespace ArbiterInternal {
 		
 		public void ShowIncompleteTournamentsHandler( string tournamentId ) {
 			showIncompleteTournamentsCallback( tournamentId );
-		}
+		}	
 		
 		public void ShowWalkThroughHandler( string emptyString ) {
 			SimpleCallback( SHOW_WALK_THROUGH );
@@ -472,6 +487,10 @@ namespace ArbiterInternal {
 			} else {
 				reportScoreErrorHandler( getErrors( json ));
 			}
+		}
+		
+		public void RequestScoreChallengeHandler( string jsonString ) {
+			SimpleCallback( REQUEST_SCORE_CHALLENGE, jsonString );
 		}
 
 

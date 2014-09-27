@@ -221,6 +221,13 @@ void _reportScore( const char *tournamentId, const char *score )
 //     ];
 //}
 
+void _requestScoreChallenge( const char *buyIn, const char *filters )
+{
+    [ArbiterInstance() requestScoreChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "RequestScoreChallengeHandler    ", ProcessDictionaryParams( jsonDict ) );
+    } entryFee:[[NSString alloc] initWithUTF8String:buyIn]];
+}
+
 void _showWalkThrough( const char* walkThroughId )
 {
     [ArbiterInstance() showWalkThrough:^(void) {

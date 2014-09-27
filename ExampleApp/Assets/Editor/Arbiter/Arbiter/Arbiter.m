@@ -560,6 +560,17 @@
 }
 
 
+#pragma mark Score Challenge Methods
+
+- (void)requestScoreChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee
+{
+    [self httpPost:APIScoreChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy]];
+}
+        
+
+
 #pragma mark NSURLConnection Delegate Methods
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler

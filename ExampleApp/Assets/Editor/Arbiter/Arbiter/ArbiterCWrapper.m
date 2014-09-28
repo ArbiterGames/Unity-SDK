@@ -204,10 +204,7 @@ void _reportScore( const char *tournamentId, const char *score )
 {
     [ArbiterInstance() reportScore:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "ReportScoreHandler", ProcessDictionaryParams( jsonDict ) );
-    }
-            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
-                   score:[[NSString alloc] initWithUTF8String:score]
-     ];
+    } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
 // TODO: This needs to accept an array of tournamentIds.
@@ -221,13 +218,39 @@ void _reportScore( const char *tournamentId, const char *score )
 //     ];
 //}
 
+void _requestScoreChallenge( const char *buyIn, const char *filters )
+{
+    [ArbiterInstance() requestScoreChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "RequestScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    } entryFee:[[NSString alloc] initWithUTF8String:buyIn]];
+}
+
+void _acceptScoreChallenge( const char *challengeId )
+{
+    [ArbiterInstance() acceptScoreChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "AcceptScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
+}
+
+void _rejectScoreChallenge( const char *challengeId )
+{
+    [ArbiterInstance() rejectScoreChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "RejectScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
+}
+
+void _reportScoreForChallenge( const char *challengeId, const char *score )
+{
+    [ArbiterInstance() reportScoreForChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "ReportScoreForChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    } challengeId:[[NSString alloc] initWithUTF8String:challengeId] score:[[NSString alloc] initWithUTF8String:score]];
+}
+
 void _showWalkThrough( const char* walkThroughId )
 {
     [ArbiterInstance() showWalkThrough:^(void) {
         UnitySendMessage("ArbiterBinding", "ShowWalkThroughHandler", EMPTY_STRING );
-    }
-                         walkThroughId:[[NSString alloc] initWithUTF8String:walkThroughId]
-     ];
+    } walkThroughId:[[NSString alloc] initWithUTF8String:walkThroughId]];
 }
 
 void _showTournamentDetailsPanel( const char *tournamentId )

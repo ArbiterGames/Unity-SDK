@@ -18,6 +18,13 @@ extern NSString *const APIRequestTournamentURL;
 extern NSString *const APITournamentBaseURL;
 extern NSString *const APITournamentMarkAsViewed;
 extern NSString *const APIReportScoreURLPart2;
+
+extern NSString *const APIScoreChallengeCreateURL;
+extern NSString *const APIScoreChallengeBaseURL;
+extern NSString *const APIScoreChallengeAcceptURLPart2;
+extern NSString *const APIScoreChallengeRejectURLPart2;
+extern NSString *const APIScoreChallengeReportURLPart2;
+
 extern NSString *const APIDepositURL;
 extern NSString *const APIWithdrawURL;
 

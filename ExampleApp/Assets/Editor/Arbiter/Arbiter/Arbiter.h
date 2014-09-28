@@ -64,9 +64,14 @@ void ClientCallbackWalletUpdated();
 - (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page excludeViewed:(BOOL)excludeViewed;
 - (void)fetchIncompleteTournaments:(void(^)(NSDictionary *))handler page:(NSString *)page isBlocking:(BOOL)isBlocking;
 - (void)showIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page;
-
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds;
+
+- (void)requestScoreChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee;
+- (void)acceptScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
+- (void)rejectScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
+- (void)reportScoreForChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId score:(NSString*)score;
+
 - (void)showWalkThrough:(void(^)(void))handler walkThroughId:(NSString*)walkThroughId;
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;
 

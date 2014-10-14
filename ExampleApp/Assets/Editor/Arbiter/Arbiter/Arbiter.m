@@ -5,6 +5,8 @@
 //  Copyright (c) 2014 Arbiter. All rights reserved.
 //
 
+//
+
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
@@ -185,7 +187,7 @@
 
 - (bool)isUserAuthenticated
 {
-    return self.user != nil && [self.user objectForKey:@"id"] != nil;
+    return self.user != nil && !IS_NULL_NS([self.user objectForKey:@"id"]);
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
@@ -194,16 +196,11 @@
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
             NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
             [self.user setObject:postalCode forKey:@"postal_code"];
-            NSLog(@"ttt self.user=%@", self.user);
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
-                // ttt put ths in the SDK!
-                //            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false &&
-                       ([self.user objectForKey:@"location_approved"] == [NSNull null] ||
-                        [[self.user objectForKey:@"location_approved"] boolValue] == false )) {
-                           
+            } else if ( !IF_NULL_NS([self.user objectForKey:@"agreed_to_terms"]   && [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
+                        !IF_NULL_NS([self.user objectForKey:@"location_approved"] && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                                            message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
                                                                           delegate: self
@@ -264,7 +261,11 @@
 
 - (bool)isUserVerified
 {
-    if (self.user != nil && [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+    if (self.user != nil && 
+        !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) &&
+        [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && 
+        !IS_NULL_NS([self.user objectForKey:@"location_approved"]) &&
+        [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
         return true;
     } else {
         return false;
@@ -612,7 +613,7 @@
                                     timeoutInterval:60.0];
     
     NSString *tokenValue;
-    if ( [self.user objectForKey:@"token"] != (id)[NSNull null] && [self.user objectForKey:@"token"] != nil  ) {
+    if ( !IS_NULL_NS([self.user objectForKey:@"token"]) ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];

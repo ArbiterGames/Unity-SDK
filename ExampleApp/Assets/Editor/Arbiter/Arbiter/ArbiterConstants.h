@@ -6,6 +6,9 @@
 //
 //
 
+
+#define IS_NULL_NS(value) (value == nil || value == (id)[NSNull null] || ([value isKindOfClass:[NSString class]] && ([value isEqualToString:@""] || [value isEqualToString:@"<null>"]))) ? YES : NO
+
 extern NSString *const APIUserInitializeURL;
 extern NSString *const APIWalletURL;
 extern NSString *const APISendPromoCreditsURL;

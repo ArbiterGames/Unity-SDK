@@ -155,7 +155,7 @@ public partial class Arbiter : MonoBehaviour {
 	/// Returns a human-readable string no longer than X characters long
 	/// </summary>
 	public static string FormattedBalance() {
-		if( !WalletExists(true) )
+		if( !WalletExists(true) || wallet.Balance == null || wallet.Balance == "" )
 			return "...";
 		return FormattedLikeBalance( int.Parse( wallet.Balance ));
 	}

@@ -5,7 +5,6 @@
 //  Created by Andy Zinsser on 6/25/14.
 //
 //
-
 #import "ArbiterConstants.h"
 
 NSString *const APIUserInitializeURL = @"https://www.arbiter.me/api/v1/user/initialize";

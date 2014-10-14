@@ -5,6 +5,8 @@
 //  Copyright (c) 2014 Arbiter. All rights reserved.
 //
 
+//
+
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
@@ -51,7 +53,7 @@
 
 - (void)getCachedUser:(void(^)(NSDictionary *))handler
 {
-    handler(self.user);   
+    handler(self.user);
 }
 
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
@@ -72,7 +74,7 @@
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-
+        
         [self getGameSettings];
     }
     
@@ -130,19 +132,19 @@
 - (void)login:(void(^)(NSDictionary *))handler
 {
     UIAlertView *loginAlert = [[UIAlertView alloc] initWithTitle: @"Login to Arbiter"
-                                            message: nil
-                                           delegate: self
-                                  cancelButtonTitle:@"Cancel"
-                                  otherButtonTitles:@"Login", nil];
+                                                         message: nil
+                                                        delegate: self
+                                               cancelButtonTitle:@"Cancel"
+                                               otherButtonTitles:@"Login", nil];
     [loginAlert setAlertViewStyle:UIAlertViewStyleLoginAndPasswordInput];
     [loginAlert setTag:LOGIN_ALERT_TAG];
     [loginAlert show];
     
     UIAlertView *invalidLoginAlert = [[UIAlertView alloc] initWithTitle:@"Unable to login"
-                                                   message:@"The email or password was incorrect."
-                                                  delegate:self
-                                         cancelButtonTitle:@"OK"
-                                         otherButtonTitles:nil];
+                                                                message:@"The email or password was incorrect."
+                                                               delegate:self
+                                                      cancelButtonTitle:@"OK"
+                                                      otherButtonTitles:nil];
     [invalidLoginAlert setTag:INVALID_LOGIN_ALERT_TAG];
     
     
@@ -179,13 +181,13 @@
         self.wallet = nil;
         handler(responseDict);
     } copy];
-
+    
     [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
 }
 
 - (bool)isUserAuthenticated
 {
-    return self.user != nil && [self.user objectForKey:@"id"] != nil;
+    return self.user != nil && !IS_NULL_NS([self.user objectForKey:@"id"]);
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
@@ -194,26 +196,26 @@
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
             NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
             [self.user setObject:postalCode forKey:@"postal_code"];
-            
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
-            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
-                                                               delegate: self
-                                                      cancelButtonTitle:@"Agree"
-                                                      otherButtonTitles:@"View terms", @"Cancel", nil];
-                [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-                [alert setTag:VERIFICATION_ALERT_TAG];
-                [alert show];
-            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
-                NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-                [verificationUrl appendString: [self.user objectForKey:@"id"]];
-                [verificationUrl appendString: @"/verify"];
-                [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
-            }
+            } else if ( !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"])   && [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
+                        !IS_NULL_NS([self.user objectForKey:@"location_approved"]) && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                           UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                                           message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
+                                                                          delegate: self
+                                                                 cancelButtonTitle:@"Agree"
+                                                                 otherButtonTitles:@"View terms", @"Cancel", nil];
+                           [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+                           [alert setTag:VERIFICATION_ALERT_TAG];
+                           [alert show];
+                       } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                           NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                           NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+                           [verificationUrl appendString: [self.user objectForKey:@"id"]];
+                           [verificationUrl appendString: @"/verify"];
+                           [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
+                       }
         } else {
             if ( self.user == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
@@ -259,7 +261,11 @@
 
 - (bool)isUserVerified
 {
-    if (self.user != nil && [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
+    if (self.user != nil && 
+        !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) &&
+        [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && 
+        !IS_NULL_NS([self.user objectForKey:@"location_approved"]) &&
+        [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
         return true;
     } else {
         return false;
@@ -317,7 +323,7 @@
 
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler
 {
-    handler(self.wallet);   
+    handler(self.wallet);
 }
 
 - (void)addWalletObserver:(id<ArbiterWalletObserver>)observer
@@ -338,7 +344,7 @@
     } else {
         handler(@{@"success": @"false",
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
-                 });
+                  });
     }
 }
 
@@ -363,20 +369,20 @@
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
-
+    
 }
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
     [self httpPostAsDeveloper:APISendPromoCreditsURL
-            params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
-           handler:handler];
+                       params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
+                      handler:handler];
 }
 
 #pragma mark Tournament Methods
 
 /**
-    Requests a new Tournament for this user from Arbiter
+ Requests a new Tournament for this user from Arbiter
  */
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
@@ -409,7 +415,7 @@
 }
 
 /**
-    Makes the request to Arbiter to a paginated set of tournaments for this user
+ Makes the request to Arbiter to a paginated set of tournaments for this user
  */
 - (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)excludeViewed
 {
@@ -420,7 +426,7 @@
         self.previousTournamentsCount = [[paginationInfo objectForKey:@"count"] intValue];
         handler(responseDict);
     } copy];
-
+    
     NSString *tournamentsUrl;
     if ( [page isEqualToString:@"next"] ) {
         tournamentsUrl = self.nextPageTournamentsUrl;
@@ -432,14 +438,14 @@
     if ( excludeViewed ) {
         tournamentsUrl = [NSString stringWithFormat:@"%@?excludeViewed=true", tournamentsUrl];
     }
-
+    
     [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
 }
 
 
 
 /**
-    Calls getTournaments, then parses the results and displays the tournaments in an alertView
+ Calls getTournaments, then parses the results and displays the tournaments in an alertView
  */
 - (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page excludeViewed:(BOOL)excludeViewed
 {
@@ -450,7 +456,7 @@
 
 
 /**
-    Gets the latest incomplete tournaments from Arbiter. Paginated by 1 comp per page
+ Gets the latest incomplete tournaments from Arbiter. Paginated by 1 comp per page
  */
 - (void)fetchIncompleteTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking
 {
@@ -460,8 +466,8 @@
         self.nextPageIncompleteTournamentsUrl = [NSString stringWithFormat:@"%@", [paginationInfo objectForKey:@"next"]];
         handler(responseDict);
     } copy];
-
-
+    
+    
     NSString *tournamentsUrl;
     if ( [page isEqualToString:@"next"] ) {
         tournamentsUrl = self.nextPageIncompleteTournamentsUrl;
@@ -470,12 +476,12 @@
     } else {
         tournamentsUrl = APIRequestTournamentURL;
     }
-
+    
     [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
 }
 
 /**
-    Displays the current incomplete tournament in an alertView with buttons to finish the tournament
+ Displays the current incomplete tournament in an alertView with buttons to finish the tournament
  */
 - (void)showIncompleteTournaments:(void(^)(NSString *))handler page:(NSString *)page
 {
@@ -484,7 +490,7 @@
         NSArray *tournaments = [tournamentSerializer objectForKey:@"results"];
         NSMutableString *message = [NSMutableString string];
         NSMutableString *yourScore = [NSMutableString string];
-
+        
         if ( [tournaments count] > 0 ) {
             for (int i = 0; i < [tournaments count]; i++) {
                 self.currentIncompleteTournamentId = [[tournaments objectAtIndex:i] objectForKey:@"id"];
@@ -494,35 +500,35 @@
                 NSDateFormatter *dateFormatter = [[NSDateFormatter alloc] init];
                 [dateFormatter setDateFormat:@"EEE, MMM d"];
                 NSString *tournamentString = [NSString stringWithFormat:@"%@ \nEntry fee: %@ credits \nYour Score: %@ \nOpponent Score: %@\n\n",
-                                               [dateFormatter stringFromDate:unFormattedDate],
-                                               [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
-                                               [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
-                                               [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
+                                              [dateFormatter stringFromDate:unFormattedDate],
+                                              [[tournaments objectAtIndex:i] objectForKey:@"buy_in"],
+                                              [self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]],
+                                              [self getOpponentScoreFromTournament:[tournaments objectAtIndex:i]]];
                 [message appendString:tournamentString];
                 [yourScore appendString:[self getPlayerScoreFromTournament:[tournaments objectAtIndex:i]]];
             }
         } else {
             [message appendString:@"No incomplete games"];
         }
-
+        
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Incomplete Games" message:message delegate:self cancelButtonTitle:@"Close" otherButtonTitles:nil];
-
+        
         if ( [yourScore isEqualToString:@"..."]) {
             [alert addButtonWithTitle:@"Play"];
         }
-
+        
         if ( [tournamentSerializer objectForKey:@"previous"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Prev"];
         }
         if ( [tournamentSerializer objectForKey:@"next"] != (id)[NSNull null] ) {
             [alert addButtonWithTitle:@"Next"];
         }
-
+        
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
         [alert setTag:SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
         [alert show];
     } copy];
-
+    
     [self fetchIncompleteTournaments:connectionHandler page:page isBlocking:YES];
 }
 
@@ -592,7 +598,7 @@
         handler(responseDict);
     } copy]];
 }
-        
+
 
 
 #pragma mark NSURLConnection Delegate Methods
@@ -602,17 +608,17 @@
     NSLog( @"ArbiterSDK GET %@", url );
     
     NSMutableURLRequest *request = [NSMutableURLRequest
-        requestWithURL:[NSURL URLWithString:url]
-        cachePolicy:NSURLRequestUseProtocolCachePolicy
-        timeoutInterval:60.0];
+                                    requestWithURL:[NSURL URLWithString:url]
+                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                    timeoutInterval:60.0];
     
     NSString *tokenValue;
-    if ( [self.user objectForKey:@"token"] != (id)[NSNull null] && [self.user objectForKey:@"token"] != nil  ) {
+    if ( !IS_NULL_NS([self.user objectForKey:@"token"]) ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
     }
-          
+    
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [url stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -648,9 +654,9 @@
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);
         handler( @{
-            @"success": @"false",
-            @"errors": @[error]
-        });
+                   @"success": @"false",
+                   @"errors": @[error]
+                   });
     } else {
         NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
@@ -752,7 +758,7 @@
     NSError *error = nil;
     NSData *responseData = [_responseDataRegistry objectForKey:key];
     NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:responseData options:NSJSONReadingMutableLeaves error:&error];
-
+    
     if( error ) {
         NSLog( @"Error: %@", error );
         dict = @{@"success": @"false", @"errors":@[@"Received null response from connection."]};
@@ -771,7 +777,7 @@
     NSLog(@"connection error:%@", error);
     NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:@[[error localizedDescription]], @"errors", @"false", @"success", nil];
     NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
-
+    
     void (^handler)(id) = [_connectionHandlerRegistry objectForKey:key];
     handler(dict);
 }
@@ -779,9 +785,9 @@
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-
+    
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
-
+    
     if ( alertView.tag == LOGIN_ALERT_TAG ) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"loginHandler"];
         if ( buttonIndex == 0 ) {
@@ -810,8 +816,8 @@
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
             [self httpPost:verificationUrl params:postParams isBlocking:YES handler:connectionHandler];
-
-        // View Terms
+            
+            // View Terms
         } else if ( buttonIndex == 1 ) {
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
@@ -821,7 +827,7 @@
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
-
+        
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
@@ -839,7 +845,7 @@
         }else {
             handler(@"");
         }
-
+        
     } else if ( alertView.tag == TOURNAMENT_DETAILS_ALERT_TAG ) {
         void (^handler)(void) = [_alertViewHandlerRegistry objectForKey:@"closeTournamentDetailsHandler"];
         handler();
@@ -851,7 +857,7 @@
     else {
         [self showWalletPanel:[_alertViewHandlerRegistry objectForKey:@"closeWalletHandler"]];
     }
-
+    
 }
 
 # pragma mark CLLocation Delegate Methods
@@ -941,18 +947,18 @@
     NSString *separator = @"-";
     NSMutableString *slugalizedString = [NSMutableString string];
     NSRange replaceRange = NSMakeRange(0, originalString.length);
-
+    
     // Remove all non ASCII characters
     NSError *nonASCIICharsRegexError = nil;
     NSRegularExpression *nonASCIICharsRegex = [NSRegularExpression regularExpressionWithPattern:@"[^\\x00-\\x7F]+"
                                                                                         options:nil
                                                                                           error:&nonASCIICharsRegexError];
-
+    
     slugalizedString = [[nonASCIICharsRegex stringByReplacingMatchesInString:originalString
                                                                      options:0
                                                                        range:replaceRange
                                                                 withTemplate:@""] mutableCopy];
-
+    
     // Turn non-slug characters into separators
     NSError *nonSlugCharactersError = nil;
     NSRegularExpression *nonSlugCharactersRegex = [NSRegularExpression regularExpressionWithPattern:@"[^a-z0-9\\-_\\+]+"
@@ -962,10 +968,10 @@
                                                                          options:0
                                                                            range:replaceRange
                                                                     withTemplate:separator] mutableCopy];
-
+    
     // Remove leading/trailing separator
     slugalizedString = [[slugalizedString stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-"]] mutableCopy];
-
+    
     return slugalizedString;
 }
 

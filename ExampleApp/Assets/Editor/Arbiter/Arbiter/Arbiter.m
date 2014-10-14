@@ -199,8 +199,8 @@
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
-            } else if ( !IF_NULL_NS([self.user objectForKey:@"agreed_to_terms"]   && [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
-                        !IF_NULL_NS([self.user objectForKey:@"location_approved"] && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+            } else if ( !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"])   && [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
+                        !IS_NULL_NS([self.user objectForKey:@"location_approved"]) && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                            UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                                            message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
                                                                           delegate: self

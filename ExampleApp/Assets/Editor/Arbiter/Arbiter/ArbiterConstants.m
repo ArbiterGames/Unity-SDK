@@ -29,7 +29,7 @@ NSString *const APIScoreChallengeReportURLPart2 = @"/report-score";
 NSString *const APIDepositURL = @"https://www.arbiter.me/stripe/deposit";
 NSString *const APIWithdrawURL = @"https://www.arbiter.me/stripe/withdraw";
 
-NSString *const GameSettingsURL = @"https://www.arbiter.me/games/";
+NSString *const GameSettingsURL = @"https://www.arbiter.me/api/v1/games/";
 NSString *const BundleURL = @"https://www.arbiter.me/cashier/bundle";
 NSString *const StripeTestPublishableKey = @"pk_test_1SQ84edElZEWoGqlR7XB9V5j";
 NSString *const StripeLivePublishableKey = @"pk_live_VxZ9u3zgtCRtaDe62rQyMwuj";

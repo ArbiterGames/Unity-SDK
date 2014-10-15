@@ -41,7 +41,7 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-        const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
+        const char *jsonChar = AutonomousStringCopy([[jsonString stringByReplacingOccurrencesOfString:@"null" withString:@"false"] UTF8String]);
         return jsonChar;
     }
 }

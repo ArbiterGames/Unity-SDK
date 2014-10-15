@@ -261,12 +261,11 @@
 
 - (bool)isUserVerified
 {
-    if (self.user != nil && 
-        !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) &&
-        [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && 
-        !IS_NULL_NS([self.user objectForKey:@"location_approved"]) &&
-        [[self.user objectForKey:@"location_approved"] boolValue] == true ) {
-        return true;
+    bool termsExists = !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]);
+    bool locationExists = !IS_NULL_NS([self.user objectForKey:@"location_approved"]);
+    if (self.user != nil && termsExists && locationExists) {
+        return [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true &&
+        [[self.user objectForKey:@"location_approved"] boolValue] == true;
     } else {
         return false;
     }

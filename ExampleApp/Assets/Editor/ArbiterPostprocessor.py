@@ -3,6 +3,7 @@
 """
 
 import os
+import plistlib
 from sys import argv
 from mod_pbxproj import XcodeProject
 
@@ -40,20 +41,22 @@ project.add_other_buildsetting('IPHONEOS_DEPLOYMENT_TARGET', '7.0')
 ########################################################
 for key in project.get_ids():
     obj = project.get_obj(key)
-
-    name = obj.get('name')
-    isa = obj.get('isa')
-    path = obj.get('path')
-    fileref = obj.get('fileRef')
-
+    file_path = obj.get('path')
     try:
-        if 'PaymentKit' in path or 'Stripe' in path:
+        if 'PaymentKit' in file_path or 'Stripe' in file_path:
             build_files = project.get_build_files(key)
             if build_files is not None:
                 for build_file in build_files:
                     build_file.add_compiler_flag('-fobjc-arc')
     except Exception as err:
         pass
+
+# Add Info.plist keys for location services
+########################################################
+rootObject = plistlib.readPlist(path + '/Info.plist')
+rootObject['NSLocationWhenInUseUsageDescription'] = 'This is required to participate in cash games.'
+plistlib.writePlist(rootObject, path + '/Info.plist')
+
 
 # Now save
 ############################

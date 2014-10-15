@@ -28,7 +28,12 @@ namespace ArbiterInternal {
 			}
 			
 			Arbiter.ScoreChallengeWinner winner = ParseWinner( node["winner"] );
-			Arbiter.ScoreChallenge rv = new Arbiter.ScoreChallenge( node["id"], node["score_to_beat"], status, winner );
+			Arbiter.ScoreChallenge rv = new Arbiter.ScoreChallenge( node["id"], 
+																	node["score_to_beat"], 
+																	node["entry_fee"],
+																	node["prize"],
+																	status, 
+																	winner );
 			return rv;
 		}
 		

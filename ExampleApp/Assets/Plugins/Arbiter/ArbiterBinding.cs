@@ -357,7 +357,7 @@ namespace ArbiterInternal {
 #if UNITY_EDITOR
 			ReportIgnore( "RequestScoreChallenge" );
 			if( success != null )
-				success( new Arbiter.ScoreChallenge( "1234", "55", Arbiter.ScoreChallenge.StatusType.Busy, null ));
+				success( new Arbiter.ScoreChallenge( "1234", "55", "100", "200", Arbiter.ScoreChallenge.StatusType.Busy, null ));
 #elif UNITY_IOS
 			_requestScoreChallenge( entryFee );
 #endif

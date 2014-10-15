@@ -17,13 +17,17 @@ public partial class Arbiter {
 		
 		public string Id                		{ get { return this.id; } }
 		public string ScoreToBeat				{ get { return this.scoreToBeat; } }
+		public string EntryFee					{ get { return this.entryFee; } }
+		public string Prize						{ get { return this.prize; } }
 		public StatusType Status        		{ get { return this.status; } }
 		public ScoreChallengeWinner Winner		{ get { return this.winner; } }
 		
 		
-		public ScoreChallenge( string id, string scoreToBeat, StatusType status, Arbiter.ScoreChallengeWinner winner ) {
+		public ScoreChallenge( string id, string scoreToBeat, string entryFee, string prize, StatusType status, Arbiter.ScoreChallengeWinner winner ) {
 			this.id = id;
 			this.scoreToBeat = scoreToBeat;
+			this.entryFee = entryFee;
+			this.prize = prize;
 			this.status = status;
 			this.winner = winner;
 		}
@@ -33,6 +37,8 @@ public partial class Arbiter {
 			string rv = "[ScoreChallenge "+
 						"id:"+this.id+", "+
 						"scoreToBeat:"+this.ScoreToBeat+", "+
+						"entryFee:"+this.EntryFee+", "+
+						"prize:"+this.Prize+", "+
 						"status:"+this.status+"]]";
 			return rv;
 		}
@@ -40,6 +46,8 @@ public partial class Arbiter {
 		
 		private string id;
 		private string scoreToBeat;
+		private string entryFee;
+		private string prize;
 		private StatusType status;
 		private ScoreChallengeWinner winner;
 	}

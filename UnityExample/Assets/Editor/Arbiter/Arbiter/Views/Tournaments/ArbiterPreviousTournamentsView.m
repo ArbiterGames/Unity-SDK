@@ -120,7 +120,7 @@
     BOOL IS_GREATER_THAN_IOS7 = [[[UIDevice currentDevice] systemVersion] compare: @"8.0" options: NSNumericSearch] != NSOrderedAscending;
     BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
     if ( IS_GREATER_THAN_IOS7 && IS_LANDCAPE ) {
-        tableHeight = self.frame.size.width -tableYOrigin - 40;
+        tableHeight = self.frame.size.width - tableYOrigin - 40;
     }
     
     self.tournamentTable = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, tableYOrigin, self.frame.size.width, tableHeight)];

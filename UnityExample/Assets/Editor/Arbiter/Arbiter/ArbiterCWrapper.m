@@ -41,7 +41,6 @@ const char* ProcessDictionaryParams( NSDictionary *jsonDict )
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
         NSString *jsonString = [[NSString alloc] initWithData:jsonData encoding:NSUTF8StringEncoding];
-//        const char *jsonChar = AutonomousStringCopy([[jsonString stringByReplacingOccurrencesOfString:@"null" withString:@"False"] UTF8String]);
         const char *jsonChar = AutonomousStringCopy([jsonString UTF8String]);
         return jsonChar;
     }
@@ -245,6 +244,13 @@ void _reportScoreForChallenge( const char *challengeId, const char *score )
     [ArbiterInstance() reportScoreForChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "ReportScoreForChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId] score:[[NSString alloc] initWithUTF8String:score]];
+}
+
+void _showScoreChallengeRules( const char* challengeId )
+{
+    [ArbiterInstance() showScoreChallengeRules:^(void) {
+        UnitySendMessage("ArbiterBinding", "ShowScoreChallengeRulesHandler", EMPTY_STRING );
+    } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
 void _showWalkThrough( const char* walkThroughId )

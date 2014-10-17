@@ -408,17 +408,30 @@ namespace ArbiterInternal {
 		}
 		
 		
+		const string SHOW_SCORE_CHALLENGE_RULES = "show_score_challenge_rules";
+		[DllImport ("__Internal")]
+		private static extern void _showScoreChallengeRules( string challengeId );
+		public static void ShowScoreChallengeRules( string challengeId, SuccessHandler callback ) {
+			SetCallbacksWithErrors( SHOW_SCORE_CHALLENGE_RULES, callback, null );
+#if UNITY_EDITOR
+			ReportIgnore( "ShowScoreChallengeRules" );
+#elif UNITY_IOS
+			_showScoreChallengeRules( challengeId );
+#endif
+		}
+		
+		
 		
 		const string SHOW_WALK_THROUGH = "show_walk_through";
 		[DllImport ("__Internal")]
 		private static extern void _showWalkThrough( string walkThroughId );
 		public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
 			SetCallbacksWithErrors( SHOW_WALK_THROUGH, callback, null );
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			ReportIgnore( "ShowWalkThrough" );
-			#elif UNITY_IOS
+#elif UNITY_IOS
 			_showWalkThrough( walkThroughId );
-			#endif
+#endif
 		}
 
 
@@ -552,6 +565,9 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_WALK_THROUGH );
 		}
 		
+		public void ShowScoreChallengeRulesHandler( string emptyString ) {
+			SimpleCallback( SHOW_SCORE_CHALLENGE_RULES );
+		}
 		
 		public void ReportScoreHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );

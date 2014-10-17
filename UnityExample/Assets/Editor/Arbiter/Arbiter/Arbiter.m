@@ -16,6 +16,7 @@
 #import "ArbiterTournamentResultsView.h"
 #import "ArbiterPreviousTournamentsView.h"
 #import "ArbiterWalkThrough.h"
+#import "ArbiterSCOfficialRules.h"
 #import "ArbiterLogger.h"
 
 #define LOGIN_ALERT_TAG 329
@@ -596,6 +597,13 @@
     [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy]];
+}
+
+- (void)showScoreChallengeRules:(void (^)(void))handler challengeId:(NSString *)challengeId
+{
+    ArbiterSCOfficialRules *view = [[ArbiterSCOfficialRules alloc] initWithChallengeId:challengeId arbiterInstance:self];
+    view.callback = handler;
+    [self.panelWindow show:view];
 }
 
 

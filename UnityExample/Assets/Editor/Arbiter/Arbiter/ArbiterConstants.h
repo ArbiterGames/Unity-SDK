@@ -24,6 +24,7 @@ extern NSString *const APIReportScoreURLPart2;
 
 extern NSString *const APIScoreChallengeCreateURL;
 extern NSString *const APIScoreChallengeBaseURL;
+extern NSString *const APIScoreChallengeRulesURL;
 extern NSString *const APIScoreChallengeAcceptURLPart2;
 extern NSString *const APIScoreChallengeRejectURLPart2;
 extern NSString *const APIScoreChallengeReportURLPart2;

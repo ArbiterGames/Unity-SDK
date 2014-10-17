@@ -18,12 +18,12 @@
         [[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(keyboardDidHide:) name:UIKeyboardDidHideNotification object:nil];
 
         BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
-        BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+        BOOL IS_LANDSCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
         float padding = 10.0;
         CGRect frame = [[UIApplication sharedApplication] keyWindow].frame;
         frame.origin.x = padding;
         
-        if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
+        if ( IS_LANDSCAPE && IS_LESS_THAN_IOS8) {
             frame.size.height = frame.size.width;
             frame.size.width = [[UIApplication sharedApplication] keyWindow].frame.size.height - padding * 2;
         } else {
@@ -64,9 +64,11 @@
     CGRect nonCenteredFrame = CGRectMake(0.0, 0.0, self.frame.size.width, finalHeight);
     CGRect screenFrame = [[UIApplication sharedApplication] keyWindow].frame;
     BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
-    BOOL IS_LANDCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
-    if ( IS_LANDCAPE && IS_LESS_THAN_IOS8) {
+    BOOL IS_LANDSCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
+    if ( IS_LANDSCAPE && IS_LESS_THAN_IOS8) {
         [self setFrame:CGRectMake((screenFrame.size.height - nonCenteredFrame.size.width) / 2, (screenFrame.size.width - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
+    } else if ( IS_LANDSCAPE && !IS_LESS_THAN_IOS8 ) {
+        // No-op. iOS8 handles its landscape!
     } else {
         [self setFrame:CGRectMake((screenFrame.size.width - nonCenteredFrame.size.width) / 2, (screenFrame.size.height - finalHeight) / 2, nonCenteredFrame.size.width, finalHeight)];
     }

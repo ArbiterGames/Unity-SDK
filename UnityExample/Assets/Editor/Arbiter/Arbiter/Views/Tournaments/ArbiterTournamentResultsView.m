@@ -45,7 +45,7 @@
                                                                self.frame.size.width - 100.0, self.titleHeight)];
     title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
     title.textColor = [UIColor whiteColor];
-    title.text = @"Cash Results";
+    title.text = @"Results";
     title.textAlignment = NSTextAlignmentCenter;
     title.numberOfLines = 0;
     [self addSubview:title];

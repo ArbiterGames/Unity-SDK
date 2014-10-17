@@ -348,6 +348,10 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.ReportScoreForChallenge( challengeId, score, success, failure );
 	}
 	
+	public static void ShowScoreChallengeRules( string challengeId, SuccessHandler callback ) {
+		ArbiterBinding.ShowScoreChallengeRules( challengeId, callback );
+	}
+	
 	
 	public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
 		ArbiterBinding.ShowWalkThrough( walkThroughId, callback );

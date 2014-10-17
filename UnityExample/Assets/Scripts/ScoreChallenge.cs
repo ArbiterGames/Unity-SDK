@@ -17,7 +17,7 @@ public class ScoreChallenge : MonoBehaviour {
 	static int padding = 10;
 	static int buttonHeight = 100;
 	static int boxWidth = Screen.width - padding * 2;
-	static int boxHeight = buttonHeight * 4 + padding * 4;
+	static int boxHeight = buttonHeight * 5 + padding * 5;
 	static int boxY = (Screen.height - boxHeight) / 2;
 	static int buttonWidth = boxWidth - padding * 2;
 	static int labelHeight = 30;
@@ -71,6 +71,12 @@ public class ScoreChallenge : MonoBehaviour {
 				Arbiter.RejectScoreChallenge( ChallengeId, OnChallengeRejected );
 			}
 		}
+		
+		if ( ChallengeId != "Waiting" ) {
+			if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + boxY + padding * 4, buttonWidth, buttonHeight), "Official Rules", buttonStyle)) {
+				Arbiter.ShowScoreChallengeRules( ChallengeId, OnRulesClosed );
+			}
+		}
 	}
 	
 	void OnChallengeCreated( Arbiter.ScoreChallenge challenge ) {
@@ -84,6 +90,10 @@ public class ScoreChallenge : MonoBehaviour {
 	
 	void OnChallengeRejected() {
 		Application.LoadLevel("MainMenu");
+	}
+	
+	void OnRulesClosed() {
+		Debug.Log ("Score Challenge rules closed");
 	}
 	
 	void OnScoreReported( Arbiter.ScoreChallenge challenge ) {

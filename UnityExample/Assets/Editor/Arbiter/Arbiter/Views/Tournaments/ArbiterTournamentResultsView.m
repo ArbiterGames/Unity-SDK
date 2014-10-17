@@ -45,7 +45,7 @@
                                                                self.frame.size.width - 100.0, self.titleHeight)];
     title.font = [UIFont fontWithName:@"HelveticaNeue-UltraLight" size:38.0];
     title.textColor = [UIColor whiteColor];
-    title.text = @"Cash Results";
+    title.text = @"Results";
     title.textAlignment = NSTextAlignmentCenter;
     title.numberOfLines = 0;
     [self addSubview:title];
@@ -125,7 +125,7 @@
         label.textAlignment = NSTextAlignmentLeft;
         [cell.contentView addSubview:label];
         
-        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2, cell.frame.size.height)];
+        value = [[UILabel alloc] initWithFrame:CGRectMake(cell.frame.size.width / 2, 0.0, cell.frame.size.width / 2 - 20.0, cell.frame.size.height)];
         value.tag = CELL_VALUE_TAG;
         value.textColor = [UIColor whiteColor];
         value.textAlignment = NSTextAlignmentRight;

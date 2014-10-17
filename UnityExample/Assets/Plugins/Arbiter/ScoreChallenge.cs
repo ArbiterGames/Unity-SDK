@@ -21,6 +21,7 @@ public partial class Arbiter {
 		public string Prize						{ get { return this.prize; } }
 		public StatusType Status        		{ get { return this.status; } }
 		public ScoreChallengeWinner Winner		{ get { return this.winner; } }
+		public bool DidUserWin					{ get { return this.winner != null && this.winner.Id == Arbiter.UserId; } }
 		
 		
 		public ScoreChallenge( string id, string scoreToBeat, string entryFee, string prize, StatusType status, Arbiter.ScoreChallengeWinner winner ) {

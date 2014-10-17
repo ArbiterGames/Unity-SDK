@@ -122,7 +122,6 @@
     if ( IS_GREATER_THAN_IOS7 && IS_LANDCAPE ) {
         tableHeight = self.frame.size.width - tableYOrigin - 40;
     }
-    
     self.tournamentTable = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, tableYOrigin, self.frame.size.width, tableHeight)];
     self.tournamentTable.delegate = self;
     self.tournamentTable.dataSource = self;
@@ -177,7 +176,8 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         cell.backgroundColor = [UIColor clearColor];
-        adjustedWidth = (cell.frame.size.width + 80.0) / 2;
+        adjustedWidth = (cell.frame.size.width) / 2 - 20.0;
+        
         date = [[UILabel alloc] initWithFrame:CGRectMake(adjustedWidth, 10.0, adjustedWidth, LINE_HEIGHT)];
         date.textAlignment = NSTextAlignmentRight;
         date.textColor = [UIColor lightGrayColor];
@@ -215,7 +215,7 @@
         [cell.contentView addSubview:opponentScoreValue];
         
         CALayer *topBorder = [CALayer layer];
-        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
         topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
         topBorder.opacity = 0.2;
         [cell.contentView.layer addSublayer:topBorder];
@@ -253,8 +253,8 @@
             opponentScoreValue.text = [[self.arbiter getOpponentFromTournament:tournament] objectForKey:@"score"];
         }
     } else {
-        opponentScoreLabel.text = @"Waiting for opponent";
-        opponentScoreValue.text = @"...";
+        opponentScoreLabel.text = @"Opponent score";
+        opponentScoreValue.text = @"waiting ...";
     }
     
     if ( [status isEqualToString:@"initializing"] || [status isEqualToString:@"inprogress"] ) {

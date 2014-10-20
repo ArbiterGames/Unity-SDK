@@ -75,7 +75,7 @@ void ClientCallbackWalletUpdated()
 
 
 
-void _init( const char *apiKey, const char *accessToken )
+void _init( const char *apiKey, const char *accessToken, const char *mixpanelToken )
 {
     _arbiter = [Arbiter alloc];
     [_arbiter init:^(NSDictionary *jsonDict) {
@@ -83,6 +83,7 @@ void _init( const char *apiKey, const char *accessToken )
         }
                apiKey:[[NSString alloc] initWithUTF8String:apiKey]
           accessToken:[[NSString alloc] initWithUTF8String:accessToken]
+        mixpanelToken:[[NSString alloc] initWithUTF8String:mixpanelToken]
     ];
 }
 

@@ -15,6 +15,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	public string accessToken;
 	public string gameApiKey;
+	public string mixpanelToken;
 	
 	[HideInInspector]
 	public string SelectedUnfinishedTournamentId;
@@ -38,6 +39,7 @@ public partial class Arbiter : MonoBehaviour {
 		
 		_accessToken = accessToken;
 		_gameApiKey = gameApiKey;
+		_mixpanelToken = mixpanelToken;
 		
 		var arbiters = FindObjectsOfType( typeof( Arbiter ) );
 		if( arbiters.Length > 1 )
@@ -61,7 +63,7 @@ public partial class Arbiter : MonoBehaviour {
 			errors.ForEach( e => Debug.LogError( e ));
 		};
 
-		ArbiterBinding.Init( _gameApiKey, _accessToken, () => {}, initializeErrorHandler );
+		ArbiterBinding.Init( _gameApiKey, _accessToken, _mixpanelToken, () => {}, initializeErrorHandler );
 	}
 
 	
@@ -396,6 +398,7 @@ public partial class Arbiter : MonoBehaviour {
 	
 	private static string _gameApiKey;
 	private static string _accessToken;
+	private static string _mixpanelToken;
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	internal static User user;

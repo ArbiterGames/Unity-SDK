@@ -10,6 +10,7 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import "Mixpanel.h"
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
@@ -57,13 +58,18 @@
     handler(self.user);
 }
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken mixpanelToken:(NSString*)mixpanelToken
 {
     self = [super init];
     
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
+        
+        if ( mixpanelToken ) {
+            [Mixpanel sharedInstanceWithToken:mixpanelToken];
+        }
+        
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
@@ -202,21 +208,22 @@
                           @"success": @"true"});
             } else if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"])   || [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
                         IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                           UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                           message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
-                                                                          delegate: self
-                                                                 cancelButtonTitle:@"Agree"
-                                                                 otherButtonTitles:@"View terms", @"Cancel", nil];
-                           [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-                           [alert setTag:VERIFICATION_ALERT_TAG];
-                           [alert show];
-                       } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                           NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
-                           NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-                           [verificationUrl appendString: [self.user objectForKey:@"id"]];
-                           [verificationUrl appendString: @"/verify"];
-                           [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
-                       }
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Agree"
+                                                      otherButtonTitles:@"View terms", @"Cancel", nil];
+                [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+                [alert setTag:VERIFICATION_ALERT_TAG];
+                [alert show];
+                [[Mixpanel sharedInstance] track:@"Displayed Terms Dialog"];
+           } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+                [verificationUrl appendString: [self.user objectForKey:@"id"]];
+                [verificationUrl appendString: @"/verify"];
+                [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
+           }
         } else {
             if ( self.user == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
@@ -351,6 +358,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
+    [[Mixpanel sharedInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
         void (^populateThenShowPanel)(void) = [^(void) {
             ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];

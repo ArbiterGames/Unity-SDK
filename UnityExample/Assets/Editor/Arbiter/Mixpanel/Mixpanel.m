@@ -537,6 +537,7 @@ static Mixpanel *sharedInstance = nil;
         NSLog(@"%@ mixpanel track called with empty event parameter. using 'mp_event'", self);
         event = @"mp_event";
     }
+    
     properties = [properties copy];
     [Mixpanel assertPropertyTypes:properties];
     

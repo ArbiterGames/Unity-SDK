@@ -7,6 +7,7 @@
 //
 
 #import "ArbiterFullContactInfoTableViewDelegate.h"
+#import "Mixpanel.h"
 
 #define EMAIL_FIELD_TAG 1
 #define NAME_FIELD_TAG 2
@@ -165,6 +166,8 @@
             alert.message = @"Please enter your full name as it appears on your debit card before continuing.";
             [alert show];
         } else {
+            [[Mixpanel sharedInstance] track:@"Submitted Withdraw Info" properties:@{@"email": self.emailField.text,
+                                                                                     @"fullName": self.nameField.text}];
             self.callback(@{@"email": self.emailField.text, @"fullName": self.nameField.text});
         }
     }

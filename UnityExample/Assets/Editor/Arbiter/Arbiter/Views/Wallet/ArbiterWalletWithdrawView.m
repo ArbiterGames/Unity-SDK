@@ -15,6 +15,7 @@
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
 #import "Stripe.h"
 #import "PTKView.h"
+#import "Mixpanel.h"
 
 #define AMOUNT_SELECTION_UI_TAG 1
 #define CONTACT_INFO_UI_TAG 2
@@ -60,6 +61,7 @@
     } else if ( self.activeViewIndex == CONTACT_INFO_UI_TAG ) {
         [self setupContactInfoUI];
     } else if ( self.activeViewIndex == BILLING_INFO_UI_TAG ) {
+        [[Mixpanel sharedInstance] track:@"Selected Withdraw Amount" properties:@{@"amount": [NSString stringWithFormat:@"%f", self.withdrawAmount]}];
         [self setupBillingInfoUI];
     } else if ( self.activeViewIndex == TOKEN_REQUEST_UI_TAG ) {
         [self getTokenAndSubmitWithdraw];
@@ -248,17 +250,22 @@
                                      @"card_name": self.fullName};
             [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
                 if ([[responseDict objectForKey:@"errors"] count]) {
-                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
+                    [[Mixpanel sharedInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
+                    [self handleError:message];
                     [self.nextButton removeFromSuperview];
                     self.activeViewIndex--;
                     [self navigateToActiveView];
                 } else {
+                    [[Mixpanel sharedInstance] track:@"Received Withdraw Success"];
                     self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
                     self.arbiter.user = [responseDict objectForKey:@"user"];
                     self.activeViewIndex++;
                     [self navigateToActiveView];
                     self.withdrawComplete = YES;
                 }
+                
+                
             } copy]];
         }
     } copy]];

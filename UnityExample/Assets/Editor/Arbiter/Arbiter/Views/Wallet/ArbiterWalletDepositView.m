@@ -17,6 +17,7 @@
 #import "PTKView.h"
 #import "STPCard.h"
 #import "Stripe.h"
+#import "Mixpanel.h"
 
 #define BUNDLE_SELECT_VIEW_TAG 1
 #define CONTACT_INFO_VIEW_TAG 2
@@ -167,15 +168,20 @@
                                      @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
                                      @"email": self.email,
                                      @"username": self.username};
+            [[Mixpanel sharedInstance] track:@"Submitted Deposit Billing Info"];
             [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-                if ([[responseDict objectForKey:@"errors"] count]) {
-                    [self handleError:[[responseDict objectForKey:@"errors"] objectAtIndex:0]];
+                if ( [[responseDict objectForKey:@"errors"] count] ) {
+                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
+                    [[Mixpanel sharedInstance] track:@"Received Deposit Error" properties:@{@"error": message}];
+                    [self handleError:message];
                 } else {
+                    [[Mixpanel sharedInstance] track:@"Received Deposit Success"];
                     self.arbiter.user = [responseDict objectForKey:@"user"];
                     self.activeViewIndex++;
                     [self navigateToActiveView];
                     self.purchaseCompleted = YES;
                 }
+                
             } copy]];
         }
 

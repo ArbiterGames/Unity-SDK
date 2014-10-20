@@ -241,7 +241,7 @@
                 } else {
                     if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
-                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments."
+                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                        delegate:self
                                                               cancelButtonTitle:@"Keep disabled"
                                                               otherButtonTitles:@"Check again", nil];
@@ -826,19 +826,22 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
+            [[Mixpanel sharedInstance] track:@"Clicked Agree to Terms"];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
             [self httpPost:verificationUrl params:postParams isBlocking:YES handler:connectionHandler];
             
-            // View Terms
+        // View Terms
         } else if ( buttonIndex == 1 ) {
+            [[Mixpanel sharedInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
         
         // Cancel
         if (buttonIndex == 2) {
+            [[Mixpanel sharedInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
@@ -846,8 +849,12 @@
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
+        
         if (buttonIndex == 1) {
+            [[Mixpanel sharedInstance] track:@"Clicked Check LS"];
             [self verifyUser:handler];
+        } else {
+            [[Mixpanel sharedInstance] track:@"Clicked Keep LS Disabled"];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

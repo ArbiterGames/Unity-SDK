@@ -11,12 +11,14 @@ path = argv[1]
 fileToAddPath = argv[2]
 project = XcodeProject.Load(path + '/Unity-iPhone.xcodeproj/project.pbxproj')
 frameworks_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/'
+lib_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/'
 
 
 # Add required libraries
 ############################
 project.add_file(frameworks_path + 'Security.framework', tree='SDKROOT')
 project.add_file(frameworks_path + 'PassKit.framework', tree='SDKROOT', weak=True)
+project.add_file(lib_path + 'libicucore.dylib', tree='SDKROOT')
 
 # Add all files in /Assets/Editor/Arbiter/
 files_in_dir = os.listdir(fileToAddPath)

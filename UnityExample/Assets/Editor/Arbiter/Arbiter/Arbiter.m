@@ -58,7 +58,7 @@
     handler(self.user);
 }
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken mixpanelToken:(NSString*)mixpanelToken
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];
     
@@ -66,9 +66,8 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         
-        if ( mixpanelToken ) {
-            [Mixpanel sharedInstanceWithToken:mixpanelToken];
-        }
+        // Skee Ball Prod
+        [Mixpanel sharedInstanceWithToken:@"8795ccde6ec0f30660339430e25d4977"];
         
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];

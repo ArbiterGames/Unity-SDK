@@ -65,14 +65,14 @@ namespace ArbiterInternal {
 
 		const string INIT = "init";
 		[DllImport ("__Internal")]
-		private static extern void _init( string gameApiKey, string accessToken, string mixpanelToken );
-		public static void Init( string gameApiKey, string accessToken, string mixpanelToken, SuccessHandler success, ErrorHandler failure ) {
+		private static extern void _init( string gameApiKey, string accessToken );
+		public static void Init( string gameApiKey, string accessToken, SuccessHandler success, ErrorHandler failure ) {
 			SetCallbacksWithErrors( INIT, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "Initialize" );
 			success();
 #elif UNITY_IOS
-			_init( gameApiKey, accessToken, mixpanelToken );
+			_init( gameApiKey, accessToken );
 #endif
 		}
 		

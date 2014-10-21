@@ -66,8 +66,8 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         
-        // Skee Ball Prod
-        [Mixpanel sharedInstanceWithToken:@"8795ccde6ec0f30660339430e25d4977"];
+        // Unity Example Token
+        [Mixpanel sharedInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
         
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];

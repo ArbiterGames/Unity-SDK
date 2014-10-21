@@ -15,6 +15,7 @@ public class Login : MonoBehaviour {
 	
 	
 	void Start() {
+		// Unity Example Token
 		Mixpanel.Token = "cf0675d39b178d459ab3b78df8c87d51";
 		Mixpanel.SendEvent("Game Loaded");
 		if ( Arbiter.IsAuthenticated ) {

@@ -39,7 +39,7 @@
     self.activeWalletObserver = detailView;
     [self navigateToView:detailView];
     
-    UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Overview", @"Deposit", @"Withdraw", nil]];
+    UISegmentedControl *segmentedControl = [[UISegmentedControl alloc] initWithItems:[NSArray arrayWithObjects: @"Overview", @"Buy Credits", @"Cash Out", nil]];
     [segmentedControl setFrame:CGRectMake(0.0, detailView.frame.origin.y + detailView.frame.size.height + 10, self.frame.size.width, segmentedControlHeight)];
     [segmentedControl addTarget:self action:@selector(segmentControlClicked:) forControlEvents: UIControlEventValueChanged];
     [segmentedControl setTintColor:[UIColor whiteColor]];

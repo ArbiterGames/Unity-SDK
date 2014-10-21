@@ -6,6 +6,7 @@
 //
 //
 
+#import "Mixpanel.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 
 #define CELL_LABEL_TAG 10
@@ -27,7 +28,9 @@
 
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    self.selectionCallback([self.availableBundles objectAtIndex:indexPath.row]);
+    NSDictionary *bundle = [self.availableBundles objectAtIndex:indexPath.row];
+    [[Mixpanel sharedInstance] track:@"Selected Credit Amount" properties:@{@"amount": [bundle objectForKey:@"value"]}];
+    self.selectionCallback(bundle);
 }
 
 - (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView

@@ -10,6 +10,7 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import "Mixpanel.h"
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
@@ -64,6 +65,10 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
+        
+        // Unity Example Token
+        [Mixpanel sharedInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
+        
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
@@ -202,21 +207,22 @@
                           @"success": @"true"});
             } else if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"])   || [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
                         IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                           UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                           message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
-                                                                          delegate: self
-                                                                 cancelButtonTitle:@"Agree"
-                                                                 otherButtonTitles:@"View terms", @"Cancel", nil];
-                           [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-                           [alert setTag:VERIFICATION_ALERT_TAG];
-                           [alert show];
-                       } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                           NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
-                           NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-                           [verificationUrl appendString: [self.user objectForKey:@"id"]];
-                           [verificationUrl appendString: @"/verify"];
-                           [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
-                       }
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
+                                                               delegate: self
+                                                      cancelButtonTitle:@"Agree"
+                                                      otherButtonTitles:@"View terms", @"Cancel", nil];
+                [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+                [alert setTag:VERIFICATION_ALERT_TAG];
+                [alert show];
+                [[Mixpanel sharedInstance] track:@"Displayed Terms Dialog"];
+           } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+                [verificationUrl appendString: [self.user objectForKey:@"id"]];
+                [verificationUrl appendString: @"/verify"];
+                [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
+           }
         } else {
             if ( self.user == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
@@ -234,7 +240,7 @@
                 } else {
                     if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
-                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments."
+                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                        delegate:self
                                                               cancelButtonTitle:@"Keep disabled"
                                                               otherButtonTitles:@"Check again", nil];
@@ -351,6 +357,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
+    [[Mixpanel sharedInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
         void (^populateThenShowPanel)(void) = [^(void) {
             ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
@@ -818,19 +825,22 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
+            [[Mixpanel sharedInstance] track:@"Clicked Agree to Terms"];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];
             [self httpPost:verificationUrl params:postParams isBlocking:YES handler:connectionHandler];
             
-            // View Terms
+        // View Terms
         } else if ( buttonIndex == 1 ) {
+            [[Mixpanel sharedInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
         
         // Cancel
         if (buttonIndex == 2) {
+            [[Mixpanel sharedInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
@@ -838,8 +848,12 @@
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
+        
         if (buttonIndex == 1) {
+            [[Mixpanel sharedInstance] track:@"Clicked Check LS"];
             [self verifyUser:handler];
+        } else {
+            [[Mixpanel sharedInstance] track:@"Clicked Keep LS Disabled"];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

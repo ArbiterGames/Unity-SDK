@@ -144,6 +144,7 @@
                                                otherButtonTitles:@"Login", nil];
     [loginAlert setAlertViewStyle:UIAlertViewStyleLoginAndPasswordInput];
     [loginAlert setTag:LOGIN_ALERT_TAG];
+    [[UIApplication sharedApplication] endIgnoringInteractionEvents];
     [loginAlert show];
     
     UIAlertView *invalidLoginAlert = [[UIAlertView alloc] initWithTitle:@"Unable to login"
@@ -160,6 +161,7 @@
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             handler(responseDict);
         } else {
+            [[UIApplication sharedApplication] endIgnoringInteractionEvents];
             [invalidLoginAlert show];
         }
     } copy];
@@ -173,6 +175,7 @@
     } copy];
     
     void (^invalidLoginAlertHandler)(NSDictionary *) = [^(NSDictionary *emptyDict) {
+        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [loginAlert show];
     } copy];
     
@@ -214,6 +217,7 @@
                                                       otherButtonTitles:@"View terms", @"Cancel", nil];
                 [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
                 [alert setTag:VERIFICATION_ALERT_TAG];
+                [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
                 [[Mixpanel sharedInstance] track:@"Displayed Terms Dialog"];
            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
@@ -231,6 +235,7 @@
                                                       cancelButtonTitle:@"Close"
                                                       otherButtonTitles:nil];
                 [alert setTag:NO_ACTION_ALERT_TAG];
+                [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
             } else {
                 if ( self.locationVerificationAttempts < 4 ) {
@@ -246,6 +251,7 @@
                                                               otherButtonTitles:@"Check again", nil];
                         [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
                         [alert setTag:ENABLE_LOCATION_ALERT_TAG];
+                        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                         [alert show];
                     }
                 }
@@ -359,7 +365,17 @@
 {
     [[Mixpanel sharedInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
+        [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
+        UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
+        [self.spinnerView setFrame:keyRVCV.bounds];
+        [keyRVCV addSubview:self.spinnerView];
+        [self.spinnerView startAnimating];
+
         void (^populateThenShowPanel)(void) = [^(void) {
+            [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+            [self.spinnerView stopAnimating];
+            [self.spinnerView removeFromSuperview];
+            
             ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
             walletDashboard.callback = handler;
             [self addWalletObserver:walletDashboard];
@@ -533,6 +549,7 @@
         
         [_alertViewHandlerRegistry setObject:handler forKey:@"closeIncompleteGamesHandler"];
         [alert setTag:SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG];
+        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [alert show];
     } copy];
     
@@ -729,6 +746,7 @@
         [self.requestQueue setObject:@1 forKey:key];
     }
     if ( [self.requestQueue count] > 0 ) {
+        [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
         [self.spinnerView setFrame:keyRVCV.bounds];
         [keyRVCV addSubview:self.spinnerView];
@@ -744,6 +762,7 @@
         [self.requestQueue removeObjectForKey:key];
     }
     if ( [self.requestQueue count] == 0 ) {
+        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [self.spinnerView stopAnimating];
         [self.spinnerView removeFromSuperview];
     } else {

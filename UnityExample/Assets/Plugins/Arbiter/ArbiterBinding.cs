@@ -519,7 +519,7 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_TOURNAMENT_PANEL );
 		}
 		
-		public void ViewPreviousTournamentsHandler( string emptyString ) {
+		public void ShowPreviousTournamentsHandler( string emptyString ) {
 			SimpleCallback( SHOW_PREIVOUS_TOURNAMENTS );
 		}
 		

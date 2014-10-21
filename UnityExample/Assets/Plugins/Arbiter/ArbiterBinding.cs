@@ -367,8 +367,8 @@ namespace ArbiterInternal {
 		const string ACCEPT_SCORE_CHALLENGE = "accept_score_challenge";
 		[DllImport ("__Internal")]
 		private static extern void _acceptScoreChallenge( string challengeId );
-		public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, ErrorHandler failure ) {
-			SetCallbacksWithErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
+		public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
+			SetCallbacksWithFriendlyErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "AcceptScoreChallenge" );
 #elif UNITY_IOS
@@ -519,7 +519,7 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_TOURNAMENT_PANEL );
 		}
 		
-		public void ViewPreviousTournamentsHandler( string emptyString ) {
+		public void ShowPreviousTournamentsHandler( string emptyString ) {
 			SimpleCallback( SHOW_PREIVOUS_TOURNAMENTS );
 		}
 		

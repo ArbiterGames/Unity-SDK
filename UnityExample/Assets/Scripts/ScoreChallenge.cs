@@ -64,7 +64,7 @@ public class ScoreChallenge : MonoBehaviour {
 			}
 		} else {
 			if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + boxY + padding * 2, buttonWidth, buttonHeight), "Accept", buttonStyle)) {
-				Arbiter.AcceptScoreChallenge( ChallengeId, OnChallengeAccepted, ErrorHandlerWODescriptions );
+				Arbiter.AcceptScoreChallenge( ChallengeId, OnChallengeAccepted, ErrorHandler );
 			}
 			
 			if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + boxY + padding * 3, buttonWidth, buttonHeight), "Reject", buttonStyle)) {

@@ -335,7 +335,7 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.RequestScoreChallenge( entryFee, callback, failure );
 	}
 	
-	public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, ErrorHandler failure ) {
+	public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
 		ArbiterBinding.AcceptScoreChallenge( challengeId, success, failure );
 	}
 	

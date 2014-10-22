@@ -21,6 +21,7 @@ lib_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platfo
 # Add required libraries
 ############################
 project.add_file(frameworks_path + 'Security.framework', tree='SDKROOT')
+project.add_file(frameworks_path + 'PassKit.framework', tree='SDKROOT', weak=True)
 project.add_file(lib_path + 'libicucore.dylib', tree='SDKROOT')
 
 # Add all files in /Assets/Editor/Arbiter/

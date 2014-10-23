@@ -11,6 +11,10 @@ path = argv[1]
 fileToAddPath = argv[2]
 project = XcodeProject.Load(path + '/Unity-iPhone.xcodeproj/project.pbxproj')
 frameworks_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/System/Library/Frameworks/'
+
+# TODO:
+#   need to figure out the best approach for checking which SDK the app is being developed on, and then look for that
+#   instead of pulling from iPhoneOS.sdk
 lib_path = '/Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/usr/lib/'
 
 

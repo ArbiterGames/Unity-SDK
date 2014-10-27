@@ -10,7 +10,6 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
-#import "Mixpanel.h"
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
@@ -19,6 +18,7 @@
 #import "ArbiterWalkThrough.h"
 #import "ArbiterSCOfficialRules.h"
 #import "ArbiterLogger.h"
+#import "ArbiterTracking.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -66,8 +66,10 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         
-        // Unity Example Token
-        [Mixpanel sharedInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
+        // Unity SDK Example Token
+        [ArbiterTracking arbiterInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
+        [[ArbiterTracking arbiterInstance] track:@"Game Loaded"];
+        
         
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
@@ -219,7 +221,7 @@
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
-                [[Mixpanel sharedInstance] track:@"Displayed Terms Dialog"];
+                [[ArbiterTracking arbiterInstance] track:@"Displayed Terms Dialog"];
            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
                 NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
@@ -363,7 +365,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [[Mixpanel sharedInstance] track:@"Clicked Show Wallet"];
+    [[ArbiterTracking arbiterInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
@@ -844,7 +846,7 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
-            [[Mixpanel sharedInstance] track:@"Clicked Agree to Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Agree to Terms"];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
@@ -853,13 +855,13 @@
             
         // View Terms
         } else if ( buttonIndex == 1 ) {
-            [[Mixpanel sharedInstance] track:@"Clicked View Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
         
         // Cancel
         if (buttonIndex == 2) {
-            [[Mixpanel sharedInstance] track:@"Clicked Cancel Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
@@ -869,10 +871,10 @@
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
         
         if (buttonIndex == 1) {
-            [[Mixpanel sharedInstance] track:@"Clicked Check LS"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Check LS"];
             [self verifyUser:handler];
         } else {
-            [[Mixpanel sharedInstance] track:@"Clicked Keep LS Disabled"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

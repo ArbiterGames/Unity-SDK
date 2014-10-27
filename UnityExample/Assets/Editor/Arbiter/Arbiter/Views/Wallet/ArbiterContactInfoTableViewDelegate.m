@@ -6,7 +6,7 @@
 //
 //
 
-#import "Mixpanel.h"
+#import "ArbiterTracking.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
 
 #define CELL_EMAIL_FIELD_TAG 1
@@ -132,7 +132,7 @@
     if ( [self.emailField isFirstResponder] ) {
         [self.usernameField becomeFirstResponder];
     } else {
-        [[Mixpanel sharedInstance] track:@"Submitted Deposit Info" properties:@{@"email": self.emailField.text,
+        [[ArbiterTracking arbiterInstance] track:@"Submitted Deposit Info" properties:@{@"email": self.emailField.text,
                                                                                 @"username": self.usernameField.text}];
         self.callback(@{@"email": self.emailField.text,
                         @"username": self.usernameField.text});

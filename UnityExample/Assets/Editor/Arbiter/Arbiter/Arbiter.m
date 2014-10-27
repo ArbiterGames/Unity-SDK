@@ -28,6 +28,7 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
+#define TRACKING_ID @"cf0675d39b178d459ab3b78df8c87d51"
 
 
 @implementation Arbiter
@@ -65,12 +66,6 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
-        
-        // Unity SDK Example Token
-        [ArbiterTracking arbiterInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
-        [[ArbiterTracking arbiterInstance] track:@"Game Loaded"];
-        
-        
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
@@ -82,7 +77,8 @@
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        
+        [ArbiterTracking arbiterInstanceWithToken:TRACKING_ID];
+        [[ArbiterTracking arbiterInstance] track:@"Game Loaded"];
         [self getGameSettings];
     }
     

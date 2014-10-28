@@ -77,6 +77,7 @@ void ClientCallbackWalletUpdated();
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPostAsDeveloper:(NSString*)url params:(NSDictionary*)params handler:(void(^)(NSDictionary*))handler;
 

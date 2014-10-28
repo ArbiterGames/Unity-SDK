@@ -10,7 +10,6 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
-#import "Mixpanel.h"
 #import "ArbiterConstants.h"
 #import "Arbiter.h"
 #import "ArbiterWalletDashboardView.h"
@@ -19,6 +18,7 @@
 #import "ArbiterWalkThrough.h"
 #import "ArbiterSCOfficialRules.h"
 #import "ArbiterLogger.h"
+#import "ArbiterTracking.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -28,6 +28,7 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
+#define TRACKING_ID @"cf0675d39b178d459ab3b78df8c87d51"
 
 
 @implementation Arbiter
@@ -65,10 +66,6 @@
     if ( self ) {
         self.apiKey = apiKey;
         self.accessToken = accessToken;
-        
-        // Unity Example Token
-        [Mixpanel sharedInstanceWithToken:@"cf0675d39b178d459ab3b78df8c87d51"];
-        
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
@@ -80,7 +77,10 @@
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        
+        [ArbiterTracking arbiterInstanceWithToken:TRACKING_ID];
+        ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+        [arbiterInstance identify:arbiterInstance.distinctId];
+        [arbiterInstance track:@"Loaded Game"];
         [self getGameSettings];
     }
     
@@ -93,10 +93,12 @@
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+        [[ArbiterTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         handler(responseDict);
     } copy];
+    NSDictionary *urlParams = @{@"tracking_id":[[ArbiterTracking arbiterInstance] distinctId]};
     
-    [self httpGet:APIUserInitializeURL isBlocking:NO handler:connectionHandler];
+    [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
 }
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
@@ -112,6 +114,7 @@
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            [[ArbiterTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
             handler(responseDict);
         } copy];
         [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
@@ -125,7 +128,8 @@
                                              @"salt":[salt base64EncodedStringWithOptions:0],
                                              @"playerID":localPlayer.playerID,
                                              @"game_center_username": localPlayer.alias,
-                                             @"bundleID":[[NSBundle mainBundle] bundleIdentifier]};
+                                             @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
+                                             @"tracking_id":[[ArbiterTracking arbiterInstance] distinctId]};
                 [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
             }
         }];
@@ -159,6 +163,8 @@
         if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+            [arbiterInstance identify:[self.user objectForKey:@"id"]];
             handler(responseDict);
         } else {
             [[UIApplication sharedApplication] endIgnoringInteractionEvents];
@@ -170,7 +176,9 @@
         if ( [loginCredentials objectForKey:@"errors"] ) {
             handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
         } else {
-            [self httpPost:APIUserLoginURL params:loginCredentials isBlocking:NO handler:connectionHandler];
+            NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
+            [params setObject:[[ArbiterTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
+            [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
         }
     } copy];
     
@@ -219,7 +227,7 @@
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
-                [[Mixpanel sharedInstance] track:@"Displayed Terms Dialog"];
+                [[ArbiterTracking arbiterInstance] track:@"Displayed Terms Dialog"];
            } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
                 NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
@@ -363,7 +371,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [[Mixpanel sharedInstance] track:@"Clicked Show Wallet"];
+    [[ArbiterTracking arbiterInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
@@ -636,26 +644,41 @@
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    NSLog( @"ArbiterSDK GET %@", url );
+    [self httpGet:url params:nil isBlocking:isBlocking handler:handler];
+}
+
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+{
+    NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
+    NSString *tokenValue;
     
+    if( params != nil ) {
+        [urlParams appendString:@"?"];
+        [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
+            [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
+        }];
+    }
+
+    NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
+    NSLog( @"ArbiterSDK GET %@", fullUrl );
     NSMutableURLRequest *request = [NSMutableURLRequest
-                                    requestWithURL:[NSURL URLWithString:url]
+                                    requestWithURL:[NSURL URLWithString:fullUrl]
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
-    
-    NSString *tokenValue;
+
     if ( !IS_NULL_NS([self.user objectForKey:@"token"]) ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
     } else {
-        tokenValue = [NSString stringWithFormat:@"Token %@", self.accessToken];
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
     
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
-    NSString *key = [url stringByAppendingString:@":GET"];
+    NSString *key = [fullUrl stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
     if ( isBlocking ) {
         [self addRequestToQueue:key];
     }
+    
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
@@ -677,6 +700,7 @@
     if( params == nil ) {
         params = @{};
     }
+
     paramsData = [NSJSONSerialization dataWithJSONObject:params
                                                  options:0
                                                    error:&error];
@@ -689,14 +713,18 @@
                    @"errors": @[error]
                    });
     } else {
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
+        NSMutableURLRequest *request = [NSMutableURLRequest
+                                        requestWithURL:[NSURL URLWithString:url]
+                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                       timeoutInterval:60.0];
+        
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-        
+        NSLog(@"token: %@", tokenValue);
+        NSLog(@"paramsStr: %@", paramsStr);
+    
         if ( isBlocking ) {
             [self addRequestToQueue:key];
         }
@@ -844,7 +872,7 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
-            [[Mixpanel sharedInstance] track:@"Clicked Agree to Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Agree to Terms"];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
@@ -853,13 +881,13 @@
             
         // View Terms
         } else if ( buttonIndex == 1 ) {
-            [[Mixpanel sharedInstance] track:@"Clicked View Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
         
         // Cancel
         if (buttonIndex == 2) {
-            [[Mixpanel sharedInstance] track:@"Clicked Cancel Terms"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
@@ -869,10 +897,10 @@
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
         
         if (buttonIndex == 1) {
-            [[Mixpanel sharedInstance] track:@"Clicked Check LS"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Check LS"];
             [self verifyUser:handler];
         } else {
-            [[Mixpanel sharedInstance] track:@"Clicked Keep LS Disabled"];
+            [[ArbiterTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];

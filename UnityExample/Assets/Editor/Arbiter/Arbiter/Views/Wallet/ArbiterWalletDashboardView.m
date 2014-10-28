@@ -6,12 +6,13 @@
 //
 //
 
-#import "Mixpanel.h"
-#import "ArbiterWalletDashboardView.h"
+
 #import "Arbiter.h"
+#import "ArbiterWalletDashboardView.h"
 #import "ArbiterWalletDetailView.h"
 #import "ArbiterWalletDepositView.h"
 #import "ArbiterWalletWithdrawView.h"
+#import "ArbiterTracking.h"
 
 @implementation ArbiterWalletDashboardView
 
@@ -75,14 +76,14 @@
         self.activeWalletObserver = view;
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
-        [[Mixpanel sharedInstance] track:@"Clicked Deposit"];
+        [[ArbiterTracking arbiterInstance] track:@"Clicked Deposit"];
         ArbiterWalletDepositView *view = [[ArbiterWalletDepositView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                       andArbiterInstance:self.arbiter];
         view.parentDelegate = self;
         self.activeWalletObserver = view;
         [self navigateToView:view];
     } else {
-        [[Mixpanel sharedInstance] track:@"Clicked Withdraw"];
+        [[ArbiterTracking arbiterInstance] track:@"Clicked Withdraw"];
         ArbiterWalletWithdrawView *view = [[ArbiterWalletWithdrawView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                         andArbiterInstance:self.arbiter];
         view.parentDelegate = self;

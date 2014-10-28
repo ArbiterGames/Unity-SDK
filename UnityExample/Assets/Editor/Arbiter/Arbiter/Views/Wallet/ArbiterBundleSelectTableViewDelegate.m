@@ -6,7 +6,7 @@
 //
 //
 
-#import "Mixpanel.h"
+#import "ArbiterTracking.h"
 #import "ArbiterBundleSelectTableViewDelegate.h"
 
 #define CELL_LABEL_TAG 10
@@ -29,7 +29,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSDictionary *bundle = [self.availableBundles objectAtIndex:indexPath.row];
-    [[Mixpanel sharedInstance] track:@"Selected Credit Amount" properties:@{@"amount": [bundle objectForKey:@"value"]}];
+    [[ArbiterTracking arbiterInstance] track:@"Selected Credit Amount" properties:@{@"amount": [bundle objectForKey:@"value"]}];
     self.selectionCallback(bundle);
 }
 

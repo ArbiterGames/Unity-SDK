@@ -210,13 +210,15 @@
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
-            NSString *postalCode = [geoCodeResponse objectForKey:@"postalCode"];
-            [self.user setObject:postalCode forKey:@"postal_code"];
+            [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
+            
+            // If they are verified and ready to play
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
-            } else if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"])   || [[self.user objectForKey:@"agreed_to_terms"] boolValue]   == false &&
-                        IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                
+                // If they need to agree to the terms
+            } else if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                                 message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
                                                                delegate: self
@@ -227,13 +229,15 @@
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
                 [[ArbiterTracking arbiterInstance] track:@"Displayed Terms Dialog"];
-           } else if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true && [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                
+                // If they have already agreed to the terms, but still need their location approved
+            } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                 NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
                 NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
                 [verificationUrl appendString: [self.user objectForKey:@"id"]];
                 [verificationUrl appendString: @"/verify"];
                 [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
-           }
+            }
         } else {
             if ( self.user == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
@@ -266,7 +270,7 @@
         }
     };
     
-    if ([self.user objectForKey:@"postal_code"] == (id)[NSNull null] ) {
+    if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
         [self getDevicePostalCode:locationCallback];
     } else {
         if (self.user == nil) {

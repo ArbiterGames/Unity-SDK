@@ -28,7 +28,7 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
-#define TRACKING_ID @"cf0675d39b178d459ab3b78df8c87d51"
+#define TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
 
 
 @implementation Arbiter
@@ -80,7 +80,6 @@
         [ArbiterTracking arbiterInstanceWithToken:TRACKING_ID];
         ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];
-        [arbiterInstance track:@"Loaded Game"];
         [self getGameSettings];
     }
     
@@ -956,6 +955,9 @@
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
+        ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+        [arbiterInstance track:@"Loaded Game"];
     } copy];
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
     [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];

@@ -10,7 +10,7 @@
 
 @interface ArbiterTracking : Mixpanel
 
-+ (Mixpanel *)arbiterInstanceWithToken:(NSString *)apiToken;
-+ (Mixpanel *)arbiterInstance;
++ (ArbiterTracking *)arbiterInstanceWithToken:(NSString *)apiToken;
++ (ArbiterTracking *)arbiterInstance;
 
 @end

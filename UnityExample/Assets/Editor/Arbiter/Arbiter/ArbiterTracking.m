@@ -11,7 +11,7 @@
 @implementation ArbiterTracking
 
 
-static Mixpanel *arbiterInstance = nil;
+static ArbiterTracking *arbiterInstance = nil;
 
 
 + (Mixpanel *)arbiterInstanceWithToken:(NSString *)apiToken
@@ -23,7 +23,7 @@ static Mixpanel *arbiterInstance = nil;
     return arbiterInstance;
 }
 
-+ (Mixpanel *)arbiterInstance
++ (ArbiterTracking *)arbiterInstance
 {
     if (arbiterInstance == nil) {
         NSLog(@"%@ warning arbiterInstance called before arbiterInstanceWithToken:", self);

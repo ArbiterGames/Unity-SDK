@@ -723,8 +723,6 @@
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-        NSLog(@"token: %@", tokenValue);
-        NSLog(@"paramsStr: %@", paramsStr);
     
         if ( isBlocking ) {
             [self addRequestToQueue:key];
@@ -1015,43 +1013,6 @@
         }
     }
     return @"...";
-}
-
-/*
- Makes slugifies strings into safe urls.
- Modified from https://gist.github.com/AzizLight/5926772
- */
-- (NSString *)slugify:(NSString *)originalString
-{
-    NSString *separator = @"-";
-    NSMutableString *slugalizedString = [NSMutableString string];
-    NSRange replaceRange = NSMakeRange(0, originalString.length);
-    
-    // Remove all non ASCII characters
-    NSError *nonASCIICharsRegexError = nil;
-    NSRegularExpression *nonASCIICharsRegex = [NSRegularExpression regularExpressionWithPattern:@"[^\\x00-\\x7F]+"
-                                                                                        options:nil
-                                                                                          error:&nonASCIICharsRegexError];
-    
-    slugalizedString = [[nonASCIICharsRegex stringByReplacingMatchesInString:originalString
-                                                                     options:0
-                                                                       range:replaceRange
-                                                                withTemplate:@""] mutableCopy];
-    
-    // Turn non-slug characters into separators
-    NSError *nonSlugCharactersError = nil;
-    NSRegularExpression *nonSlugCharactersRegex = [NSRegularExpression regularExpressionWithPattern:@"[^a-z0-9\\-_\\+]+"
-                                                                                            options:NSRegularExpressionCaseInsensitive
-                                                                                              error:&nonSlugCharactersError];
-    slugalizedString = [[nonSlugCharactersRegex stringByReplacingMatchesInString:slugalizedString
-                                                                         options:0
-                                                                           range:replaceRange
-                                                                    withTemplate:separator] mutableCopy];
-    
-    // Remove leading/trailing separator
-    slugalizedString = [[slugalizedString stringByTrimmingCharactersInSet:[NSCharacterSet characterSetWithCharactersInString:@"-"]] mutableCopy];
-    
-    return slugalizedString;
 }
 
 - (UIWindow*) getTopApplicationWindow

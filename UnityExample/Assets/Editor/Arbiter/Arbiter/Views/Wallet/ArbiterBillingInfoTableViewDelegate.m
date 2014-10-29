@@ -8,6 +8,7 @@
 
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "PTKView.h"
+#import "PTKTextField.h"
 
 
 @implementation ArbiterBillingInfoTableViewDelegate

@@ -30,13 +30,10 @@ char *AutonomousStringCopy(const char *string)
 }
 
 
-const char* EMPTY_STRING = (char*)@"";
-
-
 const char* ProcessDictionaryParams( NSDictionary *jsonDict )
 {
     if( jsonDict == nil ) {
-        return EMPTY_STRING;
+        return AutonomousStringCopy([@"" UTF8String]);
     } else {
         NSError *error;
         NSData *jsonData = [NSJSONSerialization dataWithJSONObject:jsonDict options:0 error:&error];
@@ -77,8 +74,7 @@ void ClientCallbackWalletUpdated()
 
 void _init( const char *apiKey, const char *accessToken )
 {
-    _arbiter = [Arbiter alloc];
-    [_arbiter init:^(NSDictionary *jsonDict) {
+    _arbiter = [[Arbiter alloc] init:^(NSDictionary *jsonDict) {
             UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
         }
                apiKey:[[NSString alloc] initWithUTF8String:apiKey]
@@ -110,7 +106,7 @@ void _login()
 void _logout()
 {
     [ArbiterInstance() logout:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "LogoutHandler", EMPTY_STRING );
+        UnitySendMessage( "ArbiterBinding", "LogoutHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
 
@@ -142,14 +138,14 @@ void _fetchWallet()
 void _showWalletPanel()
 {
     [ArbiterInstance() showWalletPanel:^(void) {
-        UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", EMPTY_STRING );
+        UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
 
 void _sendPromoCredits( const char *amount )
 {
     [ArbiterInstance() sendPromoCredits:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", EMPTY_STRING );
+        UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", AutonomousStringCopy([@"" UTF8String]) );
     }
                        amount:[[NSString alloc] initWithUTF8String:amount]];
 }
@@ -181,22 +177,21 @@ void _fetchUnviewedTournaments()
 void _showPreviousTournaments()
 {
     [ArbiterInstance() showPreviousTournaments:^(void) {
-        UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", EMPTY_STRING );
+        UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", AutonomousStringCopy([@"" UTF8String]) );
     } page:nil excludeViewed:NO];
 }
 
 void _showUnviewedTournaments()
 {
     [ArbiterInstance() showPreviousTournaments:^(void) {
-        UnitySendMessage("ArbiterBinding", "ShowUnviewedTournamentsHandler", EMPTY_STRING );
+        UnitySendMessage("ArbiterBinding", "ShowUnviewedTournamentsHandler", AutonomousStringCopy([@"" UTF8String]) );
     } page:nil excludeViewed:YES];
 }
 
 void _showIncompleteTournaments()
 {
     [ArbiterInstance() showIncompleteTournaments:^(NSString *tournamentId) {
-        const char *jsonChar = AutonomousStringCopy([tournamentId UTF8String]);
-        UnitySendMessage("ArbiterBinding", "ShowIncompleteTournamentsHandler", jsonChar );
+        UnitySendMessage("ArbiterBinding", "ShowIncompleteTournamentsHandler", AutonomousStringCopy([tournamentId UTF8String]) );
     } page:nil];
 }
 
@@ -249,21 +244,21 @@ void _reportScoreForChallenge( const char *challengeId, const char *score )
 void _showScoreChallengeRules( const char* challengeId )
 {
     [ArbiterInstance() showScoreChallengeRules:^(void) {
-        UnitySendMessage("ArbiterBinding", "ShowScoreChallengeRulesHandler", EMPTY_STRING );
+        UnitySendMessage("ArbiterBinding", "ShowScoreChallengeRulesHandler", AutonomousStringCopy([@"" UTF8String]) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
 void _showWalkThrough( const char* walkThroughId )
 {
     [ArbiterInstance() showWalkThrough:^(void) {
-        UnitySendMessage("ArbiterBinding", "ShowWalkThroughHandler", EMPTY_STRING );
+        UnitySendMessage("ArbiterBinding", "ShowWalkThroughHandler", AutonomousStringCopy([@"" UTF8String]) );
     } walkThroughId:[[NSString alloc] initWithUTF8String:walkThroughId]];
 }
 
 void _showTournamentDetailsPanel( const char *tournamentId )
 {
     [ArbiterInstance() showTournamentDetailsPanel:^(void) {
-        UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", EMPTY_STRING );
+        UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
 }
 

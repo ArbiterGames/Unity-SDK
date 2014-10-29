@@ -49,7 +49,10 @@ for key in project.get_ids():
     obj = project.get_obj(key)
     file_path = obj.get('path')
     try:
-        if 'PaymentKit' in file_path or 'Stripe' in file_path or 'Mixpanel' in file_path:
+        if 'Arbiter' in file_path or \
+           'PaymentKit' in file_path or \
+           'Stripe' in file_path or \
+           'Mixpanel' in file_path:
             build_files = project.get_build_files(key)
             if build_files is not None:
                 for build_file in build_files:

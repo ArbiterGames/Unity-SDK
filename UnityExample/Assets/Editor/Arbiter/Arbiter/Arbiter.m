@@ -28,7 +28,8 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
-#define TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
+#define DEVELOPMENT_TRACKING_ID @"2dd66d1b05b4ce8c7dcc7c3cb35e113a"
+#define PRODUCTION_TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
 
 
 @implementation Arbiter
@@ -77,9 +78,6 @@
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        [ArbiterTracking arbiterInstanceWithToken:TRACKING_ID];
-        ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
-        [arbiterInstance identify:arbiterInstance.distinctId];
         [self getGameSettings];
     }
     
@@ -959,7 +957,14 @@
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
+        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+            [ArbiterTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+        } else {
+            [ArbiterTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+        }
+        
         ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+        [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];
     } copy];

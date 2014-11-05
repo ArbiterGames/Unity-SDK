@@ -9,7 +9,7 @@
 #import "ArbiterConstants.h"
 #import "ArbiterUITableView.h"
 #import "ArbiterWalletDepositView.h"
-#import "ArbiterBundleSelectTableViewDelegate.h"
+#import "ArbiterBundleSelectView.h"
 #import "ArbiterContactInfoTableViewDelegate.h"
 #import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
@@ -83,22 +83,27 @@
 - (void)setupBundleSelect
 {
     [self.arbiter httpGet:BundleURL isBlocking:YES handler:[^(NSDictionary *responseDict) {
+        ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
         NSMutableArray *availableBundles = [[NSMutableArray alloc] initWithArray:[responseDict objectForKey:@"bundles"]];
-        ArbiterBundleSelectView *selectView = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles
-                                                                          andSelectionCallback:[^(NSDictionary *selectedBundle) {
+        ArbiterBundleSelectView *tableDelegate = [[ArbiterBundleSelectView alloc] initWithBundles:availableBundles andSelectionCallback:[^(NSDictionary *selectedBundle) {
             self.selectedBundle = selectedBundle;
             self.activeViewIndex++;
             [self navigateToActiveView];
         } copy]];
         
-        ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
-        tableView.delegate = selectView;
-        tableView.dataSource = selectView;
-        tableView.tag = BUNDLE_SELECT_VIEW_TAG;
+        tableDelegate.tag = BUNDLE_SELECT_VIEW_TAG;
+        [self renderNextButtonWithText:@"Next"];
+        self.childDelegate = tableDelegate;
+        
+        tableView.delegate = tableDelegate;
+        tableView.dataSource = tableDelegate;
         tableView.scrollEnabled = YES;
         tableView.allowsSelection = YES;
+        tableView.tag = BUNDLE_SELECT_VIEW_TAG;
         [tableView reloadData];
         [self addSubview:tableView];
+        
+        
     } copy]];
 }
 

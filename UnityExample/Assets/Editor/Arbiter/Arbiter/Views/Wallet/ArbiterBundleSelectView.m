@@ -7,7 +7,7 @@
 //
 
 #import "ArbiterTracking.h"
-#import "ArbiterBundleSelectTableViewDelegate.h"
+#import "ArbiterBundleSelectView.h"
 
 #define CELL_LABEL_TAG 10
 #define CELL_VALUE_TAG 11

@@ -91,10 +91,7 @@
             [self navigateToActiveView];
         } copy]];
         
-        tableDelegate.tag = BUNDLE_SELECT_VIEW_TAG;
-        [self renderNextButtonWithText:@"Next"];
         self.childDelegate = tableDelegate;
-        
         tableView.delegate = tableDelegate;
         tableView.dataSource = tableDelegate;
         tableView.scrollEnabled = YES;
@@ -102,8 +99,6 @@
         tableView.tag = BUNDLE_SELECT_VIEW_TAG;
         [tableView reloadData];
         [self addSubview:tableView];
-        
-        
     } copy]];
 }
 
@@ -111,10 +106,11 @@
 {
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
-        self.email = [updatedFields objectForKey:@"email"];
-        self.username = [updatedFields objectForKey:@"username"];
-        self.activeViewIndex++;
-        [self navigateToActiveView];
+            NSLog(@"contact info callback");
+            self.email = [updatedFields objectForKey:@"email"];
+            self.username = [updatedFields objectForKey:@"username"];
+            self.activeViewIndex++;
+            [self navigateToActiveView];
     } copy]];
     
     tableDelegate.email = [self.arbiter.user objectForKey:@"email"];
@@ -143,6 +139,8 @@
     tableDelegate.pkView = self.pkView;
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+
+    self.childDelegate = tableDelegate;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.tag = CARD_INFO_VIEW_TAG;

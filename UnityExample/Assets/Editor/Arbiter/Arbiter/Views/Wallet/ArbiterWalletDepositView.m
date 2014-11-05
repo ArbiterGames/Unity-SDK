@@ -91,7 +91,6 @@
             [self navigateToActiveView];
         } copy]];
         
-        self.childDelegate = tableDelegate;
         tableView.delegate = tableDelegate;
         tableView.dataSource = tableDelegate;
         tableView.scrollEnabled = YES;
@@ -140,7 +139,6 @@
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
 
-    self.childDelegate = tableDelegate;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.tag = CARD_INFO_VIEW_TAG;
@@ -266,7 +264,7 @@
     if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self.parentDelegate handleBackButton];
     } else {
-        if ( self.childDelegate ) {
+        if ( self.childDelegate != nil ) {
             [self.childDelegate handleBackButton];
         }
         self.activeViewIndex--;

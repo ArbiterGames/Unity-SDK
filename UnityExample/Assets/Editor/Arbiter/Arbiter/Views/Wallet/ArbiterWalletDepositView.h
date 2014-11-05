@@ -9,6 +9,8 @@
 #import <UIKit/UIKit.h>
 #import "Arbiter.h"
 #import "PTKView.h"
+#import "ArbiterApplePayViewController.h"
+@import PassKit;
 
 
 @protocol WalletDepositViewDelegate
@@ -18,7 +20,7 @@
 
 @end
 
-@interface ArbiterWalletDepositView : UIView <PTKViewDelegate, ArbiterWalletObserver>
+@interface ArbiterWalletDepositView : UIView <ArbiterWalletObserver>
 {
     id <WalletDepositViewDelegate> parentDelegate;
     id <WalletDepositViewDelegate> childDelegate;
@@ -27,7 +29,6 @@
 @property (strong) id parentDelegate;
 @property (strong) id childDelegate;
 @property (strong) Arbiter *arbiter;
-@property (strong) PTKView *pkView;
 @property (strong) NSDictionary *selectedBundle;
 @property (strong) NSString *selectedPaymentMethod;
 @property (strong) NSString *email;
@@ -39,6 +40,7 @@
 @property (strong) IBOutlet UIButton *nextButton;
 
 - (id)initWithFrame:(CGRect)frame andArbiterInstance:(Arbiter *)arbiterInstance;
+- (void)submitPaymentTokenToServer:(STPToken *)token;
 - (void)nextButtonClicked:(id)sender;
 - (void)backButtonClicked:(id)sender;
 

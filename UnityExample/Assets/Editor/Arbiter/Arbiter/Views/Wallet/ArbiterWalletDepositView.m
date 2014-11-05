@@ -16,7 +16,6 @@
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
 #import "ArbiterApplePayViewController.h"
 #import "PTKView.h"
-#import "STPCard.h"
 #import "Stripe.h"
 #import "ArbiterTracking.h"
 
@@ -24,8 +23,7 @@
 #define CONTACT_INFO_VIEW_TAG 2
 #define PAYMENT_METHOD_VIEW_TAG 3
 #define PAYMENT_INFO_VIEW_TAG 4
-#define GET_TOKEN_VIEW_TAG 5
-#define SUCCESS_MESSAGE_VIEW_TAG 6
+#define SUCCESS_MESSAGE_VIEW_TAG 5
 
 #define GET_BUNDLE_REQUEST_TAG 10
 #define POST_DEPOSIT_REQUEST_TAG 11
@@ -45,6 +43,12 @@
         self.activeViewIndex = BUNDLE_SELECT_VIEW_TAG;
         [self renderBackButton];
         [self navigateToActiveView];
+
+        if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+            [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
+        } else {
+            [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
+        }
     }
     return self;
 }
@@ -67,13 +71,12 @@
     } else if ( self.activeViewIndex == PAYMENT_METHOD_VIEW_TAG ) {
         [self setupPaymentMethodSelect];
     } else if ( self.activeViewIndex == PAYMENT_INFO_VIEW_TAG ) {
+        // TODO: Default to apple pay if it is available
         if ( [self.selectedPaymentMethod isEqualToString: @"ApplePay"] ) {
             [self displayApplePay];
         } else {
             [self setupCreditCardInfoLayout];
         }
-    } else if ( self.activeViewIndex == GET_TOKEN_VIEW_TAG ) {
-        [self getTokenAndSubmitPayment];
     } else if ( self.activeViewIndex == SUCCESS_MESSAGE_VIEW_TAG ) {
         [self setupSuccessMessage];
     } else {
@@ -152,74 +155,49 @@
     [self addSubview:tableView];
 }
 
-- (void)setupCreditCardInfoLayout
-{
-    if ( self.pkView == nil ) {
-        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
-        self.pkView = view;
-        self.pkView.delegate = self;
-    }
-    
-    ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc] init];
-    tableDelegate.pkView = self.pkView;
-    
-    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-    self.childDelegate = tableDelegate;
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    tableView.tag = PAYMENT_INFO_VIEW_TAG;
-    [tableView reloadData];
-    [self addSubview:tableView];
-}
-
 - (void)displayApplePay
 {
     ArbiterApplePayViewController *vc = [[ArbiterApplePayViewController alloc] init];
+    vc.bundle = self.selectedBundle;
     vc.view.tag = PAYMENT_INFO_VIEW_TAG;
+    vc.email = self.email;
+    vc.username = self.username;
+    vc.arbiter = self.arbiter;
+    vc.paymentCallback = [^(BOOL success) {
+        if ( success ) {
+            self.activeViewIndex ++;
+        } else {
+            self.activeViewIndex --;
+        }
+        [self navigateToActiveView];
+    } copy];
     [self addSubview:vc.view];
+    [[ArbiterTracking arbiterInstance] track:@"Displayed ApplePay Form"];
 }
 
 
-- (void)getTokenAndSubmitPayment
+- (void)setupCreditCardInfoLayout
 {
-    STPCard *card = [[STPCard alloc] init];
-    card.number = self.pkView.card.number;
-    card.expMonth = self.pkView.card.expMonth;
-    card.expYear = self.pkView.card.expYear;
-    card.cvc = self.pkView.card.cvc;
-
-    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
-    } else {
-        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
-    }
-    
-    [Stripe createTokenWithCard:card completion:[^(STPToken *stripeToken, NSError *error) {
-        if (error) {
-            [self handleError:[error localizedDescription]];
-        } else {
-            NSDictionary *params = @{@"card_token": stripeToken.tokenId,
-                                     @"bundle_sku": [self.selectedBundle objectForKey:@"sku"],
-                                     @"email": self.email,
-                                     @"username": self.username};
-            [[ArbiterTracking arbiterInstance] track:@"Submitted Deposit Billing Info"];
-            [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-                if ( [[responseDict objectForKey:@"errors"] count] ) {
-                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
-                    [[ArbiterTracking arbiterInstance] track:@"Received Deposit Error" properties:@{@"error": message}];
-                    [self handleError:message];
-                } else {
-                    [[ArbiterTracking arbiterInstance] track:@"Received Deposit Success"];
-                    self.arbiter.user = [responseDict objectForKey:@"user"];
-                    self.activeViewIndex++;
-                    [self navigateToActiveView];
-                    self.purchaseCompleted = YES;
-                }
-                
-            } copy]];
-        }
-
-    } copy]];
+    ArbiterBillingInfoTableViewDelegate *billingView = [[ArbiterBillingInfoTableViewDelegate alloc] init];
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
+    billingView.bundle = self.selectedBundle;
+    billingView.email = self.email;
+    billingView.username = self.username;
+    billingView.arbiter = self.arbiter;
+    billingView.onAuthorizationSuccess = ^(void) {
+        [self renderNextButtonWithText:@"Submit"];
+    };
+    billingView.onPaymentSuccess = ^(void) {
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    };
+    self.childDelegate = billingView;
+    tableView.delegate = billingView;
+    tableView.dataSource = billingView;
+    tableView.tag = PAYMENT_INFO_VIEW_TAG;
+    [tableView reloadData];
+    [self addSubview:tableView];
+    [[ArbiterTracking arbiterInstance] track:@"Displayed Credit Card View"];
 }
 
 - (void)setupSuccessMessage
@@ -280,6 +258,16 @@
     }
 }
 
+- (void)handleError:(NSString *)error
+{
+    UIAlertView *message = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", @"Error")
+                                                      message:error
+                                                     delegate:nil
+                                            cancelButtonTitle:NSLocalizedString(@"OK", @"OK")
+                                            otherButtonTitles:nil];
+    [message show];
+}
+
 
 # pragma mark Click Handlers
 
@@ -304,24 +292,6 @@
         self.activeViewIndex--;
         [self navigateToActiveView];
     }
-}
-
-
-# pragma mark Stripe View Delegate Methods
-
-- (void)paymentView:(PTKView *)view withCard:(PTKCard *)card isValid:(BOOL)valid
-{
-    [self renderNextButtonWithText:@"Submit"];
-}
-
-- (void)handleError:(NSString *)error
-{
-    UIAlertView *message = [[UIAlertView alloc] initWithTitle:NSLocalizedString(@"Error", @"Error")
-                                                      message:error
-                                                     delegate:nil
-                                            cancelButtonTitle:NSLocalizedString(@"OK", @"OK")
-                                            otherButtonTitles:nil];
-    [message show];
 }
 
 

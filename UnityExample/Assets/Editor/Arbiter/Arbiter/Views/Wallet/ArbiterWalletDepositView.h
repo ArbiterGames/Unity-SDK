@@ -29,6 +29,7 @@
 @property (strong) Arbiter *arbiter;
 @property (strong) PTKView *pkView;
 @property (strong) NSDictionary *selectedBundle;
+@property (strong) NSString *selectedPaymentMethod;
 @property (strong) NSString *email;
 @property (strong) NSString *username;
 @property int activeViewIndex;

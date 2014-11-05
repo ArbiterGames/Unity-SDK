@@ -14,6 +14,7 @@
 #import "ArbiterPaymentOptionsTableViewDelegate.h"
 #import "ArbiterBillingInfoTableViewDelegate.h"
 #import "ArbiterTransactionSuccessTableViewDelegate.h"
+#import "ArbiterApplePayViewController.h"
 #import "PTKView.h"
 #import "STPCard.h"
 #import "Stripe.h"
@@ -21,9 +22,10 @@
 
 #define BUNDLE_SELECT_VIEW_TAG 1
 #define CONTACT_INFO_VIEW_TAG 2
-#define CARD_INFO_VIEW_TAG 3
-#define GET_TOKEN_VIEW_TAG 4
-#define SUCCESS_MESSAGE_VIEW_TAG 5
+#define PAYMENT_METHOD_VIEW_TAG 3
+#define PAYMENT_INFO_VIEW_TAG 4
+#define GET_TOKEN_VIEW_TAG 5
+#define SUCCESS_MESSAGE_VIEW_TAG 6
 
 #define GET_BUNDLE_REQUEST_TAG 10
 #define POST_DEPOSIT_REQUEST_TAG 11
@@ -50,8 +52,9 @@
 - (void)navigateToActiveView
 {
     [self removeUIWithTag:BUNDLE_SELECT_VIEW_TAG];
+    [self removeUIWithTag:PAYMENT_METHOD_VIEW_TAG];
     [self removeUIWithTag:CONTACT_INFO_VIEW_TAG];
-    [self removeUIWithTag:CARD_INFO_VIEW_TAG];
+    [self removeUIWithTag:PAYMENT_INFO_VIEW_TAG];
     [self.nextButton removeFromSuperview];
     self.childDelegate = nil;
     
@@ -61,8 +64,14 @@
         [self setupBundleSelect];
     } else if ( self.activeViewIndex == CONTACT_INFO_VIEW_TAG ) {
         [self setupContactInfoLayout];
-    } else if ( self.activeViewIndex == CARD_INFO_VIEW_TAG ) {
-        [self setupCreditCardInfoLayout];
+    } else if ( self.activeViewIndex == PAYMENT_METHOD_VIEW_TAG ) {
+        [self setupPaymentMethodSelect];
+    } else if ( self.activeViewIndex == PAYMENT_INFO_VIEW_TAG ) {
+        if ( [self.selectedPaymentMethod isEqualToString: @"ApplePay"] ) {
+            [self displayApplePay];
+        } else {
+            [self setupCreditCardInfoLayout];
+        }
     } else if ( self.activeViewIndex == GET_TOKEN_VIEW_TAG ) {
         [self getTokenAndSubmitPayment];
     } else if ( self.activeViewIndex == SUCCESS_MESSAGE_VIEW_TAG ) {
@@ -106,7 +115,6 @@
 {
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
     ArbiterContactInfoTableViewDelegate *tableDelegate = [[ArbiterContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
-            NSLog(@"contact info callback");
             self.email = [updatedFields objectForKey:@"email"];
             self.username = [updatedFields objectForKey:@"username"];
             self.activeViewIndex++;
@@ -127,6 +135,23 @@
     [self addSubview:tableView];
 }
 
+- (void)setupPaymentMethodSelect
+{
+    ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
+    ArbiterPaymentOptionsTableViewDelegate *tableDelegate = [[ArbiterPaymentOptionsTableViewDelegate alloc] initWithCallback:[^(NSString *selectedMethod) {
+        self.selectedPaymentMethod = selectedMethod;
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    } copy]];
+    
+    self.childDelegate = tableDelegate;
+    tableView.tag = PAYMENT_METHOD_VIEW_TAG;
+    tableView.delegate = tableDelegate;
+    tableView.dataSource = tableDelegate;
+    [tableView reloadData];
+    [self addSubview:tableView];
+}
+
 - (void)setupCreditCardInfoLayout
 {
     if ( self.pkView == nil ) {
@@ -142,9 +167,16 @@
     self.childDelegate = tableDelegate;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
-    tableView.tag = CARD_INFO_VIEW_TAG;
+    tableView.tag = PAYMENT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
+}
+
+- (void)displayApplePay
+{
+    ArbiterApplePayViewController *vc = [[ArbiterApplePayViewController alloc] init];
+    vc.view.tag = PAYMENT_INFO_VIEW_TAG;
+    [self addSubview:vc.view];
 }
 
 
@@ -291,5 +323,7 @@
                                             otherButtonTitles:nil];
     [message show];
 }
+
+
 
 @end

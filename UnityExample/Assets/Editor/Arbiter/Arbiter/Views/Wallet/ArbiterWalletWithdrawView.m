@@ -192,7 +192,7 @@
     
     ArbiterBillingInfoTableViewDelegate *tableDelegate = [[ArbiterBillingInfoTableViewDelegate alloc] init];
     tableDelegate.pkView = self.pkView;
-    
+    self.childDelegate = tableDelegate;
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
@@ -211,6 +211,7 @@
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.tag = SUCCESS_MESSAGE_UI_TAG;
+    self.childDelegate = tableDelegate;
     [tableView reloadData];
     [self addSubview:tableView];
     [self.backButton removeFromSuperview];
@@ -276,7 +277,7 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    if ( self.childDelegate ) {
+    if ( [self.childDelegate respondsToSelector:@selector(handleNextButton)] ) {
         [self.childDelegate handleNextButton];
     } else {
         self.activeViewIndex++;
@@ -289,7 +290,7 @@
     if ( self.activeViewIndex == 0 ) {
         [self.parentDelegate handleBackButton];
     } else {
-        if ( self.childDelegate ) {
+        if ( [self.childDelegate respondsToSelector:@selector(handleBackButton)] ) {
             [self.childDelegate handleBackButton];
         }
         self.activeViewIndex--;

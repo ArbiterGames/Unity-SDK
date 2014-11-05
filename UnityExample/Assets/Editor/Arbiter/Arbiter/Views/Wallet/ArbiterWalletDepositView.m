@@ -96,6 +96,7 @@
         tableView.scrollEnabled = YES;
         tableView.allowsSelection = YES;
         tableView.tag = BUNDLE_SELECT_VIEW_TAG;
+        self.childDelegate = tableDelegate;
         [tableView reloadData];
         [self addSubview:tableView];
     } copy]];
@@ -138,7 +139,7 @@
     tableDelegate.pkView = self.pkView;
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-
+    self.childDelegate = tableDelegate;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.tag = CARD_INFO_VIEW_TAG;
@@ -197,6 +198,7 @@
     } copy]];
     
     ArbiterUITableView *tableView = [[ArbiterUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
+    self.childDelegate = tableDelegate;
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;
     tableView.tag = SUCCESS_MESSAGE_VIEW_TAG;
@@ -251,7 +253,7 @@
 
 - (void)nextButtonClicked:(id)sender
 {
-    if ( self.childDelegate ) {
+    if ( [self.childDelegate respondsToSelector:@selector(handleNextButton)] ) {
         [self.childDelegate handleNextButton];
     } else {
         self.activeViewIndex++;
@@ -264,7 +266,7 @@
     if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self.parentDelegate handleBackButton];
     } else {
-        if ( self.childDelegate != nil ) {
+        if ( [self.childDelegate respondsToSelector:@selector(handleBackButton)] ) {
             [self.childDelegate handleBackButton];
         }
         self.activeViewIndex--;

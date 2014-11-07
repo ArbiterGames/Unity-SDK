@@ -66,6 +66,7 @@
     UILabel *label, *value;
     UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
     NSDictionary *bundle = [self.availableBundles objectAtIndex:indexPath.row];
+    CALayer *topBorder = [CALayer layer];
     
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
@@ -81,6 +82,12 @@
         value.textAlignment = NSTextAlignmentRight;
         value.textColor = [UIColor whiteColor];
         [cell.contentView addSubview:value];
+
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
+        topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+        topBorder.opacity = 0.2;
+        [cell.contentView.layer addSublayer:topBorder];
+        
     } else {
         label = (UILabel *)[cell.contentView viewWithTag:CELL_LABEL_TAG];
         value = (UILabel *)[cell.contentView viewWithTag:CELL_VALUE_TAG];
@@ -88,12 +95,6 @@
     
     [label setText:[NSString stringWithFormat:@"%@ credits", [self addThousandsSeparatorToString:[bundle objectForKey:@"value"]]]];
     [value setText:[NSString stringWithFormat:@"$%@ USD", [bundle objectForKey:@"price"]]];
-    
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
-    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
-    topBorder.opacity = 0.2;
-    [cell.contentView.layer addSublayer:topBorder];
     
     return cell;
 }

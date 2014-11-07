@@ -181,22 +181,10 @@
 
 - (void)setupPaymentInfoUI
 {
-//    if ( self.pkView == nil ) {
-//        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
-//        self.pkView = view;
-//        self.pkView.delegate = self;
-//    }
-    
-    // TODO:
-    // Now that we have this billingInfoTableView for both deposits and withdraws,
-    //  we need to handle both deposits and withdraws in the 'submit token to server' method
-    // Move the payment steps into a different view?
-    
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
     ARBCardPaymentView *paymentView = [[ARBCardPaymentView alloc] init];
 
     self.childDelegate = paymentView;
-//    paymentView.pkView = self.pkView;
     paymentView.isDeposit = NO;
     paymentView.withdrawAmount = self.withdrawAmount;
     paymentView.email = self.email;
@@ -242,51 +230,6 @@
         }
     }
 }
-
-//- (void)getTokenAndSubmitWithdraw
-//{
-//    STPCard *card = [[STPCard alloc] init];
-//    card.number = self.pkView.card.number;
-//    card.expMonth = self.pkView.card.expMonth;
-//    card.expYear = self.pkView.card.expYear;
-//    card.cvc = self.pkView.card.cvc;
-//    
-//    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-//        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
-//    } else {
-//        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
-//    }
-//    
-//    [Stripe createTokenWithCard:card completion:[^(STPToken *token, NSError *error) {
-//        if (error) {
-//            [self handleError:[error localizedDescription]];
-//        } else {
-//            NSDictionary *params = @{@"card_token": token.tokenId,
-//                                     @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
-//                                     @"email": self.email,
-//                                     @"card_name": self.fullName};
-//            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-//                if ([[responseDict objectForKey:@"errors"] count]) {
-//                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
-//                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
-//                    [self handleError:message];
-//                    [self.nextButton removeFromSuperview];
-//                    self.activeViewIndex--;
-//                    [self navigateToActiveView];
-//                } else {
-//                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Success"];
-//                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
-//                    self.arbiter.user = [responseDict objectForKey:@"user"];
-//                    self.activeViewIndex++;
-//                    [self navigateToActiveView];
-//                    self.withdrawComplete = YES;
-//                }
-//                
-//                
-//            } copy]];
-//        }
-//    } copy]];
-//}
 
 
 # pragma mark Click Handlers

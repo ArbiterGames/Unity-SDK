@@ -66,7 +66,7 @@
             [button setBackgroundImage:applePayButton forState:UIControlStateNormal];
             [button addTarget:self action:@selector(applePayClicked:) forControlEvents:UIControlEventTouchUpInside];
         } else if ( indexPath.row == 1 ) {
-            [button setTitle:@"Buy with other payment methods" forState:UIControlStateNormal];
+            [button setTitle:@"or buy with other payment methods" forState:UIControlStateNormal];
             button.titleLabel.textAlignment = NSTextAlignmentCenter;
             [button addTarget:self action:@selector(creditCardClicked:) forControlEvents:UIControlEventTouchUpInside];
         }

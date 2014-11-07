@@ -78,7 +78,6 @@
             
             if ( email == (id)[NSNull null] || email.length == 0 ) {
                 if ( existingEmail == (id)[NSNull null] || email.length == 0 ) {
-                    // TODO: Need to try this with a new user who has no email set.
                     NSLog(@"TODO: Show email input");
                 } else {
                     email = existingEmail;

@@ -25,4 +25,11 @@
     return self;
 }
 
+- (void)setFrame:(CGRect)frame {
+    CGFloat inset = 20.0;
+    frame.origin.x += inset;
+    frame.size.width -= 2 * inset;
+    [super setFrame:frame];
+}
+
 @end

@@ -84,10 +84,12 @@
     backButton.tag = INFO_UI_TAG;
     [self addSubview:backButton];
     
-    ARBWalletInfoView *tableDelegate = [[ARBWalletInfoView alloc] init];
+    
+    ARBWalletInfoView *infoView = [[ARBWalletInfoView alloc] init];
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
+    self.delegate = infoView;
+    tableView.delegate = infoView;
+    tableView.dataSource = infoView;
     tableView.tag = INFO_UI_TAG;
     tableView.scrollEnabled = YES;
     [tableView reloadData];

@@ -26,14 +26,14 @@
     return 1;
 }
 
--(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+- (CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
 {
     return 0.1;
 }
 
 - (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
 {
-    return 260.0;
+    return 180.0;
 }
 
 - (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
@@ -45,7 +45,7 @@
     if (cell == nil) {
         cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
         cell.backgroundColor = [UIColor clearColor];
-        message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width - 20, 260.0)];
+        message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width, 180.0)];
         message.textColor = [UIColor whiteColor];
         message.numberOfLines = 0;
         [cell.contentView addSubview:message];
@@ -53,7 +53,7 @@
         message = (UILabel *)[cell.contentView viewWithTag:CELL_MESSAGE_TAG];
     }
     
-    message.text = @"Your wallet stores your tournament credits.\n\nYou can purchase credits using the DEPOSIT button below. Next time you play, you will be able to use credits to enter tournaments against other players.\n\nUse the WITHDRAW button to exchange your credits for cash.";
+    message.text = @"Your wallet stores your entry fee credits.\n\nYou can purchase credits using the BUY CREDITS button below.\n\nUse the CASH OUT button to withdraw your credits to a debit card.";
     
     return cell;
 }

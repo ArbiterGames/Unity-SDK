@@ -23,7 +23,7 @@
 {
     self = [super init];
     if ( self ) {
-        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
+        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(-10.0, 0.0, 290.0, 55.0)];
         self.pkView = view;
         self.pkView.delegate = self;
         self.isDeposit = YES;
@@ -143,9 +143,9 @@
     label.textColor = [UIColor whiteColor];
     
     if ( self.isDeposit ) {
-        label.text = @"Please enter your billing information";
+        label.text = @"Debit or credit card details";
     } else {
-        label.text = @"Please enter your debit card information";
+        label.text = @"Debit cards only please";
     }
     
     UIView *headerView = [[UIView alloc] init];
@@ -162,12 +162,13 @@
         [cell setBackgroundColor:[UIColor clearColor]];
         [cell.contentView addSubview:self.pkView];
         [self.pkView.cardNumberField becomeFirstResponder];
+
+        CALayer *topBorder = [CALayer layer];
+        topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width, 0.5f);
+        topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
+        topBorder.opacity = 0.2;
+        [cell.contentView.layer addSublayer:topBorder];
     }
-    CALayer *topBorder = [CALayer layer];
-    topBorder.frame = CGRectMake(0.0, 0.0, cell.frame.size.width + 80.0, 0.5f);
-    topBorder.backgroundColor = [[UIColor whiteColor] CGColor];
-    topBorder.opacity = 0.2;
-    [cell.contentView.layer addSublayer:topBorder];
     return cell;
 }
 

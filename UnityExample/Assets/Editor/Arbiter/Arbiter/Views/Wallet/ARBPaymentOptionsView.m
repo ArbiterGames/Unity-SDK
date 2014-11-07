@@ -1,17 +1,17 @@
 //
-//  ARBPaymentOptionsTableViewDelegate.m
+//  ARBPaymentOptionsView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/20/14.
 //
 //
 
-#import "ARBPaymentOptionsTableViewDelegate.h"
+#import "ARBPaymentOptionsView.h"
 
 #define BUTTON_TAG 1
 
 
-@implementation ARBPaymentOptionsTableViewDelegate
+@implementation ARBPaymentOptionsView
 
 - (id)initWithCallback:(void(^)(NSString *))callback
 {

@@ -1,18 +1,18 @@
 //
-//  ARBTransactionSuccessTableViewDelegate.m
+//  ARBTransactionSuccessView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/6/14.
 //
 //
 
-#import "ARBTransactionSuccessTableViewDelegate.h"
+#import "ARBTransactionSuccessView.h"
 
 #define CELL_LABEL_TAG 1
 #define CELL_BUTTON_TAG 2
 
 
-@implementation ARBTransactionSuccessTableViewDelegate
+@implementation ARBTransactionSuccessView
 
 - (id)initWithCallback:(void(^)(void))callback
 {

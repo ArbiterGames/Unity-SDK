@@ -6,12 +6,12 @@
 //
 //
 
-#import "ARBSCRulesTableViewDelegate.h"
+#import "ARBSCRulesView.h"
 #import "ARBConstants.h"
 
 #define CELL_MESSAGE_TAG 1
 
-@implementation ARBSCRulesTableViewDelegate
+@implementation ARBSCRulesView
 
 - (id)initWithMessage:(NSString *)message
 {

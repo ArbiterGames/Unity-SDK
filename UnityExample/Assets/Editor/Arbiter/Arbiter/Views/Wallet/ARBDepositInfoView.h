@@ -1,5 +1,5 @@
 //
-//  ARBContactInfoTableViewDelegate.h
+//  ARBDepositInfoView.h
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/4/14.
@@ -10,7 +10,7 @@
 #import "ARBWalletDepositView.h"
 
 
-@interface ARBContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, WalletDepositViewDelegate>
+@interface ARBDepositInfoView : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, WalletDepositViewDelegate>
 
 @property (strong) NSString *email;
 @property (strong) NSString *username;

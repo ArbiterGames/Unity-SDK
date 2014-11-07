@@ -1,19 +1,19 @@
 //
-//  ARBFullContactInfoTableViewDelegate.m
+//  ARBWithdrawInfoView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/7/14.
 //
 //
 
-#import "ARBFullContactInfoTableViewDelegate.h"
+#import "ARBWithdrawInfoView.h"
 #import "ARBTracking.h"
 
 #define EMAIL_FIELD_TAG 1
 #define NAME_FIELD_TAG 2
 
 
-@implementation ARBFullContactInfoTableViewDelegate
+@implementation ARBWithdrawInfoView
 
 - (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock
 {

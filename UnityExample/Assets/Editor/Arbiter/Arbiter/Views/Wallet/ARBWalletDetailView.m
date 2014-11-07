@@ -8,7 +8,7 @@
 
 #import "ARBWalletDetailView.h"
 #import "ARBUITableView.h"
-#import "ARBWalletInfoTableViewDelegate.h"
+#import "ARBWalletInfoView.h"
 
 #define CELL_LABEL_TAG 1
 #define CELL_VALUE_TAG 2
@@ -84,7 +84,7 @@
     backButton.tag = INFO_UI_TAG;
     [self addSubview:backButton];
     
-    ARBWalletInfoTableViewDelegate *tableDelegate = [[ARBWalletInfoTableViewDelegate alloc] init];
+    ARBWalletInfoView *tableDelegate = [[ARBWalletInfoView alloc] init];
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 160.0)];
     tableView.delegate = tableDelegate;
     tableView.dataSource = tableDelegate;

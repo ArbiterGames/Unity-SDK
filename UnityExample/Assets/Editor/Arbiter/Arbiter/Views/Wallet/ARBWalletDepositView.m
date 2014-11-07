@@ -10,10 +10,10 @@
 #import "ARBConstants.h"
 #import "ARBUITableView.h"
 #import "ARBBundleSelectView.h"
-#import "ARBContactInfoTableViewDelegate.h"
-#import "ARBPaymentOptionsTableViewDelegate.h"
+#import "ARBDepositInfoView.h"
+#import "ARBPaymentOptionsView.h"
 #import "ARBBillingInfoTableViewDelegate.h"
-#import "ARBTransactionSuccessTableViewDelegate.h"
+#import "ARBTransactionSuccessView.h"
 #import "ARBApplePayViewController.h"
 #import "ARBTracking.h"
 
@@ -104,7 +104,7 @@
 - (void)setupContactInfoLayout
 {
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
-    ARBContactInfoTableViewDelegate *tableDelegate = [[ARBContactInfoTableViewDelegate alloc] initWithCallback:[^(NSDictionary *updatedFields) {
+    ARBDepositInfoView *tableDelegate = [[ARBDepositInfoView alloc] initWithCallback:[^(NSDictionary *updatedFields) {
             self.email = [updatedFields objectForKey:@"email"];
             self.username = [updatedFields objectForKey:@"username"];
             self.activeViewIndex++;
@@ -128,7 +128,7 @@
 - (void)setupPaymentMethodSelect
 {
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
-    ARBPaymentOptionsTableViewDelegate *tableDelegate = [[ARBPaymentOptionsTableViewDelegate alloc] initWithCallback:[^(NSString *selectedMethod) {
+    ARBPaymentOptionsView *tableDelegate = [[ARBPaymentOptionsView alloc] initWithCallback:[^(NSString *selectedMethod) {
         if ( [selectedMethod isEqualToString:@"ApplePay"] ) {
             [self displayApplePay];
         } else {
@@ -189,7 +189,7 @@
 
 - (void)setupSuccessMessage
 {
-    ARBTransactionSuccessTableViewDelegate *tableDelegate = [[ARBTransactionSuccessTableViewDelegate alloc]
+    ARBTransactionSuccessView *tableDelegate = [[ARBTransactionSuccessView alloc]
                                                           initWithCallback:[^(void) {
         [self.parentDelegate handleBackButton];
     } copy]];

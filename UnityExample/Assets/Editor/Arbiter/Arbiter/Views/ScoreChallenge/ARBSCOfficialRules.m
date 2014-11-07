@@ -7,7 +7,7 @@
 //
 
 #import "ARBSCOfficialRules.h"
-#import "ARBSCRulesTableViewDelegate.h"
+#import "ARBSCRulesView.h"
 #import "ARBConstants.h"
 #import "ARBUITableView.h"
 
@@ -65,7 +65,7 @@
     NSString *url = [NSString stringWithFormat:@"%@%@", APIScoreChallengeRulesURL, self.challengeId];
     [self.arbiter httpGet:url isBlocking:YES handler:[^(NSDictionary *responseDict) {
         NSString *message = [responseDict objectForKey:@"rules"];
-        ARBSCRulesTableViewDelegate *tableDelegate = [[ARBSCRulesTableViewDelegate alloc] initWithMessage:message];
+        ARBSCRulesView *tableDelegate = [[ARBSCRulesView alloc] initWithMessage:message];
         ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, tableHeight)];
         tableView.delegate = tableDelegate;
         tableView.dataSource = tableDelegate;

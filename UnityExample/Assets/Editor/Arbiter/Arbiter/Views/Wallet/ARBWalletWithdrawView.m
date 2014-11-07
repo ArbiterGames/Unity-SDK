@@ -10,9 +10,9 @@
 #import "ARBConstants.h"
 #import "ARBUITableView.h"
 #import "ARBWalletWithdrawView.h"
-#import "ARBFullContactInfoTableViewDelegate.h"
+#import "ARBWithdrawInfoView.h"
 #import "ARBBillingInfoTableViewDelegate.h"
-#import "ARBTransactionSuccessTableViewDelegate.h"
+#import "ARBTransactionSuccessView.h"
 #import "Stripe.h"
 #import "PTKView.h"
 #import "ARBTracking.h"
@@ -159,7 +159,7 @@
 
 - (void)setupContactInfoUI
 {
-    ARBFullContactInfoTableViewDelegate *tableDelegate = [[ARBFullContactInfoTableViewDelegate alloc]
+    ARBWithdrawInfoView *tableDelegate = [[ARBWithdrawInfoView alloc]
                                                               initWithCallback:[^(NSDictionary *updatedEmailAndName) {
         if ( [updatedEmailAndName isKindOfClass:[NSDictionary class]]) {
             self.email = [updatedEmailAndName objectForKey:@"email"];
@@ -208,7 +208,7 @@
 
 - (void)setupSuccessMessageUI
 {
-    ARBTransactionSuccessTableViewDelegate *tableDelegate = [[ARBTransactionSuccessTableViewDelegate alloc]
+    ARBTransactionSuccessView *tableDelegate = [[ARBTransactionSuccessView alloc]
                                                                  initWithCallback:[^(void) {
         [self.parentDelegate handleBackButton];
     } copy]];

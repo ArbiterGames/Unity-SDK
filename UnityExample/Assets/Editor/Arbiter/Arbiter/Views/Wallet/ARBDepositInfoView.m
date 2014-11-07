@@ -1,5 +1,5 @@
 //
-//  ARBContactInfoTableViewDelegate.m
+//  ARBDepositInfoView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/4/14.
@@ -7,12 +7,12 @@
 //
 
 #import "ARBTracking.h"
-#import "ARBContactInfoTableViewDelegate.h"
+#import "ARBDepositInfoView.h"
 
 #define CELL_EMAIL_FIELD_TAG 1
 #define CELL_USERNAME_FIELD_TAG 2
 
-@implementation ARBContactInfoTableViewDelegate
+@implementation ARBDepositInfoView
 
 
 - (id)initWithCallback:(void(^)(NSDictionary *))callbackBlock

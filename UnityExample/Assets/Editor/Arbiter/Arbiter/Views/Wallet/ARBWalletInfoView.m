@@ -1,17 +1,17 @@
 //
-//  ARBWalletInfoTableViewDelegate.m
+//  ARBWalletInfoView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/10/14.
 //
 //
 
-#import "ARBWalletInfoTableViewDelegate.h"
+#import "ARBWalletInfoView.h"
 
 #define CELL_MESSAGE_TAG 1
 
 
-@implementation ARBWalletInfoTableViewDelegate
+@implementation ARBWalletInfoView
 
 
 # pragma mark TableView Delegate Methods

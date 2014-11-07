@@ -1,5 +1,5 @@
 //
-//  ARBFullContactInfoTableViewDelegate.h
+//  ARBWithdrawInfoView.h
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/7/14.
@@ -9,7 +9,7 @@
 #import <UIKit/UIKit.h>
 #import "ARBWalletWithdrawView.h"
 
-@interface ARBFullContactInfoTableViewDelegate : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, WalletWithdrawViewDelegate>
+@interface ARBWithdrawInfoView : UIView <UITextFieldDelegate, UITableViewDataSource, UITableViewDelegate, WalletWithdrawViewDelegate>
 
 @property (strong) NSString *email;
 @property (strong) NSString *fullName;

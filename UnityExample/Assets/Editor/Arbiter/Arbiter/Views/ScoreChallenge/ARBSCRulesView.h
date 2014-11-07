@@ -8,7 +8,7 @@
 
 #import <UIKit/UIKit.h>
 
-@interface ARBSCRulesTableViewDelegate : UIView <UITableViewDataSource, UITableViewDelegate>
+@interface ARBSCRulesView : UIView <UITableViewDataSource, UITableViewDelegate>
 
 @property (strong) NSString *rulesBody;
 

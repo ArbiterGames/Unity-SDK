@@ -10,15 +10,15 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
-#import "ArbiterConstants.h"
+#import "ARBConstants.h"
 #import "Arbiter.h"
-#import "ArbiterWalletDashboardView.h"
-#import "ArbiterTournamentResultsView.h"
-#import "ArbiterPreviousTournamentsView.h"
-#import "ArbiterWalkThrough.h"
-#import "ArbiterSCOfficialRules.h"
-#import "ArbiterLogger.h"
-#import "ArbiterTracking.h"
+#import "ARBWalletDashboardView.h"
+#import "ARBTournamentResultsView.h"
+#import "ARBPreviousTournamentsView.h"
+#import "ARBWalkThrough.h"
+#import "ARBSCOfficialRules.h"
+#import "ARBLogger.h"
+#import "ARBTracking.h"
 
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
@@ -68,7 +68,7 @@
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self.locationVerificationAttempts = 0;
-        self.panelWindow = [[ArbiterPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -90,10 +90,10 @@
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
         self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        [[ArbiterTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
+        [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         handler(responseDict);
     } copy];
-    NSDictionary *urlParams = @{@"tracking_id":[[ArbiterTracking arbiterInstance] distinctId]};
+    NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     
     [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
 }
@@ -111,7 +111,7 @@
         void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-            [[ArbiterTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
             handler(responseDict);
         } copy];
         [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
@@ -126,7 +126,7 @@
                                              @"playerID":localPlayer.playerID,
                                              @"game_center_username": localPlayer.alias,
                                              @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
-                                             @"tracking_id":[[ArbiterTracking arbiterInstance] distinctId]};
+                                             @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
                 [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
             }
         }];
@@ -160,7 +160,7 @@
         if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-            ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+            ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
             [arbiterInstance identify:[self.user objectForKey:@"id"]];
             handler(responseDict);
         } else {
@@ -174,7 +174,7 @@
             handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
         } else {
             NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
-            [params setObject:[[ArbiterTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
+            [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
             [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
         }
     } copy];
@@ -226,7 +226,7 @@
                 [alert setTag:VERIFICATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
-                [[ArbiterTracking arbiterInstance] track:@"Displayed Terms Dialog"];
+                [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
                 
                 // If they have already agreed to the terms, but still need their location approved
             } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
@@ -347,7 +347,7 @@
     handler(self.wallet);
 }
 
-- (void)addWalletObserver:(id<ArbiterWalletObserver>)observer
+- (void)addWalletObserver:(id<ARBWalletObserver>)observer
 {
     self.walletObserver = observer;
 }
@@ -372,7 +372,7 @@
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [[ArbiterTracking arbiterInstance] track:@"Clicked Show Wallet"];
+    [[ARBTracking arbiterInstance] track:@"Clicked Show Wallet"];
     if ( [self isUserAuthenticated] ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
@@ -385,7 +385,7 @@
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
             
-            ArbiterWalletDashboardView *walletDashboard = [[ArbiterWalletDashboardView alloc] init:self];
+            ARBWalletDashboardView *walletDashboard = [[ARBWalletDashboardView alloc] init:self];
             walletDashboard.callback = handler;
             [self addWalletObserver:walletDashboard];
             [self.panelWindow show:walletDashboard];
@@ -481,7 +481,7 @@
  */
 - (void)showPreviousTournaments:(void(^)(void))handler page:(NSString *)page excludeViewed:(BOOL)excludeViewed
 {
-    ArbiterPreviousTournamentsView *view = [[ArbiterPreviousTournamentsView alloc] init:self excludeViewed:excludeViewed];
+    ARBPreviousTournamentsView *view = [[ARBPreviousTournamentsView alloc] init:self excludeViewed:excludeViewed];
     view.callback = handler;
     [self.panelWindow show:view];
 }
@@ -582,7 +582,7 @@
 
 - (void)showWalkThrough:(void (^)(void))handler walkThroughId:(NSString *)walkThroughId
 {
-    ArbiterWalkThrough *view = [[ArbiterWalkThrough alloc] initWithWalkThroughId:walkThroughId arbiterInstance:self];
+    ARBWalkThrough *view = [[ARBWalkThrough alloc] initWithWalkThroughId:walkThroughId arbiterInstance:self];
     view.callback = handler;
     [self.panelWindow show:view];
 }
@@ -590,7 +590,7 @@
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId
 {
     [self fetchTournament:[^(NSDictionary *tournament) {
-        ArbiterTournamentResultsView *resultsView = [[ArbiterTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
+        ARBTournamentResultsView *resultsView = [[ARBTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
         resultsView.callback = handler;
         [self.panelWindow show:resultsView];
     } copy]
@@ -634,7 +634,7 @@
 
 - (void)showScoreChallengeRules:(void (^)(void))handler challengeId:(NSString *)challengeId
 {
-    ArbiterSCOfficialRules *view = [[ArbiterSCOfficialRules alloc] initWithChallengeId:challengeId arbiterInstance:self];
+    ARBSCOfficialRules *view = [[ARBSCOfficialRules alloc] initWithChallengeId:challengeId arbiterInstance:self];
     view.callback = handler;
     [self.panelWindow show:view];
 }
@@ -871,7 +871,7 @@
         
         // Agree
         if ( buttonIndex == 0 ) {
-            [[ArbiterTracking arbiterInstance] track:@"Clicked Agree to Terms"];
+            [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
             NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
@@ -880,13 +880,13 @@
             
         // View Terms
         } else if ( buttonIndex == 1 ) {
-            [[ArbiterTracking arbiterInstance] track:@"Clicked View Terms"];
+            [[ARBTracking arbiterInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];
         }
         
         // Cancel
         if (buttonIndex == 2) {
-            [[ArbiterTracking arbiterInstance] track:@"Clicked Cancel Terms"];
+            [[ARBTracking arbiterInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);
         }
@@ -896,10 +896,10 @@
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
         
         if (buttonIndex == 1) {
-            [[ArbiterTracking arbiterInstance] track:@"Clicked Check LS"];
+            [[ARBTracking arbiterInstance] track:@"Clicked Check LS"];
             [self verifyUser:handler];
         } else {
-            [[ArbiterTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
+            [[ARBTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
         }
     } else if ( alertView.tag == SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG ) {
         void (^handler)(NSString *) = [_alertViewHandlerRegistry objectForKey:@"closeIncompleteGamesHandler"];
@@ -956,12 +956,12 @@
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
         if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-            [ArbiterTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
         } else {
-            [ArbiterTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
         
-        ArbiterTracking *arbiterInstance = [ArbiterTracking arbiterInstance];
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];

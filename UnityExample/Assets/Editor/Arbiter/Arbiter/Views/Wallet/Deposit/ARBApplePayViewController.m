@@ -13,7 +13,7 @@
 #import "ARBTracking.h"
 #import "ARBConstants.h"
 
-#define APPLE_MERCHANT_ID @"merchant.arbiter.unityexample"
+#define APPLE_MERCHANT_ID @"merchant.arbiter.credits"
 
 
 
@@ -35,24 +35,25 @@
     } else {
         [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
     }
+    
     PKPaymentRequest *request = [Stripe
                                  paymentRequestWithMerchantIdentifier:APPLE_MERCHANT_ID
                                  amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]
                                  currency:@"USD"
                                  description:@"Arbiter"];
 
-    request.requiredShippingAddressFields = PKAddressFieldEmail;
-    NSString *summary = [NSString stringWithFormat:@"%@ Arbiter credits for %@ cash challenges", [self.bundle objectForKey:@"value"], [self.arbiter.game objectForKey:@"name"]];
-    PKPaymentSummaryItem *lineItem1 = [PKPaymentSummaryItem summaryItemWithLabel:summary amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
-    PKPaymentSummaryItem *total = [PKPaymentSummaryItem summaryItemWithLabel:@"Arbiter" amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
-    request.paymentSummaryItems = @[lineItem1, total];
-    
     if ([Stripe canSubmitPaymentRequest:request]) {
+        request.requiredShippingAddressFields = PKAddressFieldEmail;
+        NSString *summary = [NSString stringWithFormat:@"%@ Arbiter credits for %@ cash challenges", [self.bundle objectForKey:@"value"], [self.arbiter.game objectForKey:@"name"]];
+        PKPaymentSummaryItem *lineItem1 = [PKPaymentSummaryItem summaryItemWithLabel:summary amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
+        PKPaymentSummaryItem *total = [PKPaymentSummaryItem summaryItemWithLabel:@"Arbiter" amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
+        request.paymentSummaryItems = @[lineItem1, total];
         PKPaymentAuthorizationViewController *paymentController = [[PKPaymentAuthorizationViewController alloc] initWithPaymentRequest:request];
         paymentController.delegate = self;
         [self presentViewController:paymentController animated:YES completion:nil];
     } else {
         [self handleError:@"We are unable to access the cards stored in Apple Pay on this device."];
+        self.paymentCallback(NO);
     }
 }
 

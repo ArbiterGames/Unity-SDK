@@ -12,7 +12,7 @@
 #import "ARBBundleSelectView.h"
 #import "ARBDepositInfoView.h"
 #import "ARBPaymentOptionsView.h"
-#import "ARBBillingInfoTableViewDelegate.h"
+#import "ARBCardPaymentView.h"
 #import "ARBTransactionSuccessView.h"
 #import "ARBApplePayViewController.h"
 #import "ARBTracking.h"
@@ -165,22 +165,22 @@
 
 - (void)setupCreditCardInfoLayout
 {
-    ARBBillingInfoTableViewDelegate *billingView = [[ARBBillingInfoTableViewDelegate alloc] init];
+    ARBCardPaymentView *paymentView = [[ARBCardPaymentView alloc] init];
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-    billingView.bundle = self.selectedBundle;
-    billingView.email = self.email;
-    billingView.username = self.username;
-    billingView.arbiter = self.arbiter;
-    billingView.onAuthorizationSuccess = ^(void) {
+    paymentView.bundle = self.selectedBundle;
+    paymentView.email = self.email;
+    paymentView.username = self.username;
+    paymentView.arbiter = self.arbiter;
+    paymentView.onAuthorizationSuccess = ^(void) {
         [self renderNextButtonWithText:@"Submit"];
     };
-    billingView.onPaymentSuccess = ^(void) {
+    paymentView.onPaymentSuccess = ^(void) {
         self.activeViewIndex++;
         [self navigateToActiveView];
     };
-    self.childDelegate = billingView;
-    tableView.delegate = billingView;
-    tableView.dataSource = billingView;
+    self.childDelegate = paymentView;
+    tableView.delegate = paymentView;
+    tableView.dataSource = paymentView;
     tableView.tag = PAYMENT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];

@@ -11,17 +11,16 @@
 #import "ARBUITableView.h"
 #import "ARBWalletWithdrawView.h"
 #import "ARBWithdrawInfoView.h"
-#import "ARBBillingInfoTableViewDelegate.h"
+#import "ARBCardPaymentView.h"
 #import "ARBTransactionSuccessView.h"
 #import "Stripe.h"
 #import "PTKView.h"
 #import "ARBTracking.h"
 
 #define AMOUNT_SELECTION_UI_TAG 1
-#define CONTACT_INFO_UI_TAG 2
-#define BILLING_INFO_UI_TAG 3
-#define TOKEN_REQUEST_UI_TAG 4
-#define SUCCESS_MESSAGE_UI_TAG 5
+#define WITHDRAW_INFO_UI_TAG 2
+#define PAYMENT_INFO_UI_TAG 3
+#define SUCCESS_MESSAGE_UI_TAG 4
 
 #define POST_WITHDRAWAL_REQUEST_TAG 200
 
@@ -48,8 +47,8 @@
 - (void)navigateToActiveView
 {
     [self removeUIWithTag:AMOUNT_SELECTION_UI_TAG];
-    [self removeUIWithTag:CONTACT_INFO_UI_TAG];
-    [self removeUIWithTag:BILLING_INFO_UI_TAG];
+    [self removeUIWithTag:WITHDRAW_INFO_UI_TAG];
+    [self removeUIWithTag:PAYMENT_INFO_UI_TAG];
     [self removeUIWithTag:SUCCESS_MESSAGE_UI_TAG];
     [self.nextButton removeFromSuperview];
     self.childDelegate = nil;
@@ -58,13 +57,11 @@
         [self.parentDelegate handleBackButton];
     } else if ( self.activeViewIndex == AMOUNT_SELECTION_UI_TAG ) {
         [self setupAmountSelectionUI];
-    } else if ( self.activeViewIndex == CONTACT_INFO_UI_TAG ) {
-        [self setupContactInfoUI];
-    } else if ( self.activeViewIndex == BILLING_INFO_UI_TAG ) {
+    } else if ( self.activeViewIndex == WITHDRAW_INFO_UI_TAG ) {
+        [self setupWithdrawInfoUI];
+    } else if ( self.activeViewIndex == PAYMENT_INFO_UI_TAG ) {
         [[ARBTracking arbiterInstance] track:@"Selected Withdraw Amount" properties:@{@"amount": [NSString stringWithFormat:@"%f", self.withdrawAmount]}];
-        [self setupBillingInfoUI];
-    } else if ( self.activeViewIndex == TOKEN_REQUEST_UI_TAG ) {
-        [self getTokenAndSubmitWithdraw];
+        [self setupPaymentInfoUI];
     } else if ( self.activeViewIndex == SUCCESS_MESSAGE_UI_TAG ) {
         [self setupSuccessMessageUI];
     } else {
@@ -157,9 +154,9 @@
     }
 }
 
-- (void)setupContactInfoUI
+- (void)setupWithdrawInfoUI
 {
-    ARBWithdrawInfoView *tableDelegate = [[ARBWithdrawInfoView alloc]
+    ARBWithdrawInfoView *infoView = [[ARBWithdrawInfoView alloc]
                                                               initWithCallback:[^(NSDictionary *updatedEmailAndName) {
         if ( [updatedEmailAndName isKindOfClass:[NSDictionary class]]) {
             self.email = [updatedEmailAndName objectForKey:@"email"];
@@ -168,40 +165,54 @@
         self.activeViewIndex++;
         [self navigateToActiveView];
     } copy]];
-    tableDelegate.email = self.email;
-    tableDelegate.fullName = self.fullName;
-    self.childDelegate = tableDelegate;
+    infoView.email = self.email;
+    infoView.fullName = self.fullName;
+    self.childDelegate = infoView;
     
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 140.0)];
     tableView.scrollEnabled = YES;
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    tableView.tag = CONTACT_INFO_UI_TAG;
+    tableView.delegate = infoView;
+    tableView.dataSource = infoView;
+    tableView.tag = WITHDRAW_INFO_UI_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
     [self renderNextButtonWithText:@"Next"];
 }
 
-- (void)setupBillingInfoUI
+- (void)setupPaymentInfoUI
 {
-    if ( self.pkView == nil ) {
-        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
-        self.pkView = view;
-        self.pkView.delegate = self;
-    }
+//    if ( self.pkView == nil ) {
+//        PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
+//        self.pkView = view;
+//        self.pkView.delegate = self;
+//    }
     
     // TODO:
     // Now that we have this billingInfoTableView for both deposits and withdraws,
     //  we need to handle both deposits and withdraws in the 'submit token to server' method
     // Move the payment steps into a different view?
     
-    ARBBillingInfoTableViewDelegate *tableDelegate = [[ARBBillingInfoTableViewDelegate alloc] init];
-    tableDelegate.pkView = self.pkView;
-    self.childDelegate = tableDelegate;
     ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 80.0)];
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    tableView.tag = BILLING_INFO_UI_TAG;
+    ARBCardPaymentView *paymentView = [[ARBCardPaymentView alloc] init];
+
+    self.childDelegate = paymentView;
+//    paymentView.pkView = self.pkView;
+    paymentView.isDeposit = NO;
+    paymentView.withdrawAmount = self.withdrawAmount;
+    paymentView.email = self.email;
+    paymentView.fullName = self.fullName;
+    paymentView.arbiter = self.arbiter;
+    paymentView.onAuthorizationSuccess = ^(void) {
+        [self renderNextButtonWithText:@"Submit"];
+    };
+    paymentView.onPaymentSuccess = ^(void) {
+        self.activeViewIndex++;
+        [self navigateToActiveView];
+    };
+    
+    tableView.delegate = paymentView;
+    tableView.dataSource = paymentView;
+    tableView.tag = PAYMENT_INFO_UI_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
 }
@@ -232,50 +243,50 @@
     }
 }
 
-- (void)getTokenAndSubmitWithdraw
-{
-    STPCard *card = [[STPCard alloc] init];
-    card.number = self.pkView.card.number;
-    card.expMonth = self.pkView.card.expMonth;
-    card.expYear = self.pkView.card.expYear;
-    card.cvc = self.pkView.card.cvc;
-    
-    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
-        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
-    } else {
-        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
-    }
-    
-    [Stripe createTokenWithCard:card completion:[^(STPToken *token, NSError *error) {
-        if (error) {
-            [self handleError:[error localizedDescription]];
-        } else {
-            NSDictionary *params = @{@"card_token": token.tokenId,
-                                     @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
-                                     @"email": self.email,
-                                     @"card_name": self.fullName};
-            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
-                if ([[responseDict objectForKey:@"errors"] count]) {
-                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
-                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
-                    [self handleError:message];
-                    [self.nextButton removeFromSuperview];
-                    self.activeViewIndex--;
-                    [self navigateToActiveView];
-                } else {
-                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Success"];
-                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
-                    self.arbiter.user = [responseDict objectForKey:@"user"];
-                    self.activeViewIndex++;
-                    [self navigateToActiveView];
-                    self.withdrawComplete = YES;
-                }
-                
-                
-            } copy]];
-        }
-    } copy]];
-}
+//- (void)getTokenAndSubmitWithdraw
+//{
+//    STPCard *card = [[STPCard alloc] init];
+//    card.number = self.pkView.card.number;
+//    card.expMonth = self.pkView.card.expMonth;
+//    card.expYear = self.pkView.card.expYear;
+//    card.cvc = self.pkView.card.cvc;
+//    
+//    if ( [[[self.arbiter game] objectForKey:@"is_live"] boolValue] == true ) {
+//        [Stripe setDefaultPublishableKey:StripeLivePublishableKey];
+//    } else {
+//        [Stripe setDefaultPublishableKey:StripeTestPublishableKey];
+//    }
+//    
+//    [Stripe createTokenWithCard:card completion:[^(STPToken *token, NSError *error) {
+//        if (error) {
+//            [self handleError:[error localizedDescription]];
+//        } else {
+//            NSDictionary *params = @{@"card_token": token.tokenId,
+//                                     @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
+//                                     @"email": self.email,
+//                                     @"card_name": self.fullName};
+//            [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
+//                if ([[responseDict objectForKey:@"errors"] count]) {
+//                    NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
+//                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
+//                    [self handleError:message];
+//                    [self.nextButton removeFromSuperview];
+//                    self.activeViewIndex--;
+//                    [self navigateToActiveView];
+//                } else {
+//                    [[ARBTracking arbiterInstance] track:@"Received Withdraw Success"];
+//                    self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
+//                    self.arbiter.user = [responseDict objectForKey:@"user"];
+//                    self.activeViewIndex++;
+//                    [self navigateToActiveView];
+//                    self.withdrawComplete = YES;
+//                }
+//                
+//                
+//            } copy]];
+//        }
+//    } copy]];
+//}
 
 
 # pragma mark Click Handlers

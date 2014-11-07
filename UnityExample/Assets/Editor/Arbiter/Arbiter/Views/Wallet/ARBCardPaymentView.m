@@ -1,12 +1,12 @@
 //
-//  ARBBillingInfoTableViewDelegate.m
+//  ARBCardPaymentView.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 9/4/14.
 //
 //
 
-#import "ARBBillingInfoTableViewDelegate.h"
+#import "ARBCardPaymentView.h"
 #import "PTKView.h"
 #import "PTKTextField.h"
 #import "STPCard.h"
@@ -15,7 +15,7 @@
 #import "ARBConstants.h"
 
 
-@implementation ARBBillingInfoTableViewDelegate
+@implementation ARBCardPaymentView
 
 @synthesize pkView;
 
@@ -26,16 +26,21 @@
         PTKView *view = [[PTKView alloc] initWithFrame:CGRectMake(0.0, 0.0, 290.0, 55.0)];
         self.pkView = view;
         self.pkView.delegate = self;
+        self.isDeposit = YES;
     }
     return self;
 }
 
 - (void)handleNextButton
 {
-    [self submitPaymentTokenToServer];
+    if ( self.isDeposit ) {
+        [self submitDepositToServer];
+    } else {
+        [self submitWithdrawToServer];
+    }
 }
 
-- (void)submitPaymentTokenToServer
+- (void)submitDepositToServer
 {
     NSDictionary *params = @{@"card_token": self.stpToken.tokenId,
                              @"bundle_sku": [self.bundle objectForKey:@"sku"],
@@ -49,6 +54,26 @@
             [self handleError:message];
         } else {
             [[ARBTracking arbiterInstance] track:@"Received Deposit Success"];
+            self.arbiter.user = [responseDict objectForKey:@"user"];
+            self.onPaymentSuccess();
+        }
+    } copy]];
+}
+
+- (void)submitWithdrawToServer
+{
+    NSDictionary *params = @{@"card_token": self.stpToken.tokenId,
+                             @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
+                             @"email": self.email,
+                             @"card_name": self.fullName};
+    [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
+        if ([[responseDict objectForKey:@"errors"] count]) {
+            NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
+            [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
+            [self handleError:message];
+        } else {
+            [[ARBTracking arbiterInstance] track:@"Received Withdraw Success"];
+            self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
             self.arbiter.user = [responseDict objectForKey:@"user"];
             self.onPaymentSuccess();
         }
@@ -116,7 +141,13 @@
     label.frame = CGRectMake(0.0, 10.0, tableView.frame.size.width, 20.0);
     label.font = [UIFont boldSystemFontOfSize:17.0];
     label.textColor = [UIColor whiteColor];
-    label.text = @"Please enter your billing information";
+    
+    if ( self.isDeposit ) {
+        label.text = @"Please enter your billing information";
+    } else {
+        label.text = @"Please enter your debit card information";
+    }
+    
     UIView *headerView = [[UIView alloc] init];
     [headerView addSubview:label];
     return headerView;

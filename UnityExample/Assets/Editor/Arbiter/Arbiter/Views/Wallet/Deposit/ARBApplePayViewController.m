@@ -42,7 +42,7 @@
                                  description:@"Arbiter"];
 
     request.requiredShippingAddressFields = PKAddressFieldEmail;
-    NSString *summary = [NSString stringWithFormat:@"%@ Arbiter Credits in %@", [self.bundle objectForKey:@"value"], [self.arbiter.game objectForKey:@"name"]];
+    NSString *summary = [NSString stringWithFormat:@"%@ Arbiter credits for %@ cash challenges", [self.bundle objectForKey:@"value"], [self.arbiter.game objectForKey:@"name"]];
     PKPaymentSummaryItem *lineItem1 = [PKPaymentSummaryItem summaryItemWithLabel:summary amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
     PKPaymentSummaryItem *total = [PKPaymentSummaryItem summaryItemWithLabel:@"Arbiter" amount:[NSDecimalNumber decimalNumberWithString:[self.bundle objectForKey:@"price"]]];
     request.paymentSummaryItems = @[lineItem1, total];

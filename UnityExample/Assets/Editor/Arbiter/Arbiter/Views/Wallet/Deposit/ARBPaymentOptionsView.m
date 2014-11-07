@@ -56,7 +56,7 @@
         [cell setBackgroundColor:[UIColor clearColor]];
         
         UIButton *button = [UIButton buttonWithType:UIButtonTypeSystem];
-        [button setFrame:CGRectMake(cell.frame.size.width / 2 - 140, 0.0, 280.0, 64.0)];
+        [button setFrame:CGRectMake(cell.frame.size.width / 2 - 150, 0.0, 280.0, 64.0)];
         [button setTitleColor:[UIColor whiteColor] forState:UIControlStateNormal];
         button.tag = BUTTON_TAG;
         [cell.contentView addSubview:button];

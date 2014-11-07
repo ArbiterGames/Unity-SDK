@@ -26,9 +26,14 @@
 }
 
 - (void)setFrame:(CGRect)frame {
-    CGFloat inset = 20.0;
-    frame.origin.x += inset;
-    frame.size.width -= 2 * inset;
+    BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
+    if ( IS_LESS_THAN_IOS8 ) {
+        // No-op. Only an iOS8 issue.
+    } else {
+        CGFloat inset = 20.0;
+        frame.origin.x += inset;
+        frame.size.width -= 2 * inset;
+    }
     [super setFrame:frame];
 }
 

@@ -294,22 +294,15 @@ static NSString *const tokenEndpoint = @"tokens";
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 80000
 
 + (BOOL)canSubmitPaymentRequest:(PKPaymentRequest *)paymentRequest {
-    NSLog(@"canSubmitPaymentRequest");
     if (!paymentRequest) {
-        NSLog(@"1");
         return NO;
     }
-    NSLog(@"paymentRequest.supportedNetworks: %@", paymentRequest.supportedNetworks);
     if ([PKPaymentAuthorizationViewController canMakePaymentsUsingNetworks:paymentRequest.supportedNetworks]) {
-        NSLog(@"2");
         return YES;
     }
     if ([[UIDevice currentDevice] userInterfaceIdiom] == UIUserInterfaceIdiomPad) {
-        NSLog(@"3");
         return NO;
     }
-    
-    NSLog(@"4");
     return [self isSimulatorBuild];
 }
 

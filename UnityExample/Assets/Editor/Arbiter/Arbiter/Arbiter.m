@@ -834,12 +834,8 @@
 }
 
 - (void)connection:(NSURLConnection *)connection didFailWithError:(NSError *)error {
-    NSLog(@"connection error:%@", error);
-    NSDictionary *dict = [[NSDictionary alloc] initWithObjectsAndKeys:@[[error localizedDescription]], @"errors", @"false", @"success", nil];
-    NSString *key = [NSString stringWithFormat:@"%@:%@", [[connection currentRequest] URL], [[connection currentRequest] HTTPMethod]];
-    
-    void (^handler)(id) = [_connectionHandlerRegistry objectForKey:key];
-    handler(dict);
+    NSLog(@"Connection error from: %@", [[connection currentRequest] URL]);
+    NSLog(@"Error:%@", error);
 }
 
 #pragma mark UIAlertView Delegate Methods

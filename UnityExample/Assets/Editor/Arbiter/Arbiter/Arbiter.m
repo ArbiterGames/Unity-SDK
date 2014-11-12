@@ -57,6 +57,7 @@
 
 - (void)getCachedUser:(void(^)(NSDictionary *))handler
 {
+    NSLog(@"ttt getCacheduser. user=%@", self.user);
     handler(self.user);
 }
 
@@ -214,27 +215,38 @@
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
                           @"success": @"true"});
-                
-                // If they need to agree to the terms
-            } else if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
-                                                               delegate: self
-                                                      cancelButtonTitle:@"Agree"
-                                                      otherButtonTitles:@"View terms", @"Cancel", nil];
-                [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-                [alert setTag:VERIFICATION_ALERT_TAG];
-                [[UIApplication sharedApplication] endIgnoringInteractionEvents];
-                [alert show];
-                [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
-                
-                // If they have already agreed to the terms, but still need their location approved
-            } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
-                NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-                [verificationUrl appendString: [self.user objectForKey:@"id"]];
-                [verificationUrl appendString: @"/verify"];
-                [self httpPost:verificationUrl params:postParams isBlocking:NO handler:handler];
+            } else {
+
+                    // If they need to agree to the terms
+                if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+                    UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                                    message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
+                                                                   delegate: self
+                                                          cancelButtonTitle:@"Agree"
+                                                          otherButtonTitles:@"View terms", @"Cancel", nil];
+                    [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
+                    [alert setTag:VERIFICATION_ALERT_TAG];
+                    [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+                    [alert show];
+                    [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
+                    
+                    // If they have already agreed to the terms, but still need their location approved
+                } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+                    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+                        if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
+                            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+                            ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+                            [arbiterInstance identify:[self.user objectForKey:@"id"]];
+                        }
+                        handler(responseDict);
+                    } copy];
+                                        
+                    NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                    NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+                    [verificationUrl appendString: [self.user objectForKey:@"id"]];
+                    [verificationUrl appendString: @"/verify"];
+                    [self httpPost:verificationUrl params:postParams isBlocking:NO handler:connectionHandler];
+                }
             }
         } else {
             if ( self.user == nil ) {

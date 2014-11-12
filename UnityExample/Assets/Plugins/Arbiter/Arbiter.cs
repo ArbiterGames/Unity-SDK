@@ -118,6 +118,8 @@ public partial class Arbiter : MonoBehaviour {
 
 
 	private static bool UserExists { get {
+			Debug.Log ("ttt In UserExists???");
+			Debug.Log ("user="+(user));
 		if( user == null ) {
 			return false;
 		}

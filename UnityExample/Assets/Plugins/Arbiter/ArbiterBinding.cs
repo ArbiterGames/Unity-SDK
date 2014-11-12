@@ -41,12 +41,16 @@ namespace ArbiterInternal {
 		/// Handler for native to call whenever it updates its user
 		/// </summary>
 		public void OnUserUpdated( string jsonString ) {
+			Debug.Log ("ttt OnUserUpdated!!!!");
 			if( UserProtocol.Update( ref Arbiter.user, jsonString )) {
+				Debug.Log ("ttt checkA");
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
+				Debug.Log ("ttt checkB");
 				Arbiter.user = UserProtocol.Parse( jsonString );
 				Arbiter.newUserListeners.ForEach( listener => listener() );
 			}
+			Debug.Log ("ttt leaving OnUserUpdated. Arbiter.user="+Arbiter.user);
 		}
 
 

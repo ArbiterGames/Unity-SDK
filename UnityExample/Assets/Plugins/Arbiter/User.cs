@@ -17,7 +17,7 @@ namespace ArbiterInternal {
 
 
         public override string ToString() {
-            return "[User id:"+Id+", name:"+Name+"]";
+            return "[User id:"+Id+", name:"+Name+", verified:"+Verified+", locationApproved:"+LocationApproved+"]";
         }
 
 

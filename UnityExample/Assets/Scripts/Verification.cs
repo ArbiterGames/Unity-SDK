@@ -2,6 +2,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
+
 public class Verification : MonoBehaviour {
 
 	private static int padding = 10;
@@ -49,6 +50,7 @@ public class Verification : MonoBehaviour {
 	}
 	
 	private void ErrorHandler( List<string> errors ) {
+		Debug.LogWarning( "Verification Errors:" );
 		errors.ForEach( error => Debug.Log( error ) );
 	}
 }

@@ -52,6 +52,5 @@ public class Verification : MonoBehaviour {
 	private void ErrorHandler( List<string> errors ) {
 		Debug.LogWarning( "Verification Errors:" );
 		errors.ForEach( error => Debug.Log( error ) );
-		Debug.LogWarning( "ttt leaving ErrorHandler" );
 	}
 }

@@ -57,7 +57,6 @@
 
 - (void)getCachedUser:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt getCacheduser. user=%@", self.user);
     handler(self.user);
 }
 
@@ -240,7 +239,7 @@
                         }
                         handler(responseDict);
                     } copy];
-                                        
+
                     NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
                     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
                     [verificationUrl appendString: [self.user objectForKey:@"id"]];

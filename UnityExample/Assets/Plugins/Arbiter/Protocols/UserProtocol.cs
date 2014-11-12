@@ -16,7 +16,6 @@ namespace ArbiterInternal {
 
 
 		public static bool Update( ref User user, string jsonString ) {
-			UnityEngine.Debug.Log("ttt UserProtocol.update!");
 			if( jsonString == null || jsonString == "" ) {
 				user = null;
 				return false;
@@ -34,7 +33,6 @@ namespace ArbiterInternal {
 
 
 		private static void fillUser( ref User user, JSONNode userNode ) {
-			UnityEngine.Debug.Log("ttt fillUser");
 			user.Id = userNode["id"].Value;
 			user.Name = userNode["username"].Value;
 			user.LocationApproved = userNode["location_approved"].Value.Equals("true");

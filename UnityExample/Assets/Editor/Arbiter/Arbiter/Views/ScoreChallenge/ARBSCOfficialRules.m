@@ -7,9 +7,10 @@
 //
 
 #import "ARBSCOfficialRules.h"
-#import "ARBSCRulesView.h"
 #import "ARBConstants.h"
 #import "ARBUITableView.h"
+
+#define CELL_MESSAGE_TAG 1
 
 @implementation ARBSCOfficialRules
 
@@ -63,17 +64,16 @@
         tableHeight = self.frame.size.width - tableYOrigin - 40;
     }
     NSString *url = [NSString stringWithFormat:@"%@%@", APIScoreChallengeRulesURL, self.challengeId];
+    
     [self.arbiter httpGet:url isBlocking:YES handler:[^(NSDictionary *responseDict) {
-        NSString *message = [responseDict objectForKey:@"rules"];
-        ARBSCRulesView *tableDelegate = [[ARBSCRulesView alloc] initWithMessage:message];
+        self.rules = [responseDict objectForKey:@"rules"];
         ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, tableHeight)];
-        tableView.delegate = tableDelegate;
-        tableView.dataSource = tableDelegate;
+        tableView.delegate = self;
+        tableView.dataSource = self;
         tableView.scrollEnabled = YES;
         [tableView reloadData];
         [self addSubview:tableView];
     } copy]];
-
 }
 
 #pragma mark Click Handlers
@@ -84,6 +84,48 @@
         self.callback();
     }
     [self.parentWindow hide];
+}
+
+# pragma mark TableView Delegate Methods
+
+- (NSInteger)numberOfSectionsInTableView:(UITableView *)tableView
+{
+    return 1;
+}
+
+- (NSInteger)tableView:(UITableView *)tableView numberOfRowsInSection:(NSInteger)section
+{
+    return 1;
+}
+
+-(CGFloat)tableView:(UITableView *)tableView heightForHeaderInSection:(NSInteger)section
+{
+    return 0.1;
+}
+
+- (CGFloat)tableView:(UITableView *)tableView heightForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    return 4760.0;
+}
+
+- (UITableViewCell *)tableView:(UITableView *)tableView cellForRowAtIndexPath:(NSIndexPath *)indexPath
+{
+    static NSString *i = @"SCRulesTableCell";
+    UILabel *message;
+    UITableViewCell *cell = [tableView dequeueReusableCellWithIdentifier:i];
+    
+    if (cell == nil) {
+        cell = [[UITableViewCell alloc] initWithStyle:UITableViewCellStyleDefault reuseIdentifier:i];
+        cell.backgroundColor = [UIColor clearColor];
+        message = [[UILabel alloc] initWithFrame:CGRectMake(0.0, 0.0, cell.frame.size.width - 20, 4760.0)];
+        message.textColor = [UIColor whiteColor];
+        message.numberOfLines = 0;
+        message.tag = CELL_MESSAGE_TAG;
+        message.text = self.rules;
+        [cell.contentView addSubview:message];
+    }
+    
+    return cell;
 }
 
 @end

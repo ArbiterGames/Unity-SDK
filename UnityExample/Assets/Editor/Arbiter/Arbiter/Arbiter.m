@@ -41,6 +41,68 @@
     CLLocation *currentLocation;
 }
 
+static Arbiter *_sharedInstance = nil;
+
++ (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler
+{
+    static dispatch_once_t oncePredicate;
+    dispatch_once(&oncePredicate, ^{
+        _sharedInstance = [[Arbiter alloc] init:handler apiKey:apiKey accessToken:accessToken];
+    });
+    return _sharedInstance;
+}
+
++ (Arbiter *)sharedInstance
+{
+    if ( _sharedInstance == nil ) {
+        NSLog(@"Arbiter Error: sharedInstance called before initWithApiKey:accessToken:handler");
+    }
+    return _sharedInstance;
+}
+
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
+{
+    self = [super init];
+    if ( self ) {
+        self.hasConnection = NO;
+        self.apiKey = apiKey;
+        self.accessToken = accessToken;
+        self.locationVerificationAttempts = 0;
+        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        
+        _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
+        _responseDataRegistry = [[NSMutableDictionary alloc] init];
+        _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
+        
+        self.requestQueue = [[NSMutableDictionary alloc] init];
+        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
+        [self establishConnection];
+    }
+    handler(@{@"success": @"true"});
+    return self;
+}
+
+-(void)establishConnection
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+        self.hasConnection = YES;
+        self.game = responseDict;
+        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+        } else {
+            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+        }
+        [arbiterInstance identify:arbiterInstance.distinctId];
+        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+        [arbiterInstance track:@"Loaded Game"];
+    } copy];
+    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
+    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
+}
+
 
 #pragma mark User Methods
 
@@ -60,31 +122,6 @@
     handler(self.user);
 }
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
-{
-    self = [super init];
-    
-    if ( self ) {
-        self.apiKey = apiKey;
-        self.accessToken = accessToken;
-        self.locationVerificationAttempts = 0;
-        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
-        
-        _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
-        _responseDataRegistry = [[NSMutableDictionary alloc] init];
-        _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
-        
-        self.requestQueue = [[NSMutableDictionary alloc] init];
-        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
-        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        [self getGameSettings];
-    }
-    
-    handler(@{@"success": @"true"});
-    return self;
-}
-
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -93,8 +130,8 @@
         [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         handler(responseDict);
     } copy];
-    NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     
+    NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
 }
 
@@ -956,25 +993,6 @@
             [view removeFromSuperview];
         }
     }
-}
-
--(void)getGameSettings
-{
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.game = responseDict;
-        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
-        } else {
-            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
-        }
-        
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-        [arbiterInstance identify:arbiterInstance.distinctId];
-        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-        [arbiterInstance track:@"Loaded Game"];
-    } copy];
-    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
 }
 
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament

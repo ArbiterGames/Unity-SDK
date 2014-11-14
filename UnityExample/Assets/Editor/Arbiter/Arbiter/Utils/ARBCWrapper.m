@@ -10,20 +10,13 @@
 #import "ARBLogger.h"
 
 
-Arbiter* _arbiter = nil;
-Arbiter* ArbiterInstance()
-{
-    if (_arbiter == nil) {
-        NSLog(@"Arbiter Error: Missing Game API Key and Access Token. Make sure you have added the Arbiter Prefab to your loading scene and that you have entered your Game API Key and Access Token to the Arbiter Game Object using the Unity Inspector.");
-    }
-    return _arbiter;
-}
+# pragma mark Utility type casting methods
 
 char *AutonomousStringCopy(const char *string)
 {
-    if (string == NULL)
+    if (string == NULL) {
         return NULL;
-    
+    }
     char *res = (char*)malloc(strlen(string) + 1);
     strcpy(res, string);
     return res;
@@ -51,85 +44,87 @@ NSMutableDictionary* JsonToDict( const char* jsonString )
 }
 
 
+# pragma mark Client Triggers Events
+
 void ClientCallbackNewUser()
 {
-    [ArbiterInstance() getCachedUser:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnNewUser", ProcessDictionaryParams( jsonDict ));
     }];
 }
 void ClientCallbackUserUpdated()
 {
-    [ArbiterInstance() getCachedUser:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnUserUpdated", ProcessDictionaryParams( jsonDict ));
     }];
 }
 void ClientCallbackWalletUpdated()
 {
-    [ArbiterInstance() getCachedWallet:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnWalletUpdated", ProcessDictionaryParams( jsonDict ));
     }];
 }
 
 
+# pragma mark Arbiter Class Wrapper Methods
 
 void _init( const char *apiKey, const char *accessToken )
 {
-    _arbiter = [[Arbiter alloc] init:^(NSDictionary *jsonDict) {
-            UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
-        }
-               apiKey:[[NSString alloc] initWithUTF8String:apiKey]
-          accessToken:[[NSString alloc] initWithUTF8String:accessToken]
-    ];
+    [Arbiter initWithApiKey:[[NSString alloc] initWithUTF8String:apiKey]
+                accessToken:[[NSString alloc] initWithUTF8String:accessToken]
+                    handler:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
+    }];
 }
 
 void _loginAsAnonymous()
 {
-    [ArbiterInstance() loginAsAnonymous:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] loginAsAnonymous:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
 
 void _loginWithGameCenterPlayer()
 {
-    [ArbiterInstance() loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "LoginWithGameCenterHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
 
 void _login()
 {
-    [ArbiterInstance() login:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] login:^(NSDictionary *jsonDict) {
         UnitySendMessage( "ArbiterBinding", "LoginHandler", ProcessDictionaryParams( jsonDict ) );
     }];
 }
 
 void _logout()
 {
-    [ArbiterInstance() logout:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] logout:^(NSDictionary *jsonDict) {
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
 
 bool _isUserAuthenticated()
 {
-    return [ArbiterInstance() isUserAuthenticated];
+    return [[Arbiter sharedInstance] isUserAuthenticated];
 }
 
 void _verifyUser()
 {
-    [ArbiterInstance() verifyUser:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] verifyUser:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "VerifyUserHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
 
 bool _isUserVerified()
 {
-    return [ArbiterInstance() isUserVerified];
+    return [[Arbiter sharedInstance] isUserVerified];
 }
 
 void _fetchWallet()
 {
-    [ArbiterInstance() fetchWallet:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] fetchWallet:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchWalletHandler", ProcessDictionaryParams( jsonDict ));
     } isBlocking:NO];
 }
@@ -137,127 +132,112 @@ void _fetchWallet()
 
 void _showWalletPanel()
 {
-    [ArbiterInstance() showWalletPanel:^(void) {
+    [[Arbiter sharedInstance] showWalletPanel:^{
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
 
 void _sendPromoCredits( const char *amount )
 {
-    [ArbiterInstance() sendPromoCredits:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] sendPromoCredits:^(NSDictionary *jsonDict) {
         UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", AutonomousStringCopy([@"" UTF8String]) );
-    }
-                       amount:[[NSString alloc] initWithUTF8String:amount]];
+    } amount:[[NSString alloc] initWithUTF8String:amount]];
 }
 
 void _requestTournament( const char *buyIn, const char *filters )
 {
-    [ArbiterInstance() requestTournament:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] requestTournament:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "RequestTournamentHandler", ProcessDictionaryParams( jsonDict ) );
-    }
-                         buyIn:[[NSString alloc] initWithUTF8String:buyIn]
-                       filters:[[NSString alloc] initWithUTF8String:filters]
-     ];
+    } buyIn:[[NSString alloc] initWithUTF8String:buyIn] filters:[[NSString alloc] initWithUTF8String:filters]];
 }
 
 void _fetchTournaments()
 {
-    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] fetchTournaments:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchTournamentsHandler", ProcessDictionaryParams( jsonDict ));
     } page:nil isBlocking:NO excludeViewed:NO];
 }
 
 void _fetchUnviewedTournaments()
 {
-    [ArbiterInstance() fetchTournaments:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] fetchTournaments:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchUnviewedTournamentsHandler", ProcessDictionaryParams( jsonDict ));
     } page:nil isBlocking:NO excludeViewed:YES];
 }
 
 void _showPreviousTournaments()
 {
-    [ArbiterInstance() showPreviousTournaments:^(void) {
+    [[Arbiter sharedInstance] showPreviousTournaments:^{
         UnitySendMessage("ArbiterBinding", "ShowPreviousTournamentsHandler", AutonomousStringCopy([@"" UTF8String]) );
     } page:nil excludeViewed:NO];
 }
 
 void _showUnviewedTournaments()
 {
-    [ArbiterInstance() showPreviousTournaments:^(void) {
+    [[Arbiter sharedInstance] showPreviousTournaments:^{
         UnitySendMessage("ArbiterBinding", "ShowUnviewedTournamentsHandler", AutonomousStringCopy([@"" UTF8String]) );
     } page:nil excludeViewed:YES];
 }
 
 void _showIncompleteTournaments()
 {
-    [ArbiterInstance() showIncompleteTournaments:^(NSString *tournamentId) {
+    [[Arbiter sharedInstance] showIncompleteTournaments:^(NSString *tournamentId) {
         UnitySendMessage("ArbiterBinding", "ShowIncompleteTournamentsHandler", AutonomousStringCopy([tournamentId UTF8String]) );
     } page:nil];
 }
 
 void _reportScore( const char *tournamentId, const char *score )
 {
-    [ArbiterInstance() reportScore:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] reportScore:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "ReportScoreHandler", ProcessDictionaryParams( jsonDict ) );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
-// TODO: This needs to accept an array of tournamentIds.
-//       Commenting out for now and coming back to deal with this
-//void _markViewedTournament( const char* tournamentId )
-//{
-//    [ArbiterInstance() markViewedTournament:^(NSDictionary *jsonDict) {
-//        UnitySendMessage("ArbiterBinding", "MarkViewedTournamentHandler", ProcessDictionaryParams( jsonDict ) );
-//    }
-//            tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]
-//     ];
-//}
-
 void _requestScoreChallenge( const char *buyIn, const char *filters )
 {
-    [ArbiterInstance() requestScoreChallenge:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] requestScoreChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "RequestScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } entryFee:[[NSString alloc] initWithUTF8String:buyIn]];
 }
 
 void _acceptScoreChallenge( const char *challengeId )
 {
-    [ArbiterInstance() acceptScoreChallenge:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] acceptScoreChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "AcceptScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
 void _rejectScoreChallenge( const char *challengeId )
 {
-    [ArbiterInstance() rejectScoreChallenge:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] rejectScoreChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "RejectScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
 void _reportScoreForChallenge( const char *challengeId, const char *score )
 {
-    [ArbiterInstance() reportScoreForChallenge:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] reportScoreForChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "ReportScoreForChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
 void _showScoreChallengeRules( const char* challengeId )
 {
-    [ArbiterInstance() showScoreChallengeRules:^(void) {
+    [[Arbiter sharedInstance] showScoreChallengeRules:^{
         UnitySendMessage("ArbiterBinding", "ShowScoreChallengeRulesHandler", AutonomousStringCopy([@"" UTF8String]) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
 void _showWalkThrough( const char* walkThroughId )
 {
-    [ArbiterInstance() showWalkThrough:^(void) {
+    [[Arbiter sharedInstance] showWalkThrough:^{
         UnitySendMessage("ArbiterBinding", "ShowWalkThroughHandler", AutonomousStringCopy([@"" UTF8String]) );
     } walkThroughId:[[NSString alloc] initWithUTF8String:walkThroughId]];
 }
 
 void _showTournamentDetailsPanel( const char *tournamentId )
 {
-    [ArbiterInstance() showTournamentDetailsPanel:^(void) {
+    [[Arbiter sharedInstance] showTournamentDetailsPanel:^{
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
 }
@@ -265,5 +245,5 @@ void _showTournamentDetailsPanel( const char *tournamentId )
 
 void _dumpLogs( const char *jsonData ) 
 {
-     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:ArbiterInstance()];
+     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:[Arbiter sharedInstance]];
 }

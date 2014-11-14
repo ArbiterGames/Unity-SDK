@@ -78,10 +78,10 @@
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        [self getGameSettings];
+        [self getGameSettings:handler];
+    } else {
+        handler(@{@"success": @"true"});
     }
-    
-    handler(@{@"success": @"true"});
     return self;
 }
 
@@ -958,7 +958,7 @@
     }
 }
 
--(void)getGameSettings
+-(void)getGameSettings:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.game = responseDict;
@@ -972,6 +972,8 @@
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];
+        
+        handler(@{@"success": @"true"});
     } copy];
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
     [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];

@@ -61,7 +61,19 @@ public partial class Arbiter : MonoBehaviour {
 			errors.ForEach( e => Debug.LogError( e ));
 		};
 
-		ArbiterBinding.Init( _gameApiKey, _accessToken, () => {}, initializeErrorHandler );
+		ArbiterBinding.Init( _gameApiKey, _accessToken, InitializeSuccess, initializeErrorHandler );
+	}
+	void InitializeSuccess() {
+		postInitActions.ForEach( a => a.Invoke() );
+		postInitActions = null;
+		initted = true;
+	}
+	static void WaitUntilInitted( Action a ) {
+		if( initted ) {
+			a.Invoke ();
+		} else {
+			postInitActions.Add( a );
+		}
 	}
 
 	
@@ -79,16 +91,22 @@ public partial class Arbiter : MonoBehaviour {
 
 	
 	public static void Login( SuccessHandler success, ErrorHandler failure ) {
-		ArbiterBinding.Login( success, failure );
+		WaitUntilInitted( () => { 
+			ArbiterBinding.Login( success, failure ); 
+		});
 	}
 
 	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-		ArbiterBinding.LoginAsAnonymous( success, failure );
+		WaitUntilInitted( () => { 
+			ArbiterBinding.LoginAsAnonymous( success, failure );
+		});
 	}
 
 #if UNITY_IOS
 	public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
-		ArbiterBinding.LoginWithGameCenter( success, failure );
+		WaitUntilInitted( () => { 
+			ArbiterBinding.LoginWithGameCenter( success, failure );
+		});
 	}
 #endif
 
@@ -393,9 +411,13 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.DumpLogs( "" );
 	}
 
-	
+
 	private static string _gameApiKey;
 	private static string _accessToken;
+
+	private static bool initted = false;
+	private static List<Action> postInitActions = new List<Action>();
+
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
 	internal static User user;

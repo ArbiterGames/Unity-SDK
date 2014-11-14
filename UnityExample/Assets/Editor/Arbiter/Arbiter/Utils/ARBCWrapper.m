@@ -10,7 +10,7 @@
 #import "ARBLogger.h"
 
 
-# pragma mark Utility type casting methods
+# pragma mark Utility Methods
 
 char *AutonomousStringCopy(const char *string)
 {

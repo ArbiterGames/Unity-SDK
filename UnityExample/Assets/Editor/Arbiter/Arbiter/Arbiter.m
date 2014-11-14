@@ -81,9 +81,11 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
+
         [self establishConnection];
+    } else {
+        handler(@{@"success": @true});
     }
-    handler(@{@"success": @true});
     return self;
 }
 

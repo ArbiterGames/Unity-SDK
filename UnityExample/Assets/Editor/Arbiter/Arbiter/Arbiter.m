@@ -10,6 +10,7 @@
 
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import "Reachability.h"
 #import "ARBConstants.h"
 #import "Arbiter.h"
 #import "ARBWalletDashboardView.h"
@@ -31,7 +32,6 @@
 #define DEVELOPMENT_TRACKING_ID @"2dd66d1b05b4ce8c7dcc7c3cb35e113a"
 #define PRODUCTION_TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
 
-
 @implementation Arbiter
 {
     NSMutableDictionary *_alertViewHandlerRegistry;
@@ -39,7 +39,84 @@
     NSMutableDictionary *_responseDataRegistry;
     CLLocationManager *locationManager;
     CLLocation *currentLocation;
+    NSDictionary *_NO_CONNECTION_RESPONSE_DICT;
 }
+
+static Arbiter *_sharedInstance = nil;
+
++ (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler
+{
+    static dispatch_once_t oncePredicate;
+    dispatch_once(&oncePredicate, ^{
+        _sharedInstance = [[Arbiter alloc] init:handler apiKey:apiKey accessToken:accessToken];
+    });
+    return _sharedInstance;
+}
+
++ (Arbiter *)sharedInstance
+{
+    if ( _sharedInstance == nil ) {
+        NSLog(@"Arbiter Error: sharedInstance called before initWithApiKey:accessToken:handler");
+    }
+    return _sharedInstance;
+}
+
+- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
+{
+    self = [super init];
+    if ( self ) {
+        _NO_CONNECTION_RESPONSE_DICT = @{@"success": @false, @"errors": @[@"Arbiter Error: No internet connection. Make sure the device is connected to the internet."]};
+        
+        self.hasConnection = NO;
+        self.apiKey = apiKey;
+        self.accessToken = accessToken;
+        self.locationVerificationAttempts = 0;
+        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        
+        _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
+        _responseDataRegistry = [[NSMutableDictionary alloc] init];
+        _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
+        
+        self.requestQueue = [[NSMutableDictionary alloc] init];
+        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
+        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
+        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
+
+        [self establishConnection];
+    } else {
+        handler(@{@"success": @true});
+    }
+    return self;
+}
+
+
+# pragma mark Internet Connection Utilities
+
+-(void)establishConnection
+{
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+        self.hasConnection = YES;
+        self.game = responseDict;
+        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+        } else {
+            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+        }
+        [arbiterInstance identify:arbiterInstance.distinctId];
+        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+        [arbiterInstance track:@"Loaded Game"];
+    } copy];
+    
+    Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
+    reach.reachableBlock = ^(Reachability*reach) { self.hasConnection = YES; };
+    reach.unreachableBlock = ^(Reachability*reach) { self.hasConnection = NO; };
+    [reach startNotifier];
+
+    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
+    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
+}
+
 
 
 #pragma mark User Methods
@@ -60,31 +137,6 @@
     handler(self.user);
 }
 
-- (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
-{
-    self = [super init];
-    
-    if ( self ) {
-        self.apiKey = apiKey;
-        self.accessToken = accessToken;
-        self.locationVerificationAttempts = 0;
-        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
-        
-        _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
-        _responseDataRegistry = [[NSMutableDictionary alloc] init];
-        _connectionHandlerRegistry = [[NSMutableDictionary alloc] init];
-        
-        self.requestQueue = [[NSMutableDictionary alloc] init];
-        self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
-        self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
-        self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-        [self getGameSettings:handler];
-    } else {
-        handler(@{@"success": @"true"});
-    }
-    return self;
-}
-
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -93,16 +145,20 @@
         [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         handler(responseDict);
     } copy];
-    NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     
-    [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
+    if ( self.hasConnection ) {
+        NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+        [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
-        handler(@{@"success": @"false",
+        handler(@{@"success": @false,
                   @"errors": @[@"local player is not authenticated"]});
         return;
     }
@@ -114,24 +170,29 @@
             [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
             handler(responseDict);
         } copy];
-        [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
-            if (error) {
-                connectionHandler( @{@"success": @"false",
-                                     @"errors": @[[error localizedDescription]]});
-            } else {
-                NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
-                                             @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
-                                             @"signature":[signature base64EncodedStringWithOptions:0],
-                                             @"salt":[salt base64EncodedStringWithOptions:0],
-                                             @"playerID":localPlayer.playerID,
-                                             @"game_center_username": localPlayer.alias,
-                                             @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
-                                             @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-                [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
-            }
-        }];
+        
+        if ( self.hasConnection ) {
+            [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+                if (error) {
+                    handler( @{@"success": @false,
+                               @"errors": @[[error localizedDescription]]});
+                } else {
+                    NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
+                                                 @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
+                                                 @"signature":[signature base64EncodedStringWithOptions:0],
+                                                 @"salt":[salt base64EncodedStringWithOptions:0],
+                                                 @"playerID":localPlayer.playerID,
+                                                 @"game_center_username": localPlayer.alias,
+                                                 @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
+                                                 @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+                    [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
+                }
+            }];
+        } else {
+            handler(_NO_CONNECTION_RESPONSE_DICT);
+        }
     } else {
-        handler(@{@"success": @"false",
+        handler(@{@"success": @false,
                   @"errors": @[@"Linking a Game Center account requires iOS >= 7.0"]});
     };
 }
@@ -173,9 +234,13 @@
         if ( [loginCredentials objectForKey:@"errors"] ) {
             handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
         } else {
-            NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
-            [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
-            [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
+            if ( self.hasConnection ) {
+                NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
+                [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
+                [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
+            } else {
+                handler(_NO_CONNECTION_RESPONSE_DICT);
+            }
         }
     } copy];
     
@@ -196,7 +261,11 @@
         handler(responseDict);
     } copy];
     
-    [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
+    if ( self.hasConnection ) {
+        [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (bool)isUserAuthenticated
@@ -213,10 +282,10 @@
             // If they are verified and ready to play
             if ([self isUserVerified]) {
                 handler(@{@"user": self.user,
-                          @"success": @"true"});
+                          @"success": @true});
             } else {
 
-                    // If they need to agree to the terms
+                // If they need to agree to the terms
                 if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
                     UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                                     message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
@@ -229,7 +298,7 @@
                     [alert show];
                     [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
                     
-                    // If they have already agreed to the terms, but still need their location approved
+                // If they have already agreed to the terms, but still need their location approved
                 } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
                     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
                         if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
@@ -280,13 +349,17 @@
     };
     
     if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
-        [self getDevicePostalCode:locationCallback];
+        if ( self.hasConnection ) {
+            [self getDevicePostalCode:locationCallback];
+        } else {
+            handler(_NO_CONNECTION_RESPONSE_DICT);
+        }
     } else {
         if (self.user == nil) {
             NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
             locationCallback(@{@"success": @"false"});
         } else {
-            locationCallback(@{@"success": @"true",
+            locationCallback(@{@"success": @true,
                                @"postalCode": [self.user objectForKey:@"postal_code"]});
         }
     }
@@ -329,7 +402,7 @@
             handler(response);
         } else {
             CLPlacemark *placemark = [placemarks objectAtIndex:0];
-            [response setValue:@"true" forKey:@"success"];
+            [response setValue:@true forKey:@"success"];
             [response setValue:placemark.postalCode forKey:@"postalCode"];
             handler(response);
         }
@@ -371,8 +444,12 @@
     } copy];
     
     if ( self.user ) {
-        NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
-        [self httpGet:walletUrl isBlocking:isBlocking handler:connectionHandler];
+        if ( self.hasConnection ) {
+            NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
+            [self httpGet:walletUrl isBlocking:isBlocking handler:connectionHandler];
+        } else {
+            handler(_NO_CONNECTION_RESPONSE_DICT);
+        }
     } else {
         handler(@{@"success": @"false",
                   @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
@@ -412,14 +489,17 @@
     } else {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
     }
-    
 }
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
-    [self httpPostAsDeveloper:APISendPromoCreditsURL
-                       params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
-                      handler:handler];
+    if ( self.hasConnection ) {
+        [self httpPostAsDeveloper:APISendPromoCreditsURL
+                           params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
+                          handler:handler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 #pragma mark Tournament Methods
@@ -443,7 +523,11 @@
         } copy];
         [self verifyUser:verifyCallback];
     } else {
-        [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
+        if ( self.hasConnection ) {
+            [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
+        } else {
+            handler(_NO_CONNECTION_RESPONSE_DICT);
+        }
     }
 }
 
@@ -454,7 +538,11 @@
         handler(tournament);
     } copy];
     
-    [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:isBlocking handler:connectionHandler];
+    if ( self.hasConnection ) {
+         [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:isBlocking handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 /**
@@ -482,7 +570,11 @@
         tournamentsUrl = [NSString stringWithFormat:@"%@?excludeViewed=true", tournamentsUrl];
     }
     
-    [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
+    if ( self.hasConnection ) {
+         [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 
@@ -520,7 +612,11 @@
         tournamentsUrl = APIRequestTournamentURL;
     }
     
-    [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
+    if ( self.hasConnection ) {
+        [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 /**
@@ -572,7 +668,6 @@
         [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [alert show];
     } copy];
-    
     [self fetchIncompleteTournaments:connectionHandler page:page isBlocking:YES];
 }
 
@@ -582,8 +677,13 @@
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         handler(responseDict);
     } copy];
-    NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
-    [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
+    
+    if ( self.hasConnection ) {
+        NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
+        [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
@@ -604,9 +704,7 @@
         ARBTournamentResultsView *resultsView = [[ARBTournamentResultsView alloc] initWithTournament:tournament arbiterInstance:self];
         resultsView.callback = handler;
         [self.panelWindow show:resultsView];
-    } copy]
-             tournamentId:tournamentId
-               isBlocking:YES];
+    } copy] tournamentId:tournamentId isBlocking:YES];
 }
 
 
@@ -614,33 +712,49 @@
 
 - (void)requestScoreChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee
 {
-    [self httpPost:APIScoreChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy]];
+    if ( self.hasConnection ) {
+        [self httpPost:APIScoreChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+            handler(responseDict);
+        } copy]];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)acceptScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
-    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeAcceptURLPart2];
-    [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy]];
+    if ( self.hasConnection ) {
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeAcceptURLPart2];
+        [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
+            handler(responseDict);
+        } copy]];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)rejectScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
-    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeRejectURLPart2];
-    [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy]];
+    if ( self.hasConnection ) {
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeRejectURLPart2];
+        [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
+            handler(responseDict);
+        } copy]];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)reportScoreForChallenge:(void (^)(NSDictionary *))handler challengeId:(NSString *)challengeId score:(NSString *)score
 {
-    NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeReportURLPart2];
-    [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy]];
+    if ( self.hasConnection ) {
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeReportURLPart2];
+        [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+            handler(responseDict);
+        } copy]];
+    } else {
+        handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
 }
 
 - (void)showScoreChallengeRules:(void (^)(void))handler challengeId:(NSString *)challengeId
@@ -958,27 +1072,6 @@
     }
 }
 
--(void)getGameSettings:(void(^)(NSDictionary *))handler
-{
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.game = responseDict;
-        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
-        } else {
-            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
-        }
-        
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-        [arbiterInstance identify:arbiterInstance.distinctId];
-        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-        [arbiterInstance track:@"Loaded Game"];
-        
-        handler(@{@"success": @"true"});
-    } copy];
-    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
-}
-
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
@@ -1024,7 +1117,7 @@
     return @"...";
 }
 
-- (UIWindow*) getTopApplicationWindow
+- (UIWindow*)getTopApplicationWindow
 {
     UIApplication *clientApp = [UIApplication sharedApplication];
     NSArray *windows = [clientApp windows];

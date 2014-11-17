@@ -95,7 +95,6 @@ static Arbiter *_sharedInstance = nil;
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance]; // ttt can this be moved downward to suppress the warning you get in the logs??
         self.hasConnection = YES;
         self.game = responseDict;
         if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
@@ -103,6 +102,7 @@ static Arbiter *_sharedInstance = nil;
         } else {
             [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance]; // ttt can this be moved downward to suppress the warning you get in the logs??
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];

@@ -449,7 +449,6 @@ namespace ArbiterInternal {
 #region Plugin response handling
 
 		public void InitHandler( string jsonString ) {
-			Debug.Log ("ttt InitHandler called. jsonString="+jsonString);
 			SimpleCallback( INIT, jsonString );
 		}
 
@@ -482,7 +481,6 @@ namespace ArbiterInternal {
 		}
 		
 		public void SendPromoCreditsHandler( string jsonString ) {
-			Debug.Log ("ttt josnString="+jsonString);
 			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
 		

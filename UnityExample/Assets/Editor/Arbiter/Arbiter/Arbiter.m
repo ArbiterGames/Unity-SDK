@@ -94,9 +94,7 @@ static Arbiter *_sharedInstance = nil;
 
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt establishConnection()) called.");
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSLog(@"ttt establishConnection::connectionHandler called.");
         ARBTracking *arbiterInstance = [ARBTracking arbiterInstance]; // ttt can this be moved downward to suppress the warning you get in the logs??
         self.hasConnection = YES;
         self.game = responseDict;

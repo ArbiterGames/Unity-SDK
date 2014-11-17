@@ -54,7 +54,6 @@ namespace ArbiterInternal {
 		/// Handler for native to call whenever it updates its wallet
 		/// </summary>
 		public void OnWalletUpdated( string jsonString ) {
-			Debug.Log("ttt OnWalletUpdated! wallet??"+Arbiter.wallet+", jsonString="+jsonString);
 			if( Arbiter.wallet == null )
 				Arbiter.wallet = new Wallet();
 			WalletProtocol.Update( ref Arbiter.wallet, jsonString );

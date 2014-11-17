@@ -481,6 +481,7 @@ namespace ArbiterInternal {
 		}
 		
 		public void SendPromoCreditsHandler( string jsonString ) {
+			Debug.Log ("ttt SendPromoCreditsHandler. jsonStrin="+jsonString);
 			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
 		
@@ -613,13 +614,21 @@ namespace ArbiterInternal {
 			callbacks[ key ] = new CallbackTuple( callback, ( e ) => {}, ( e,d ) => {} );
 		}
 		private void SimpleCallback( string callKey, string pluginResponse ) {
-			JSONNode json = JSON.Parse( pluginResponse );
 			CallbackTuple callback = callbacks[ callKey ];
-			if( wasSuccess( json )) {
-				callback.Success();
+
+			if( pluginResponse == null || pluginResponse.Equals("") ) {
+				string err = "ArbiterBinding Parse Error: Was expecting a non-null/non-empty string response from native plugin. Recieved:"+pluginResponse;
+				Debug.LogError( err );
+				callback.Failure( new List<string>(){ err } );
 			} else {
-				callback.Failure( getErrors( json ));
-				callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
+				JSONNode json = JSON.Parse( pluginResponse );
+
+				if( wasSuccess( json )) {
+					callback.Success();
+				} else {
+					callback.Failure( getErrors( json ));
+					callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
+				}
 			}
 		}
 		private void SimpleCallback( string callKey ) {

@@ -60,7 +60,7 @@ void ClientCallbackUserUpdated()
 }
 void ClientCallbackWalletUpdated()
 {
-    [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] getCachedWallet:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnWalletUpdated", ProcessDictionaryParams( jsonDict ));
     }];
 }

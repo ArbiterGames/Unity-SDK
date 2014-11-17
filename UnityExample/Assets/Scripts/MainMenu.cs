@@ -30,7 +30,9 @@ public class MainMenu : MonoBehaviour {
 		labelStyle.alignment = TextAnchor.LowerCenter;
 		
 		GUI.Box(new Rect(padding, boxY, boxWidth, boxHeight), "Main Menu", boxStyle);
-		GUI.Label(new Rect(padding * 2, boxY - padding, buttonWidth, buttonHeight), "Arbiter User Id:" + Arbiter.UserId, labelStyle);
+
+		GUI.Label(new Rect(0, boxY - padding - labelStyle.fontSize, buttonWidth, buttonHeight), "Arbiter User Id:" + Arbiter.UserId, labelStyle);
+		GUI.Label(new Rect(0, boxY - padding, buttonWidth, buttonHeight), "User Wallet Balance:" + Arbiter.Balance, labelStyle);
 		
 		if(GUI.Button(new Rect(padding * 2, buttonHeight + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Dashboard", buttonStyle)) {
 			Arbiter.DisplayWalletDashboard( OnWalletDashboardClose );

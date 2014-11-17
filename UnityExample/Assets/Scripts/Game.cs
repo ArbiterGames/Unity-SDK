@@ -13,7 +13,6 @@ public class Game : MonoBehaviour {
 	
 	int score;
 	bool scoreReported;
-	string resultsDescription;
 	
 	
 	void OnGUI() {
@@ -40,25 +39,6 @@ public class Game : MonoBehaviour {
 	
 	void OnScoreReported( Arbiter.Tournament tournament ) {
 		scoreReported = true;
-		
-		if( tournament.Status == Arbiter.Tournament.StatusType.Complete ) {
-			if ( tournament.Winners != null ) {
-				if ( tournament.Winners.First() == Arbiter.UserId ) {
-					if ( tournament.Winners.Count() > 1 ) {
-						resultsDescription = "You tied!";
-					} else {
-						resultsDescription = "You won!";
-					}
-				} else {
-					resultsDescription = "You lost to " + tournament.Winners.First();
-				}
-			}
-		} else if( tournament.Status == Arbiter.Tournament.StatusType.InProgress || tournament.Status == Arbiter.Tournament.StatusType.Initializing ) {
-			resultsDescription = "You scored " + score + ".Waiting for opponent to finish.";
-		} else {
-			Debug.LogError( "Found unexpected game status code ("+tournament.Status+")!" );
-		}
-		
 		Arbiter.ShowTournamentDetails( tournament.Id, OnDetailsPanelClosed );
 	}
 	

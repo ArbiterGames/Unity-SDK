@@ -102,7 +102,7 @@ static Arbiter *_sharedInstance = nil;
         } else {
             [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance]; // ttt can this be moved downward to suppress the warning you get in the logs??
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];

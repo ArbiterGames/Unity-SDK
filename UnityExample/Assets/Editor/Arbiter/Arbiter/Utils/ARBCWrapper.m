@@ -140,7 +140,7 @@ void _showWalletPanel()
 void _sendPromoCredits( const char *amount )
 {
     [[Arbiter sharedInstance] sendPromoCredits:^(NSDictionary *jsonDict) {
-        UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", AutonomousStringCopy([@"" UTF8String]) );
+        UnitySendMessage( "ArbiterBinding", "SendPromoCreditsHandler", ProcessDictionaryParams( jsonDict ) );
     } amount:[[NSString alloc] initWithUTF8String:amount]];
 }
 

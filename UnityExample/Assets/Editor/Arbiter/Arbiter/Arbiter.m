@@ -82,7 +82,7 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
 
-        [self establishConnection];
+        [self establishConnection:handler];
     } else {
         handler(@{@"success": @true});
     }
@@ -92,10 +92,12 @@ static Arbiter *_sharedInstance = nil;
 
 # pragma mark Internet Connection Utilities
 
--(void)establishConnection
+-(void)establishConnection:(void(^)(NSDictionary *))handler
 {
+    NSLog(@"ttt establishConnection()) called.");
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+        NSLog(@"ttt establishConnection::connectionHandler called.");
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance]; // ttt can this be moved downward to suppress the warning you get in the logs??
         self.hasConnection = YES;
         self.game = responseDict;
         if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
@@ -106,6 +108,7 @@ static Arbiter *_sharedInstance = nil;
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];
+        handler(@{@"success": @true});
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];

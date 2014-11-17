@@ -67,11 +67,13 @@ public partial class Arbiter : MonoBehaviour {
 		postInitActions.ForEach( a => a.Invoke() );
 		postInitActions = null;
 		initted = true;
+		Debug.Log ("ttt innitted="+initted);
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {
 			a.Invoke ();
 		} else {
+			Debug.Log( "Arbiter is not yet logged-in, queueing request Action: "+a );
 			postInitActions.Add( a );
 		}
 	}

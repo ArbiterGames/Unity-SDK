@@ -449,6 +449,7 @@ namespace ArbiterInternal {
 #region Plugin response handling
 
 		public void InitHandler( string jsonString ) {
+			Debug.Log ("ttt InitHandler called. jsonString="+jsonString);
 			SimpleCallback( INIT, jsonString );
 		}
 
@@ -638,7 +639,7 @@ namespace ArbiterInternal {
 		
 		
 		private bool wasSuccess( JSONNode json ) {
-			return (string.Equals( json["success"].Value, "true"));
+			return json["success"].AsBool;
 		}
 		
 		private bool isVerified( JSONNode userNode) {

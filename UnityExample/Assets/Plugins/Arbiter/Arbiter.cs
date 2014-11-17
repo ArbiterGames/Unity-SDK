@@ -72,6 +72,7 @@ public partial class Arbiter : MonoBehaviour {
 		if( initted ) {
 			a.Invoke ();
 		} else {
+			Debug.Log( "Arbiter is not yet logged-in, queueing request Action: "+a );
 			postInitActions.Add( a );
 		}
 	}

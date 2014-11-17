@@ -480,8 +480,8 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_WALLET_PANEL );
 		}
 		
-		public void SendPromoCreditsHandler( string emptyString ) {
-			SimpleCallback( SEND_PROMO_CREDITS );
+		public void SendPromoCreditsHandler( string jsonString ) {
+			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
 		
 		public void RequestTournamentHandler( string jsonString ) {
@@ -613,13 +613,21 @@ namespace ArbiterInternal {
 			callbacks[ key ] = new CallbackTuple( callback, ( e ) => {}, ( e,d ) => {} );
 		}
 		private void SimpleCallback( string callKey, string pluginResponse ) {
-			JSONNode json = JSON.Parse( pluginResponse );
 			CallbackTuple callback = callbacks[ callKey ];
-			if( wasSuccess( json )) {
-				callback.Success();
+
+			if( pluginResponse == null || pluginResponse.Equals("") ) {
+				string err = "ArbiterBinding Parse Error: Was expecting a non-null/non-empty string response from native plugin. Recieved:"+pluginResponse;
+				Debug.LogError( err );
+				callback.Failure( new List<string>(){ err } );
 			} else {
-				callback.Failure( getErrors( json ));
-				callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
+				JSONNode json = JSON.Parse( pluginResponse );
+
+				if( wasSuccess( json )) {
+					callback.Success();
+				} else {
+					callback.Failure( getErrors( json ));
+					callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
+				}
 			}
 		}
 		private void SimpleCallback( string callKey ) {
@@ -637,7 +645,7 @@ namespace ArbiterInternal {
 		
 		
 		private bool wasSuccess( JSONNode json ) {
-			return (string.Equals( json["success"].Value, "true"));
+			return json["success"].AsBool;
 		}
 		
 		private bool isVerified( JSONNode userNode) {

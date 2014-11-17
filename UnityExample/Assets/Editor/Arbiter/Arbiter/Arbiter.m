@@ -82,7 +82,7 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
 
-        [self establishConnection];
+        [self establishConnection:handler];
     } else {
         handler(@{@"success": @true});
     }
@@ -92,10 +92,9 @@ static Arbiter *_sharedInstance = nil;
 
 # pragma mark Internet Connection Utilities
 
--(void)establishConnection
+-(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         self.hasConnection = YES;
         self.game = responseDict;
         if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
@@ -103,9 +102,11 @@ static Arbiter *_sharedInstance = nil;
         } else {
             [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
         [arbiterInstance track:@"Loaded Game"];
+        handler(@{@"success": @true});
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];

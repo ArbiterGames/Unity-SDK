@@ -22,11 +22,11 @@ public partial class Arbiter : MonoBehaviour {
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		HasWallet					{ get { return WalletExists(false); } }
-	public static string    UserId                      { get { if( !UserExists ) return null;  	return user.Id; } }
-	public static string    Username                    { get { if( !UserExists ) return null; 		return user.Name; } }
-	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  	return user.Token; } }
-	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  	return user.AgreedToTerms; } }
-	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  	return user.LocationApproved; } }
+	public static string    UserId                      { get { if( !UserExists ) return null;  		return user.Id; } }
+	public static string    Username                    { get { if( !UserExists ) return null; 			return user.Name; } }
+	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  		return user.Token; } }
+	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  		return user.AgreedToTerms; } }
+	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  		return user.LocationApproved; } }
 	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
 
 

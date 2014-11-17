@@ -481,7 +481,6 @@ namespace ArbiterInternal {
 		}
 		
 		public void SendPromoCreditsHandler( string jsonString ) {
-			Debug.Log ("ttt SendPromoCreditsHandler. jsonStrin="+jsonString);
 			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
 		

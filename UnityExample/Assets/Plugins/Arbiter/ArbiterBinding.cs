@@ -480,8 +480,9 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_WALLET_PANEL );
 		}
 		
-		public void SendPromoCreditsHandler( string emptyString ) {
-			SimpleCallback( SEND_PROMO_CREDITS );
+		public void SendPromoCreditsHandler( string jsonString ) {
+			Debug.Log ("ttt josnString="+jsonString);
+			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
 		
 		public void RequestTournamentHandler( string jsonString ) {

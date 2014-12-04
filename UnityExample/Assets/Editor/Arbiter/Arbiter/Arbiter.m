@@ -405,6 +405,10 @@ static Arbiter *_sharedInstance = nil;
             CLPlacemark *placemark = [placemarks objectAtIndex:0];
             [response setValue:@true forKey:@"success"];
             [response setValue:placemark.postalCode forKey:@"postalCode"];
+            CLLocation* loc = placemark.location;
+            CLLocationCoordinate2D coord = loc.coordinate;
+            [response setValue:[NSString stringWithFormat:@"%f", coord.latitude] forKey:@"lat"];
+            [response setValue:[NSString stringWithFormat:@"%f", coord.longitude] forKey:@"long"];
             handler(response);
         }
     }];

@@ -278,6 +278,8 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+            // ttt keep this as it was!? Or call new function??
+
             NSMutableDictionary* location = [[NSMutableDictionary alloc] initWithDictionary:@{@"success": @false}]; // ttt do empty instead?
             [self.user setObject:@"ttt" forKey:@"location"];
 //            [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
@@ -353,6 +355,8 @@ static Arbiter *_sharedInstance = nil;
     
     if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
         if ( self.hasConnection ) {
+            // TODO: This would be better if it was independent of user data and if it was queried each time instead of just this once.
+            //          ...BUT if we do that, we should probably also treat postal_code the same way! So for now just do it here once.
             [self getDevicePostalCode:locationCallback];
         } else {
             handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -407,6 +411,7 @@ static Arbiter *_sharedInstance = nil;
             CLPlacemark *placemark = [placemarks objectAtIndex:0];
             [response setValue:@true forKey:@"success"];
             [response setValue:placemark.postalCode forKey:@"postalCode"];
+            [response setValue:@"ttt" forKey:@"locttt"];
             handler(response);
         }
     }];

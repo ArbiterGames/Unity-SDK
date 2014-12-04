@@ -310,7 +310,11 @@ static Arbiter *_sharedInstance = nil;
                         handler(responseDict);
                     } copy];
 
-                    NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+                    NSDictionary *postParams = @{
+                        @"postal_code": [self.user objectForKey:@"postal_code"],
+                        @"lat": [self.user objectForKey:@"lat"],
+                        @"long": [self.user objectForKey:@"long"]
+                    };
                     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
                     [verificationUrl appendString: [self.user objectForKey:@"id"]];
                     [verificationUrl appendString: @"/verify"];

@@ -7,7 +7,7 @@ public class MainMenu : MonoBehaviour {
 	private static int padding = 10;
 	private static int buttonHeight = 100;
 	private static int boxWidth = Screen.width - padding * 2;
-	private static int boxHeight = buttonHeight * 6 + padding * 5;
+	private static int boxHeight = buttonHeight * 7 + padding * 5;
 	private static int boxY = (Screen.height - boxHeight) / 2;
 	private static int buttonWidth = boxWidth - padding * 2;
 	
@@ -38,32 +38,36 @@ public class MainMenu : MonoBehaviour {
 			Arbiter.DisplayWalletDashboard( OnWalletDashboardClose );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2.5f + buttonWidth / 2, buttonHeight + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Free Credits!", buttonStyle)) {
+		if(GUI.Button(new Rect(padding * 2.5f + buttonWidth / 2, buttonHeight + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "IDs", buttonStyle)) {
+			Application.LoadLevel ("IDs");
+		}
+
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + padding + boxY, buttonWidth, buttonHeight), "Free Credits!", buttonStyle)) {
 			Arbiter.SendPromoCredits( "100", OnSendPromoCreditsSuccess, ErrorHandler );
 			Arbiter.DisplayWalletDashboard( OnWalletDashboardClose );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + padding + boxY, buttonWidth, buttonHeight), "Score Challenge", buttonStyle)) {
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + padding * 2 + boxY, buttonWidth, buttonHeight), "Score Challenge", buttonStyle)) {
 			Application.LoadLevel ("ScoreChallenge");
 		}
 		
-		GUI.Label(new Rect(padding * 2, buttonHeight * 3 + padding + boxY, buttonWidth, buttonHeight), "Entry fee: 50 credits", labelStyle);
-		if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + padding  * 2 + boxY, buttonWidth, buttonHeight), "Join Cash Tournament", buttonStyle)) {
+		GUI.Label(new Rect(padding * 2, buttonHeight * 4 + padding * 2 + boxY, buttonWidth, buttonHeight), "Entry fee: 50 credits", labelStyle);
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + padding  * 3 + boxY, buttonWidth, buttonHeight), "Join Cash Tournament", buttonStyle)) {
 			string betSize = "50";
 			Dictionary<string,string> filters = new Dictionary<string,string>();
 			filters.Add("level", "2");
 			Arbiter.JoinTournament( betSize, filters, JoinTournamentSuccessHandler, FriendlyErrorHandler );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + padding * 3 + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Updates", buttonStyle)) {
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 5 + padding * 4 + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Updates", buttonStyle)) {
 			Arbiter.ShowPreviousTournaments( OnViewPreviousTournamentsClosed );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2.5f + buttonWidth / 2, buttonHeight * 4 + padding * 3 + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Previous", buttonStyle)) {
+		if(GUI.Button(new Rect(padding * 2.5f + buttonWidth / 2, buttonHeight * 5 + padding * 4 + boxY, buttonWidth / 2 - padding / 2, buttonHeight), "Previous", buttonStyle)) {
 			Arbiter.ShowPreviousTournaments( OnViewPreviousTournamentsClosed );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2, buttonHeight * 5 + padding * 4 + boxY, buttonWidth, buttonHeight), "Logout", buttonStyle)) {
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 6 + padding * 5 + boxY, buttonWidth, buttonHeight), "Logout", buttonStyle)) {
 			Arbiter.Logout( LogoutSuccessHandler, ErrorHandler );
 		}
 	}

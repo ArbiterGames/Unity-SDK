@@ -10,6 +10,7 @@ namespace ArbiterInternal {
     {
         public string Id;
         public string Name;
+		public Location Location;
         public string Token;
         public bool AgreedToTerms;
         public bool LocationApproved;
@@ -17,7 +18,7 @@ namespace ArbiterInternal {
 
 
         public override string ToString() {
-            return "[User id:"+Id+", name:"+Name+", verified:"+Verified+", locationApproved:"+LocationApproved+"]";
+            return "[User id:"+Id+", name:"+Name+", verified:"+Verified+", location:"+Location+", locationApproved:"+LocationApproved+"]";
         }
 
 

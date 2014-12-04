@@ -37,9 +37,23 @@ namespace ArbiterInternal {
 			user.Name = userNode["username"].Value;
 			user.LocationApproved = userNode["location_approved"].Value.Equals("true");
 			user.AgreedToTerms = userNode["agreed_to_terms"].Value.Equals("true");
-			
+
+			user.Location = parseLocation( userNode );
+
 			// Want to keep the logic of what it takes to be verified in the native plugin, so call down to it rather than duplicate the logic
-			user.Verified = ArbiterBinding.IsUserVerified();		
+			user.Verified = ArbiterBinding.IsUserVerified();
+
+			UnityEngine.Debug.Log("ttt parsedUser in C#. user=\n"+user);
+		}
+
+
+		private static Location parseLocation( JSONNode userNode ) {
+			Location location = new Location();
+			UnityEngine.Debug.Log("parsing location node.... node="+userNode.ToString());
+			location.Zipcode = userNode["postal_code"];
+			JSONNode geo = userNode["geo_data"];
+
+			return location;
 		}
 
 	}

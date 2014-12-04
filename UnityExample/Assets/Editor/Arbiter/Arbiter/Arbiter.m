@@ -278,7 +278,9 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
-            [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
+            NSMutableDictionary* location = [[NSMutableDictionary alloc] initWithDictionary:@{@"success": @false}]; // ttt do empty instead?
+            [self.user setObject:@"ttt" forKey:@"location"];
+//            [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             
             // If they are verified and ready to play
             if ([self isUserVerified]) {

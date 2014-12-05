@@ -279,6 +279,8 @@ static Arbiter *_sharedInstance = nil;
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
+            [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
+            [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
             
             // If they are verified and ready to play
             if ([self isUserVerified]) {
@@ -1002,7 +1004,9 @@ static Arbiter *_sharedInstance = nil;
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
-            NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+            NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
+                                         @"lat": [self.user objectForKey:@"lat"],
+                                         @"long": [self.user objectForKey:@"long"]};
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];

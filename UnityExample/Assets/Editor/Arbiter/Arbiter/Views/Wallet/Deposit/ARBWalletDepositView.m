@@ -11,17 +11,14 @@
 #import "ARBUITableView.h"
 #import "ARBBundleSelectView.h"
 #import "ARBDepositInfoView.h"
-#import "ARBPaymentOptionsView.h"
 #import "ARBCardPaymentView.h"
 #import "ARBTransactionSuccessView.h"
-#import "ARBApplePayViewController.h"
 #import "ARBTracking.h"
 
 #define BUNDLE_SELECT_VIEW_TAG 1
-#define PAYMENT_METHOD_VIEW_TAG 2
-#define CONTACT_INFO_VIEW_TAG 3
-#define PAYMENT_INFO_VIEW_TAG 4
-#define SUCCESS_MESSAGE_VIEW_TAG 5
+#define CONTACT_INFO_VIEW_TAG 2
+#define PAYMENT_INFO_VIEW_TAG 3
+#define SUCCESS_MESSAGE_VIEW_TAG 4
 
 #define GET_BUNDLE_REQUEST_TAG 10
 #define POST_DEPOSIT_REQUEST_TAG 11
@@ -48,7 +45,6 @@
 - (void)navigateToActiveView
 {
     [self removeUIWithTag:BUNDLE_SELECT_VIEW_TAG];
-    [self removeUIWithTag:PAYMENT_METHOD_VIEW_TAG];
     [self removeUIWithTag:CONTACT_INFO_VIEW_TAG];
     [self removeUIWithTag:PAYMENT_INFO_VIEW_TAG];
     [self.nextButton removeFromSuperview];
@@ -58,8 +54,6 @@
         [self.parentDelegate handleBackButton];
     } else if ( self.activeViewIndex == BUNDLE_SELECT_VIEW_TAG ) {
         [self setupBundleSelect];
-    } else if ( self.activeViewIndex == PAYMENT_METHOD_VIEW_TAG ) {
-        [self setupPaymentMethodSelect];
     } else if ( self.activeViewIndex == CONTACT_INFO_VIEW_TAG ) {
         [self setupContactInfoLayout];
     } else if ( self.activeViewIndex == PAYMENT_INFO_VIEW_TAG ) {
@@ -123,43 +117,6 @@
     tableView.tag = CONTACT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
-}
-
-- (void)setupPaymentMethodSelect
-{
-    ARBUITableView *tableView = [[ARBUITableView alloc] initWithFrame:CGRectMake(0.0, 60.0, self.frame.size.width, 180.0)];
-    ARBPaymentOptionsView *tableDelegate = [[ARBPaymentOptionsView alloc] initWithCallback:[^(NSString *selectedMethod) {
-        if ( [selectedMethod isEqualToString:@"ApplePay"] ) {
-            [self displayApplePay];
-        } else {
-            self.activeViewIndex++;
-            [self navigateToActiveView];
-        }
-    } copy]];
-    
-    self.childDelegate = tableDelegate;
-    tableView.tag = PAYMENT_METHOD_VIEW_TAG;
-    tableView.delegate = tableDelegate;
-    tableView.dataSource = tableDelegate;
-    [tableView reloadData];
-    [self addSubview:tableView];
-}
-
-- (void)displayApplePay
-{
-    ARBApplePayViewController *applePayView = [[ARBApplePayViewController alloc] init];
-    applePayView.bundle = self.selectedBundle;
-    applePayView.view.tag = PAYMENT_INFO_VIEW_TAG;
-    applePayView.arbiter = self.arbiter;
-    applePayView.paymentCallback = [^(BOOL success) {
-        if ( success ) {
-            self.activeViewIndex += 3;
-        }
-        [self navigateToActiveView];
-    } copy];
-    [self addSubview:applePayView.view];
-    [applePayView authorizePayment];
-    [[ARBTracking arbiterInstance] track:@"Displayed ApplePay Form"];
 }
 
 

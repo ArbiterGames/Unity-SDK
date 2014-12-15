@@ -6,7 +6,7 @@ using ArbiterInternal;
 
 public partial class Arbiter { 
 	
-	public class ScoreChallenge {
+	public class CashChallenge {
 		
 		public enum StatusType {
 			Unknown,
@@ -20,11 +20,11 @@ public partial class Arbiter {
 		public string EntryFee					{ get { return this.entryFee; } }
 		public string Prize						{ get { return this.prize; } }
 		public StatusType Status        		{ get { return this.status; } }
-		public ScoreChallengeWinner Winner		{ get { return this.winner; } }
+		public CashChallengeWinner Winner		{ get { return this.winner; } }
 		public bool DidUserWin					{ get { return this.winner != null && this.winner.Id == Arbiter.UserId; } }
 		
 		
-		public ScoreChallenge( string id, string scoreToBeat, string entryFee, string prize, StatusType status, Arbiter.ScoreChallengeWinner winner ) {
+		public CashChallenge( string id, string scoreToBeat, string entryFee, string prize, StatusType status, Arbiter.CashChallengeWinner winner ) {
 			this.id = id;
 			this.scoreToBeat = scoreToBeat;
 			this.entryFee = entryFee;
@@ -35,7 +35,7 @@ public partial class Arbiter {
 		
 		
 		public override string ToString() {
-			string rv = "[ScoreChallenge "+
+			string rv = "[CashChallenge "+
 						"id:"+this.id+", "+
 						"scoreToBeat:"+this.ScoreToBeat+", "+
 						"entryFee:"+this.EntryFee+", "+
@@ -50,16 +50,16 @@ public partial class Arbiter {
 		private string entryFee;
 		private string prize;
 		private StatusType status;
-		private ScoreChallengeWinner winner;
+		private CashChallengeWinner winner;
 	}
 	
-	public class ScoreChallengeWinner {
+	public class CashChallengeWinner {
 		
 		public string Id            { get { return this.id; } }
 		public string Score         { get { return this.score; } }
 		
 		
-		public ScoreChallengeWinner( string id, string score ) {
+		public CashChallengeWinner( string id, string score ) {
 			this.id = id;
 			this.score = score;
 		}

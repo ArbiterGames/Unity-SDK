@@ -17,7 +17,7 @@
 #import "ARBTournamentResultsView.h"
 #import "ARBPreviousTournamentsView.h"
 #import "ARBWalkThrough.h"
-#import "ARBSCOfficialRules.h"
+#import "ARBCashChallengeOfficialRules.h"
 #import "ARBLogger.h"
 #import "ARBTracking.h"
 
@@ -341,7 +341,7 @@ static Arbiter *_sharedInstance = nil;
                 } else {
                     if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
-                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash tournaments.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
+                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash challenges.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                        delegate:self
                                                               cancelButtonTitle:@"Keep disabled"
                                                               otherButtonTitles:@"Check again", nil];
@@ -719,12 +719,12 @@ static Arbiter *_sharedInstance = nil;
 }
 
 
-#pragma mark Score Challenge Methods
+#pragma mark Cash Challenge Methods
 
-- (void)requestScoreChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee
+- (void)requestCashChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee
 {
     if ( self.hasConnection ) {
-        [self httpPost:APIScoreChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:APICashChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {
@@ -732,10 +732,10 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-- (void)acceptScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
+- (void)acceptCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
     if ( self.hasConnection ) {
-        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeAcceptURLPart2];
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeAcceptURLPart2];
         [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
@@ -744,10 +744,10 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-- (void)rejectScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
+- (void)rejectCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
     if ( self.hasConnection ) {
-        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeRejectURLPart2];
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeRejectURLPart2];
         [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
@@ -759,7 +759,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)reportScoreForChallenge:(void (^)(NSDictionary *))handler challengeId:(NSString *)challengeId score:(NSString *)score
 {
     if ( self.hasConnection ) {
-        NSString *url = [NSString stringWithFormat:@"%@%@%@", APIScoreChallengeBaseURL, challengeId, APIScoreChallengeReportURLPart2];
+        NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeReportURLPart2];
         [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
@@ -768,9 +768,9 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-- (void)showScoreChallengeRules:(void (^)(void))handler challengeId:(NSString *)challengeId
+- (void)showCashChallengeRules:(void (^)(void))handler challengeId:(NSString *)challengeId
 {
-    ARBSCOfficialRules *view = [[ARBSCOfficialRules alloc] initWithChallengeId:challengeId arbiterInstance:self];
+    ARBCashChallengeOfficialRules *view = [[ARBCashChallengeOfficialRules alloc] initWithChallengeId:challengeId arbiterInstance:self];
     view.callback = handler;
     [self.panelWindow show:view];
 }

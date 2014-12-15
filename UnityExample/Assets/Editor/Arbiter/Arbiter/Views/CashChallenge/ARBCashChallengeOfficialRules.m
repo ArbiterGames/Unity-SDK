@@ -1,18 +1,18 @@
 //
-//  ARBSCOfficialRules.m
+//  ARBCashChallengeOfficialRules.m
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 10/16/14.
 //
 //
 
-#import "ARBSCOfficialRules.h"
+#import "ARBCashChallengeOfficialRules.h"
 #import "ARBConstants.h"
 #import "ARBUITableView.h"
 
 #define CELL_MESSAGE_TAG 1
 
-@implementation ARBSCOfficialRules
+@implementation ARBCashChallengeOfficialRules
 
 - (id)initWithChallengeId:(NSString *)challengeId arbiterInstance:(Arbiter *)arbiterInstance
 {
@@ -63,7 +63,7 @@
     if ( IS_GREATER_THAN_IOS7 && IS_LANDCAPE ) {
         tableHeight = self.frame.size.width - tableYOrigin - 40;
     }
-    NSString *url = [NSString stringWithFormat:@"%@%@", APIScoreChallengeRulesURL, self.challengeId];
+    NSString *url = [NSString stringWithFormat:@"%@%@", APICashChallengeRulesURL, self.challengeId];
     
     [self.arbiter httpGet:url isBlocking:YES handler:[^(NSDictionary *responseDict) {
         self.rules = [responseDict objectForKey:@"rules"];

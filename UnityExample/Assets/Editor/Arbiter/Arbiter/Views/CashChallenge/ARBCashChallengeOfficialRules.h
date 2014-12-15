@@ -1,5 +1,5 @@
 //
-//  ARBSCOfficialRules.h
+//  ARBCashChallengeOfficialRules.h
 //  Unity-iPhone
 //
 //  Created by Andy Zinsser on 10/16/14.
@@ -8,7 +8,7 @@
 
 #import "ARBPanelView.h"
 
-@interface ARBSCOfficialRules : ARBPanelView <UITableViewDataSource, UITableViewDelegate>
+@interface ARBCashChallengeOfficialRules : ARBPanelView <UITableViewDataSource, UITableViewDelegate>
 
 @property (strong) void (^callback)(void);
 @property (strong) NSString *challengeId;

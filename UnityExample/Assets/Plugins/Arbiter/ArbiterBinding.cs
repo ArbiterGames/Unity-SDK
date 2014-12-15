@@ -348,46 +348,46 @@ namespace ArbiterInternal {
 
 
 		[DllImport ("__Internal")]
-		private static extern void _requestScoreChallenge( string entryFee );
-		private static Arbiter.RequestScoreChallengeCallback requestScoreChallengeSuccessHandler;
-		private static FriendlyErrorHandler requestScoreChallengeErrorHandler;
-		public static void RequestScoreChallenge( string entryFee, Arbiter.RequestScoreChallengeCallback success, FriendlyErrorHandler failure ) {
-			requestScoreChallengeSuccessHandler = success;
-			requestScoreChallengeErrorHandler = failure;
+		private static extern void _requestCashChallenge( string entryFee );
+		private static Arbiter.RequestCashChallengeCallback requestCashChallengeSuccessHandler;
+		private static FriendlyErrorHandler requestCashChallengeErrorHandler;
+		public static void RequestCashChallenge( string entryFee, Arbiter.RequestCashChallengeCallback success, FriendlyErrorHandler failure ) {
+			requestCashChallengeSuccessHandler = success;
+			requestCashChallengeErrorHandler = failure;
 #if UNITY_EDITOR
-			ReportIgnore( "RequestScoreChallenge" );
+			ReportIgnore( "RequestCashChallenge" );
 			if( success != null )
-				success( new Arbiter.ScoreChallenge( "1234", "55", "100", "200", Arbiter.ScoreChallenge.StatusType.Busy, null ));
+				success( new Arbiter.CashChallenge( "1234", "55", "100", "200", Arbiter.CashChallenge.StatusType.Busy, null ));
 #elif UNITY_IOS
-			_requestScoreChallenge( entryFee );
+			_requestCashChallenge( entryFee );
 #endif
 		}
 		
 		
-		const string ACCEPT_SCORE_CHALLENGE = "accept_score_challenge";
+		const string ACCEPT_SCORE_CHALLENGE = "accept_cash_challenge";
 		[DllImport ("__Internal")]
-		private static extern void _acceptScoreChallenge( string challengeId );
-		public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
+		private static extern void _acceptCashChallenge( string challengeId );
+		public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
 			SetCallbacksWithFriendlyErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
 #if UNITY_EDITOR
-			ReportIgnore( "AcceptScoreChallenge" );
+			ReportIgnore( "AcceptCashChallenge" );
 #elif UNITY_IOS
-			_acceptScoreChallenge( challengeId );
+			_acceptCashChallenge( challengeId );
 #endif
 		}
 		
 		
-		const string REJECT_SCORE_CHALLENGE = "reject_score_challenge";
+		const string REJECT_SCORE_CHALLENGE = "reject_cash_challenge";
 		[DllImport ("__Internal")]
-		private static extern void _rejectScoreChallenge( string challengeId );
-		public static void RejectScoreChallenge( string challengeId, SuccessHandler callback ) {
+		private static extern void _rejectCashChallenge( string challengeId );
+		public static void RejectCashChallenge( string challengeId, SuccessHandler callback ) {
 			SetSimpleCallback( REJECT_SCORE_CHALLENGE, callback );
 #if UNITY_EDITOR
-			ReportIgnore( "RejectScoreChallenge" );
+			ReportIgnore( "RejectCashChallenge" );
 			if( callback != null )
 				callback();
 #elif UNITY_IOS
-			_rejectScoreChallenge( challengeId );
+			_rejectCashChallenge( challengeId );
 #endif
 		}
 		
@@ -408,15 +408,15 @@ namespace ArbiterInternal {
 		}
 		
 		
-		const string SHOW_SCORE_CHALLENGE_RULES = "show_score_challenge_rules";
+		const string SHOW_SCORE_CHALLENGE_RULES = "show_cash_challenge_rules";
 		[DllImport ("__Internal")]
-		private static extern void _showScoreChallengeRules( string challengeId );
-		public static void ShowScoreChallengeRules( string challengeId, SuccessHandler callback ) {
+		private static extern void _showCashChallengeRules( string challengeId );
+		public static void ShowCashChallengeRules( string challengeId, SuccessHandler callback ) {
 			SetCallbacksWithErrors( SHOW_SCORE_CHALLENGE_RULES, callback, null );
 #if UNITY_EDITOR
-			ReportIgnore( "ShowScoreChallengeRules" );
+			ReportIgnore( "ShowCashChallengeRules" );
 #elif UNITY_IOS
-			_showScoreChallengeRules( challengeId );
+			_showCashChallengeRules( challengeId );
 #endif
 		}
 		
@@ -532,21 +532,21 @@ namespace ArbiterInternal {
 		}	
 		
 		
-		public void RequestScoreChallengeHandler( string jsonString ) {
+		public void RequestCashChallengeHandler( string jsonString ) {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
 				JSONClass challenge = json["challenge"] as JSONClass;
-				requestScoreChallengeSuccessHandler( ScoreChallengeProtocol.ParseScoreChallenge( challenge ) );
+				requestCashChallengeSuccessHandler( CashChallengeProtocol.ParseCashChallenge( challenge ) );
 			} else {
-				requestScoreChallengeErrorHandler( getErrors( json ), getDescriptions( json ));
+				requestCashChallengeErrorHandler( getErrors( json ), getDescriptions( json ));
 			}
 		}
 		
-		public void AcceptScoreChallengeHandler( string jsonString ) {
+		public void AcceptCashChallengeHandler( string jsonString ) {
 			SimpleCallback( ACCEPT_SCORE_CHALLENGE, jsonString );
 		}
 		
-		public void RejectScoreChallengeHandler( string emptyString ) {
+		public void RejectCashChallengeHandler( string emptyString ) {
 			SimpleCallback( REJECT_SCORE_CHALLENGE );
 		}
 		
@@ -554,7 +554,7 @@ namespace ArbiterInternal {
 			JSONNode json = JSON.Parse( jsonString );
 			if( wasSuccess( json )) {
 				JSONClass challenge = json["challenge"] as JSONClass;
-				reportScoreForChallengeSuccessHandler( ScoreChallengeProtocol.ParseScoreChallenge( challenge ) );
+				reportScoreForChallengeSuccessHandler( CashChallengeProtocol.ParseCashChallenge( challenge ) );
 			} else {
 				reportScoreForChallengeErrorHandler( getErrors( json ), getDescriptions( json ));
 			}
@@ -565,7 +565,7 @@ namespace ArbiterInternal {
 			SimpleCallback( SHOW_WALK_THROUGH );
 		}
 		
-		public void ShowScoreChallengeRulesHandler( string emptyString ) {
+		public void ShowCashChallengeRulesHandler( string emptyString ) {
 			SimpleCallback( SHOW_SCORE_CHALLENGE_RULES );
 		}
 		

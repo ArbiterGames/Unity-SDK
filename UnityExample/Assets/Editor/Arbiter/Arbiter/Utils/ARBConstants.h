@@ -22,12 +22,12 @@ extern NSString *const APITournamentBaseURL;
 extern NSString *const APITournamentMarkAsViewed;
 extern NSString *const APIReportScoreURLPart2;
 
-extern NSString *const APIScoreChallengeCreateURL;
-extern NSString *const APIScoreChallengeBaseURL;
-extern NSString *const APIScoreChallengeRulesURL;
-extern NSString *const APIScoreChallengeAcceptURLPart2;
-extern NSString *const APIScoreChallengeRejectURLPart2;
-extern NSString *const APIScoreChallengeReportURLPart2;
+extern NSString *const APICashChallengeCreateURL;
+extern NSString *const APICashChallengeBaseURL;
+extern NSString *const APICashChallengeRulesURL;
+extern NSString *const APICashChallengeAcceptURLPart2;
+extern NSString *const APICashChallengeRejectURLPart2;
+extern NSString *const APICashChallengeReportURLPart2;
 
 extern NSString *const APIDepositURL;
 extern NSString *const APIWithdrawURL;

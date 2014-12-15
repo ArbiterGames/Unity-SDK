@@ -69,11 +69,11 @@ void ClientCallbackWalletUpdated();
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds;
 
-- (void)requestScoreChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee;
-- (void)acceptScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
-- (void)rejectScoreChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
+- (void)requestCashChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee;
+- (void)acceptCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
+- (void)rejectCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
 - (void)reportScoreForChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId score:(NSString*)score;
-- (void)showScoreChallengeRules:(void(^)(void))handler challengeId:(NSString*)challengeId;
+- (void)showCashChallengeRules:(void(^)(void))handler challengeId:(NSString*)challengeId;
 
 - (void)showWalkThrough:(void(^)(void))handler walkThroughId:(NSString*)walkThroughId;
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;

@@ -3,7 +3,7 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Linq;
 
-public class ScoreChallenge : MonoBehaviour {
+public class CashChallenge : MonoBehaviour {
 
 	const string ENTRY_FEE = "100";
 	string ScoreToBeat;
@@ -28,7 +28,7 @@ public class ScoreChallenge : MonoBehaviour {
 		if( float.Parse( Arbiter.Balance ) < float.Parse( ENTRY_FEE )) {
 			Problems = "You need to deposit more money first.";
 		} else {
-			Arbiter.RequestScoreChallenge( ENTRY_FEE, OnChallengeCreated, ErrorHandler );
+			Arbiter.RequestCashChallenge( ENTRY_FEE, OnChallengeCreated, ErrorHandler );
 		}
 	}
 	
@@ -64,22 +64,22 @@ public class ScoreChallenge : MonoBehaviour {
 			}
 		} else {
 			if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + boxY + padding * 2, buttonWidth, buttonHeight), "Accept", buttonStyle)) {
-				Arbiter.AcceptScoreChallenge( ChallengeId, OnChallengeAccepted, ErrorHandler );
+				Arbiter.AcceptCashChallenge( ChallengeId, OnChallengeAccepted, ErrorHandler );
 			}
 			
 			if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + boxY + padding * 3, buttonWidth, buttonHeight), "Reject", buttonStyle)) {
-				Arbiter.RejectScoreChallenge( ChallengeId, OnChallengeRejected );
+				Arbiter.RejectCashChallenge( ChallengeId, OnChallengeRejected );
 			}
 		}
 		
 		if ( ChallengeId != "Waiting" ) {
 			if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + boxY + padding * 4, buttonWidth, buttonHeight), "Official Rules", buttonStyle)) {
-				Arbiter.ShowScoreChallengeRules( ChallengeId, OnRulesClosed );
+				Arbiter.ShowCashChallengeRules( ChallengeId, OnRulesClosed );
 			}
 		}
 	}
 	
-	void OnChallengeCreated( Arbiter.ScoreChallenge challenge ) {
+	void OnChallengeCreated( Arbiter.CashChallenge challenge ) {
 		ChallengeId = challenge.Id;
 		ScoreToBeat = challenge.ScoreToBeat;
 	}
@@ -96,9 +96,9 @@ public class ScoreChallenge : MonoBehaviour {
 		Debug.Log ("Score Challenge rules closed");
 	}
 	
-	void OnScoreReported( Arbiter.ScoreChallenge challenge ) {
+	void OnScoreReported( Arbiter.CashChallenge challenge ) {
 		ScoreReported = true;
-		if ( challenge.Status == Arbiter.ScoreChallenge.StatusType.Closed ) {
+		if ( challenge.Status == Arbiter.CashChallenge.StatusType.Closed ) {
 			if ( challenge.Winner != null ) {
 				if ( challenge.Winner.Id == Arbiter.UserId ) {
 					ResultsDescription = "You Won!";
@@ -106,7 +106,7 @@ public class ScoreChallenge : MonoBehaviour {
 					ResultsDescription = "You lost";
 				}
 			}
-		} else if ( challenge.Status == Arbiter.ScoreChallenge.StatusType.Open || challenge.Status == Arbiter.ScoreChallenge.StatusType.Busy ) {
+		} else if ( challenge.Status == Arbiter.CashChallenge.StatusType.Open || challenge.Status == Arbiter.CashChallenge.StatusType.Busy ) {
 			ResultsDescription = "You lost";
 		} else {
 			Debug.LogError( "Found unexpected status code ("+challenge.Status+")!" );

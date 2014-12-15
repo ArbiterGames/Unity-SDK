@@ -43,8 +43,8 @@ public class MainMenu : MonoBehaviour {
 			Arbiter.DisplayWalletDashboard( OnWalletDashboardClose );
 		}
 		
-		if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + padding + boxY, buttonWidth, buttonHeight), "Score Challenge", buttonStyle)) {
-			Application.LoadLevel ("ScoreChallenge");
+		if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + padding + boxY, buttonWidth, buttonHeight), "Cash Challenge", buttonStyle)) {
+			Application.LoadLevel ("CashChallenge");
 		}
 		
 		GUI.Label(new Rect(padding * 2, buttonHeight * 3 + padding + boxY, buttonWidth, buttonHeight), "Entry fee: 50 credits", labelStyle);
@@ -78,7 +78,7 @@ public class MainMenu : MonoBehaviour {
 		gameState.CurrentTournamentId = tournament.Id;
 		
 		// TODO: Rename "Game" to "Tournament"
-		Application.LoadLevel("Game");
+		Application.LoadLevel("CashTournament");
 	}
 	
 	private void FriendlyErrorHandler( List<string> errors, List<string> descriptions ) {

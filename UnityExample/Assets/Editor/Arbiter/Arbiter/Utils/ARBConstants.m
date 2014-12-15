@@ -20,12 +20,12 @@ NSString *const APITournamentBaseURL = @"https://www.arbiter.me/api/v1/tournamen
 NSString *const APITournamentMarkAsViewed = @"https://www.arbiter.me/api/v1/tournament/mark-as-viewed";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
-NSString *const APIScoreChallengeCreateURL = @"https://www.arbiter.me/api/v1/score-challenge/create";
-NSString *const APIScoreChallengeBaseURL = @"https://www.arbiter.me/api/v1/score-challenge/";
-NSString *const APIScoreChallengeRulesURL = @"https://www.arbiter.me/api/v1/regulation/challenge-rules/";
-NSString *const APIScoreChallengeAcceptURLPart2 = @"/accept";
-NSString *const APIScoreChallengeRejectURLPart2 = @"/reject";
-NSString *const APIScoreChallengeReportURLPart2 = @"/report-score";
+NSString *const APICashChallengeCreateURL = @"https://www.arbiter.me/api/v1/score-challenge/create";
+NSString *const APICashChallengeBaseURL = @"https://www.arbiter.me/api/v1/score-challenge/";
+NSString *const APICashChallengeRulesURL = @"https://www.arbiter.me/api/v1/regulation/challenge-rules/";
+NSString *const APICashChallengeAcceptURLPart2 = @"/accept";
+NSString *const APICashChallengeRejectURLPart2 = @"/reject";
+NSString *const APICashChallengeReportURLPart2 = @"/report-score";
 
 NSString *const APIDepositURL = @"https://www.arbiter.me/stripe/deposit";
 NSString *const APIWithdrawURL = @"https://www.arbiter.me/stripe/withdraw";

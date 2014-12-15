@@ -334,12 +334,6 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.ReportScore( tournamentId, score, callback, defaultErrorHandler );
 	}
 
-	
-// TODO: This still needs to be implemented on the obj-c side
-//	public static void MarkViewedTournament( string tournamentId ) {
-//		ArbiterBinding.MarkViewedTournament( tournamentId, defaultErrorHandler );
-//	}
-
 	public static void ShowUnviewedTournaments( SuccessHandler callback ) {
 		if( !UserExists ) {
 			Debug.LogWarning( "Make sure user is logged in before showing their unviewed tournaments!" );
@@ -349,26 +343,26 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	
-	public delegate void RequestScoreChallengeCallback( ScoreChallenge scoreChallenge );
-	public static void RequestScoreChallenge( string entryFee, RequestScoreChallengeCallback callback, FriendlyErrorHandler failure ) {
-		ArbiterBinding.RequestScoreChallenge( entryFee, callback, failure );
+	public delegate void RequestCashChallengeCallback( CashChallenge cashChallenge );
+	public static void RequestCashChallenge( string entryFee, RequestCashChallengeCallback callback, FriendlyErrorHandler failure ) {
+		ArbiterBinding.RequestCashChallenge( entryFee, callback, failure );
 	}
 	
-	public static void AcceptScoreChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
-		ArbiterBinding.AcceptScoreChallenge( challengeId, success, failure );
+	public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
+		ArbiterBinding.AcceptCashChallenge( challengeId, success, failure );
 	}
 	
-	public static void RejectScoreChallenge( string challengeId, SuccessHandler success ) {
-		ArbiterBinding.RejectScoreChallenge( challengeId, success );
+	public static void RejectCashChallenge( string challengeId, SuccessHandler success ) {
+		ArbiterBinding.RejectCashChallenge( challengeId, success );
 	}
 	
-	public delegate void ReportScoreForChallengeCallback( ScoreChallenge scoreChallenge );
+	public delegate void ReportScoreForChallengeCallback( CashChallenge cashChallenge );
 	public static void ReportScoreForChallenge( string challengeId, string score, Arbiter.ReportScoreForChallengeCallback success, FriendlyErrorHandler failure ) {
 		ArbiterBinding.ReportScoreForChallenge( challengeId, score, success, failure );
 	}
 	
-	public static void ShowScoreChallengeRules( string challengeId, SuccessHandler callback ) {
-		ArbiterBinding.ShowScoreChallengeRules( challengeId, callback );
+	public static void ShowCashChallengeRules( string challengeId, SuccessHandler callback ) {
+		ArbiterBinding.ShowCashChallengeRules( challengeId, callback );
 	}
 	
 	

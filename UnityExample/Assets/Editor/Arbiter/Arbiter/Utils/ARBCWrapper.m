@@ -193,24 +193,24 @@ void _reportScore( const char *tournamentId, const char *score )
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
-void _requestScoreChallenge( const char *buyIn, const char *filters )
+void _requestCashChallenge( const char *buyIn, const char *filters )
 {
-    [[Arbiter sharedInstance] requestScoreChallenge:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "RequestScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    [[Arbiter sharedInstance] requestCashChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "RequestCashChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } entryFee:[[NSString alloc] initWithUTF8String:buyIn]];
 }
 
-void _acceptScoreChallenge( const char *challengeId )
+void _acceptCashChallenge( const char *challengeId )
 {
-    [[Arbiter sharedInstance] acceptScoreChallenge:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "AcceptScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    [[Arbiter sharedInstance] acceptCashChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "AcceptCashChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
-void _rejectScoreChallenge( const char *challengeId )
+void _rejectCashChallenge( const char *challengeId )
 {
-    [[Arbiter sharedInstance] rejectScoreChallenge:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "RejectScoreChallengeHandler", ProcessDictionaryParams( jsonDict ) );
+    [[Arbiter sharedInstance] rejectCashChallenge:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "RejectCashChallengeHandler", ProcessDictionaryParams( jsonDict ) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
@@ -221,10 +221,10 @@ void _reportScoreForChallenge( const char *challengeId, const char *score )
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
-void _showScoreChallengeRules( const char* challengeId )
+void _showCashChallengeRules( const char* challengeId )
 {
-    [[Arbiter sharedInstance] showScoreChallengeRules:^{
-        UnitySendMessage("ArbiterBinding", "ShowScoreChallengeRulesHandler", AutonomousStringCopy([@"" UTF8String]) );
+    [[Arbiter sharedInstance] showCashChallengeRules:^{
+        UnitySendMessage("ArbiterBinding", "ShowCashChallengeRulesHandler", AutonomousStringCopy([@"" UTF8String]) );
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 

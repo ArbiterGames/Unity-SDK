@@ -2,7 +2,7 @@
 using System.Collections;
 using System.Linq;
 
-public class Game : MonoBehaviour {
+public class CashTournament : MonoBehaviour {
 	
 	static int padding = 10;
 	static int buttonHeight = 100;

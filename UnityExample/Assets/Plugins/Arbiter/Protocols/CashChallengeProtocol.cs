@@ -7,28 +7,28 @@ using SimpleJSON;
 
 namespace ArbiterInternal {
 
-	public class ScoreChallengeProtocol {
+	public class CashChallengeProtocol {
 		
-		public static Arbiter.ScoreChallenge ParseScoreChallenge( JSONClass node ) {
-			Arbiter.ScoreChallenge.StatusType status = Arbiter.ScoreChallenge.StatusType.Unknown;
+		public static Arbiter.CashChallenge ParseCashChallenge( JSONClass node ) {
+			Arbiter.CashChallenge.StatusType status = Arbiter.CashChallenge.StatusType.Unknown;
 			
 			switch( node["status"] ) {
 			case "open":
-				status = Arbiter.ScoreChallenge.StatusType.Open;
+				status = Arbiter.CashChallenge.StatusType.Open;
 				break;
 			case "busy":
-				status = Arbiter.ScoreChallenge.StatusType.Busy;
+				status = Arbiter.CashChallenge.StatusType.Busy;
 				break;
 			case "closed":
-				status = Arbiter.ScoreChallenge.StatusType.Closed;
+				status = Arbiter.CashChallenge.StatusType.Closed;
 				break;
 			default:
 				Debug.LogError( "Unknown status encountered: " + node["status"] );
 				break;
 			}
 			
-			Arbiter.ScoreChallengeWinner winner = ParseWinner( node["winner"] );
-			Arbiter.ScoreChallenge rv = new Arbiter.ScoreChallenge( node["id"], 
+			Arbiter.CashChallengeWinner winner = ParseWinner( node["winner"] );
+			Arbiter.CashChallenge rv = new Arbiter.CashChallenge( node["id"], 
 																	node["score_to_beat"], 
 																	node["entry_fee"],
 																	node["prize"],
@@ -37,11 +37,11 @@ namespace ArbiterInternal {
 			return rv;
 		}
 		
-		public static Arbiter.ScoreChallengeWinner ParseWinner( JSONNode node ) {
+		public static Arbiter.CashChallengeWinner ParseWinner( JSONNode node ) {
 			if ( node != null ) {
 				string id = node["id"];
 				string score = node["score"];
-				return new Arbiter.ScoreChallengeWinner( id, score );
+				return new Arbiter.CashChallengeWinner( id, score );
 			} else {
 				return null;
 			}

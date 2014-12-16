@@ -29,11 +29,11 @@ namespace ArbiterInternal {
 			
 			Arbiter.CashChallengeWinner winner = ParseWinner( node["winner"] );
 			Arbiter.CashChallenge rv = new Arbiter.CashChallenge( node["id"], 
-																	node["score_to_beat"], 
-																	node["entry_fee"],
-																	node["prize"],
-																	status, 
-																	winner );
+																  node["score_to_beat"], 
+																  node["entry_fee"],
+																  node["prize"],
+																  status, 
+																  winner );
 			return rv;
 		}
 		

@@ -348,10 +348,10 @@ namespace ArbiterInternal {
 
 
 		[DllImport ("__Internal")]
-		private static extern void _requestCashChallenge( string entryFee );
+		private static extern void _requestCashChallenge( string filters );
 		private static Arbiter.RequestCashChallengeCallback requestCashChallengeSuccessHandler;
 		private static FriendlyErrorHandler requestCashChallengeErrorHandler;
-		public static void RequestCashChallenge( string entryFee, Arbiter.RequestCashChallengeCallback success, FriendlyErrorHandler failure ) {
+		public static void RequestCashChallenge( Dictionary<string,string> filters, Arbiter.RequestCashChallengeCallback success, FriendlyErrorHandler failure ) {
 			requestCashChallengeSuccessHandler = success;
 			requestCashChallengeErrorHandler = failure;
 #if UNITY_EDITOR
@@ -359,7 +359,7 @@ namespace ArbiterInternal {
 			if( success != null )
 				success( new Arbiter.CashChallenge( "1234", "55", "100", "200", Arbiter.CashChallenge.StatusType.Busy, null ));
 #elif UNITY_IOS
-			_requestCashChallenge( entryFee );
+			_requestCashChallenge( SerializeDictionary(filters) );
 #endif
 		}
 		

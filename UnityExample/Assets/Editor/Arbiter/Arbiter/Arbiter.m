@@ -721,10 +721,10 @@ static Arbiter *_sharedInstance = nil;
 
 #pragma mark Cash Challenge Methods
 
-- (void)requestCashChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee
+- (void)requestCashChallenge:(void(^)(NSDictionary *))handler filters:(NSString*)filters
 {
     if ( self.hasConnection ) {
-        [self httpPost:APICashChallengeCreateURL params:@{@"entry_fee":entryFee} isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:APICashChallengeCreateURL params:@{@"filters":filters} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {

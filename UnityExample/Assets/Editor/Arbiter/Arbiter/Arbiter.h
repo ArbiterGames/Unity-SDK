@@ -69,7 +69,7 @@ void ClientCallbackWalletUpdated();
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score;
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds;
 
-- (void)requestCashChallenge:(void(^)(NSDictionary *))handler entryFee:(NSString*)entryFee;
+- (void)requestCashChallenge:(void(^)(NSDictionary *))handler filters:(NSString*)filters;
 - (void)acceptCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
 - (void)rejectCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId;
 - (void)reportScoreForChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId score:(NSString*)score;

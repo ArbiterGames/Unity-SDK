@@ -193,11 +193,11 @@ void _reportScore( const char *tournamentId, const char *score )
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId] score:[[NSString alloc] initWithUTF8String:score]];
 }
 
-void _requestCashChallenge( const char *buyIn, const char *filters )
+void _requestCashChallenge( const char *filters )
 {
     [[Arbiter sharedInstance] requestCashChallenge:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "RequestCashChallengeHandler", ProcessDictionaryParams( jsonDict ) );
-    } entryFee:[[NSString alloc] initWithUTF8String:buyIn]];
+    } filters:[[NSString alloc] initWithUTF8String:filters]];
 }
 
 void _acceptCashChallenge( const char *challengeId )

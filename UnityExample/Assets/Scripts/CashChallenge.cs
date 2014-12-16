@@ -25,11 +25,7 @@ public class CashChallenge : MonoBehaviour {
 	
 	
 	void Start () {
-		if( float.Parse( Arbiter.Balance ) < float.Parse( ENTRY_FEE )) {
-			Problems = "You need to deposit more money first.";
-		} else {
-			Arbiter.RequestCashChallenge( ENTRY_FEE, OnChallengeCreated, ErrorHandler );
-		}
+		Arbiter.RequestCashChallenge( null, OnChallengeCreated, ErrorHandler );
 	}
 	
 	

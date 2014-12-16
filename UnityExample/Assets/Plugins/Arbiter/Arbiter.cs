@@ -344,8 +344,11 @@ public partial class Arbiter : MonoBehaviour {
 	
 	
 	public delegate void RequestCashChallengeCallback( CashChallenge cashChallenge );
-	public static void RequestCashChallenge( string entryFee, RequestCashChallengeCallback callback, FriendlyErrorHandler failure ) {
-		ArbiterBinding.RequestCashChallenge( entryFee, callback, failure );
+	public static void RequestCashChallenge( Dictionary<string,string> filters, RequestCashChallengeCallback callback, FriendlyErrorHandler failure ) {
+		if( filters == null ) {
+			filters = new Dictionary<string,string>();
+		}
+		ArbiterBinding.RequestCashChallenge( filters, callback, failure );
 	}
 	
 	public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {

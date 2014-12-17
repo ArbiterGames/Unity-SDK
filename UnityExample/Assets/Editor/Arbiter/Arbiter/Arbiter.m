@@ -14,6 +14,7 @@
 #import "ARBConstants.h"
 #import "Arbiter.h"
 #import "ARBWalletDashboardView.h"
+#import "ARBWalletDashboardWebView.h"
 #import "ARBTournamentResultsView.h"
 #import "ARBPreviousTournamentsView.h"
 #import "ARBWalkThrough.h"
@@ -96,6 +97,7 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         self.hasConnection = YES;
+        self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
         self.game = responseDict;
         if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
             [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
@@ -484,10 +486,16 @@ static Arbiter *_sharedInstance = nil;
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
             
-            ARBWalletDashboardView *walletDashboard = [[ARBWalletDashboardView alloc] init:self];
-            walletDashboard.callback = handler;
-            [self addWalletObserver:walletDashboard];
-            [self.panelWindow show:walletDashboard];
+            if ( self.isWalletDashboardWebViewEnabled ) {
+                ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] init:self];
+                walletDashboard.callback = handler;
+                [self.panelWindow show:walletDashboard];
+            } else {
+                ARBWalletDashboardView *walletDashboard = [[ARBWalletDashboardView alloc] init:self];
+                walletDashboard.callback = handler;
+                [self addWalletObserver:walletDashboard];
+                [self.panelWindow show:walletDashboard];
+            }
         } copy];
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
             void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {

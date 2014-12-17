@@ -11,6 +11,7 @@
 
 extern NSString *const APIUserInitializeURL;
 extern NSString *const APIWalletURL;
+extern NSString *const APIWalletDashboardWebViewURL;
 extern NSString *const APISendPromoCreditsURL;
 extern NSString *const APIUserLoginURL;
 extern NSString *const APIUserLogoutURL;

@@ -14,8 +14,8 @@
 @interface ARBWalletDashboardView : ARBPanelView <WalletDetailViewDelegate, WalletDepositViewDelegate, ARBWalletObserver>
 
 @property (strong) UIView *activeView;
-@property (strong) id <ARBWalletObserver> activeWalletObserver;
 @property (strong) void (^callback)(void);
+@property (strong) id <ARBWalletObserver> activeWalletObserver;
 
 - (void)segmentControlClicked:(UISegmentedControl *)segment;
 - (void)onWalletUpdated:(NSDictionary *)wallet;

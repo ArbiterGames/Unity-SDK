@@ -60,9 +60,8 @@
     for ( UIView *subview in self.subviews ) {
         finalHeight += subview.frame.size.height;
     }
-    
-    CGRect nonCenteredFrame = CGRectMake(0.0, 0.0, self.frame.size.width, finalHeight);
     CGRect screenFrame = [[UIApplication sharedApplication] keyWindow].frame;
+    CGRect nonCenteredFrame = CGRectMake(0.0, 0.0, self.frame.size.width, finalHeight);
     BOOL IS_LESS_THAN_IOS8 = [[[UIDevice currentDevice] systemVersion] compare: @"7.9" options: NSNumericSearch] != NSOrderedDescending;
     BOOL IS_LANDSCAPE = UIDeviceOrientationIsLandscape([[UIApplication sharedApplication] statusBarOrientation]);
     if ( IS_LANDSCAPE && IS_LESS_THAN_IOS8) {

@@ -59,8 +59,6 @@
                          self.rootViewController.view.frame = temp;
                      }
                      completion:nil];
-    
-    [self renderPoweredBy];
 }
 
 - (void)hide

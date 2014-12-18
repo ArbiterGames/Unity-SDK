@@ -486,7 +486,7 @@ static Arbiter *_sharedInstance = nil;
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
             
-            if ( self.isWalletDashboardWebViewEnabled ) {
+            if ( self.isWalletDashboardWebViewEnabled && self.hasConnection ) {
                 ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] init:self];
                 walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];

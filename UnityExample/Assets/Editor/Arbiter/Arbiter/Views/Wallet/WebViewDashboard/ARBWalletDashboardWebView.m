@@ -52,18 +52,5 @@
 }
 
 
-# pragma mark NSNotification Handlers -- Overrides the ARBPanelViewHandlers
-
-- (void)keyboardDidShow:(NSNotification *)notification
-{
-    // No-op
-}
-
-- (void)keyboardDidHide:(NSNotification *)notification
-{
-    // No-op
-}
-
-
 
 @end

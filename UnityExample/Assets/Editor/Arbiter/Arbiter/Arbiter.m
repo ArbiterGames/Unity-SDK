@@ -8,6 +8,7 @@
 //
 
 
+#import <Foundation/Foundation.h>
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
 #import "Reachability.h"
@@ -126,8 +127,10 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)setUser:(NSMutableDictionary*)user
 {
+    NSLog(@"ttt called setUser");
     self._user = user;
     ClientCallbackUserUpdated();
+    [self saveUser:user];
 }
 
 - (NSMutableDictionary *)user
@@ -138,6 +141,25 @@ static Arbiter *_sharedInstance = nil;
 - (void)getCachedUser:(void(^)(NSDictionary *))handler
 {
     handler(self.user);
+}
+
+NSString* const USER_TTT = @"tttkey";
+NSString* const kScore = @"tttkey2";
+- (void)saveUser:(NSMutableDictionary*)user
+{
+    NSLog(@"ttt saving stuff?");
+    [[NSUserDefaults standardUserDefaults] 
+        setObject:[NSString stringWithFormat:@"ttt"] forKey:USER_TTT];
+
+    [[NSUserDefaults standardUserDefaults] 
+        setObject:[NSNumber numberWithInt:123] forKey:kScore];
+
+    // ttt I should apparently let this sync itself...
+    NSLog(@"ttt synced?");
+    NSLog(@"%c", [[NSUserDefaults standardUserDefaults] synchronize]);
+
+    NSLog(@"ttt exists for key??");
+    NSLog(@"%@", [[NSUserDefaults standardUserDefaults] objectForKey:kScore]);
 }
 
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler

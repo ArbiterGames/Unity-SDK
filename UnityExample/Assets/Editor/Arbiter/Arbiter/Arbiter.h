@@ -35,7 +35,7 @@ void ClientCallbackWalletUpdated();
 @property (strong, atomic) NSMutableDictionary* _user;
 - (void)setUser:(NSMutableDictionary *)user;
 - (NSMutableDictionary *)user;
-- (void)saveUser:(NSMutableDictionary *)user;
+- (void)saveUserToken:(NSMutableDictionary *)user;
 
 @property (strong, atomic) NSMutableDictionary* _wallet;
 - (void)setWallet:(NSMutableDictionary *)wallet;

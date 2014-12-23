@@ -127,10 +127,9 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)setUser:(NSMutableDictionary*)user
 {
-    NSLog(@"ttt called setUser");
     self._user = user;
     ClientCallbackUserUpdated();
-    [self saveUser:user];
+    [self saveUserToken:user];
 }
 
 - (NSMutableDictionary *)user
@@ -143,23 +142,12 @@ static Arbiter *_sharedInstance = nil;
     handler(self.user);
 }
 
-NSString* const USER_TTT = @"tttkey";
-NSString* const kScore = @"tttkey2";
-- (void)saveUser:(NSMutableDictionary*)user
+- (void)saveUserToken:(NSMutableDictionary*)user
 {
-    NSLog(@"ttt saving stuff?");
-    [[NSUserDefaults standardUserDefaults] 
-        setObject:[NSString stringWithFormat:@"ttt"] forKey:USER_TTT];
+    NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
+    NSLog(@"ttt saving token: %@", token);
 
-    [[NSUserDefaults standardUserDefaults] 
-        setObject:[NSNumber numberWithInt:123] forKey:kScore];
-
-    // ttt I should apparently let this sync itself...
-    NSLog(@"ttt synced?");
-    NSLog(@"%c", [[NSUserDefaults standardUserDefaults] synchronize]);
-
-    NSLog(@"ttt exists for key??");
-    NSLog(@"%@", [[NSUserDefaults standardUserDefaults] objectForKey:kScore]);
+    [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
 }
 
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
@@ -172,6 +160,14 @@ NSString* const kScore = @"tttkey2";
     } copy];
     
     if ( self.hasConnection ) {
+        // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
+        // ttt TODO: this is the correct way:
+        //NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
+        NSString* savedToken = @"arbitrary fake token";
+        NSLog(@"ttt previously saved token=%@", savedToken);
+        if ( !IS_NULL_NS(savedToken)) {
+            self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
+        }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
         [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
     } else {
@@ -833,11 +829,12 @@ NSString* const kScore = @"tttkey2";
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
 
-    if ( !IS_NULL_NS([self.user objectForKey:@"token"]) ) {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    if ( !IS_NULL_NS([self.user objectForKey:USER_TOKEN]) ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
+    NSLog(@"ttt token=%@", tokenValue);
     
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
@@ -858,8 +855,8 @@ NSString* const kScore = @"tttkey2";
     NSString *tokenValue;
     NSString *key = [url stringByAppendingString:@":POST"];
     
-    if ( [self.user objectForKey:@"token"] != NULL ) {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    if ( [self.user objectForKey:USER_TOKEN] != NULL ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }

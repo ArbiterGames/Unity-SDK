@@ -10,6 +10,9 @@ namespace ArbiterInternal {
 	public class CashChallengeProtocol {
 		
 		public static Arbiter.CashChallenge ParseCashChallenge( JSONClass node ) {
+			if( node == null )
+				return null;
+			
 			Arbiter.CashChallenge.StatusType status = Arbiter.CashChallenge.StatusType.Unknown;
 			
 			switch( node["status"] ) {
@@ -26,7 +29,7 @@ namespace ArbiterInternal {
 				Debug.LogError( "Unknown status encountered: " + node["status"] );
 				break;
 			}
-			
+
 			Arbiter.CashChallengeWinner winner = ParseWinner( node["winner"] );
 			Arbiter.CashChallenge rv = new Arbiter.CashChallenge( node["id"], 
 																  node["score_to_beat"], 
@@ -34,6 +37,7 @@ namespace ArbiterInternal {
 																  node["prize"],
 																  status, 
 																  winner );
+
 			return rv;
 		}
 		

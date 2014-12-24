@@ -66,7 +66,11 @@ static Arbiter *_sharedInstance = nil;
 {
     self = [super init];
     if ( self ) {
-        _NO_CONNECTION_RESPONSE_DICT = @{@"success": @false, @"errors": @[@"Arbiter Error: No internet connection. Make sure the device is connected to the internet."]};
+        _NO_CONNECTION_RESPONSE_DICT = @{
+            @"success": @false, 
+            @"errors": @[@"Device has no internet connection."],
+            @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
+        };
         
         self.hasConnection = NO;
         self.apiKey = apiKey;

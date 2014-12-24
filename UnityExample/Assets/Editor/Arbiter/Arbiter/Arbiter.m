@@ -145,8 +145,6 @@ static Arbiter *_sharedInstance = nil;
 - (void)saveUserToken:(NSMutableDictionary*)user
 {
     NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
-    NSLog(@"ttt saving token: %@", token);
-
     [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
 }
 
@@ -162,8 +160,8 @@ static Arbiter *_sharedInstance = nil;
     if ( self.hasConnection ) {
         // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
         // ttt TODO: this is the correct way:
-        //NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
-        NSString* savedToken = @"arbitrary fake token";
+        NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
+        //NSString* savedToken = @"arbitrary fake token";
         NSLog(@"ttt previously saved token=%@", savedToken);
         if ( !IS_NULL_NS(savedToken)) {
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
@@ -836,6 +834,7 @@ static Arbiter *_sharedInstance = nil;
     }
     NSLog(@"ttt token=%@", tokenValue);
     
+    [request setHTTPShouldHandleCookies:NO];
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -883,6 +882,7 @@ static Arbiter *_sharedInstance = nil;
                                        timeoutInterval:60.0];
         
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPShouldHandleCookies:NO];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
@@ -920,6 +920,7 @@ static Arbiter *_sharedInstance = nil;
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPShouldHandleCookies:NO];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];

@@ -282,11 +282,18 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
+    [self verifyUser:handler tryToGetLatLong:YES];
+}
+- (void)verifyUser:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
+{
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+            NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
-            [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
-            [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
+            if ( tryToGetLatLong ) {
+                [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
+                [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
+            }
             
             // If they are verified and ready to play
             if ([self isUserVerified]) {
@@ -343,9 +350,13 @@ static Arbiter *_sharedInstance = nil;
                 if ( self.locationVerificationAttempts < 4 ) {
                     [NSThread sleepForTimeInterval:2 * self.locationVerificationAttempts];
                     self.locationVerificationAttempts++;
-                    [self verifyUser:handler];
+                    [self verifyUser:handler tryToGetLatLong:YES];
                 } else {
-                    if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
+                    // It's possible the geoCode response found a postal address but hasn't found a lat/long lookup. In that case let's ignore lat/long and try again
+                    if( [geoCodeResponse objectForKey:@"postalCode"] != nil ) {
+                        NSLog(@"Found zip code but could not get Lat/Long. Trying again while ignoring Lat/Long...");
+                        [self verifyUser:handler tryToGetLatLong:NO];
+                    } else if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                         UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
                                                                         message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash challenges.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                        delegate:self
@@ -361,9 +372,10 @@ static Arbiter *_sharedInstance = nil;
         }
     };
     
-    if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
+    if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ||
+        (tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]))) ) {
         if ( self.hasConnection ) {
-            [self getDevicePostalCode:locationCallback];
+            [self getDeviceLocation:locationCallback requireLatLong:tryToGetLatLong];
         } else {
             handler(_NO_CONNECTION_RESPONSE_DICT);
         }
@@ -390,11 +402,10 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-- (void)getDevicePostalCode:(void(^)(NSDictionary *))handler
+- (void)getDeviceLocation:(void(^)(NSDictionary *))handler requireLatLong:(BOOL)requireLatLong
 {
     if (nil == locationManager)
         locationManager = [[CLLocationManager alloc] init];
-    
     
     locationManager.delegate = self;
     locationManager.desiredAccuracy = kCLLocationAccuracyKilometer;
@@ -415,12 +426,16 @@ static Arbiter *_sharedInstance = nil;
             handler(response);
         } else {
             CLPlacemark *placemark = [placemarks objectAtIndex:0];
-            [response setValue:@true forKey:@"success"];
             [response setValue:placemark.postalCode forKey:@"postalCode"];
             CLLocation* loc = placemark.location;
             CLLocationCoordinate2D coord = loc.coordinate;
             [response setValue:[NSString stringWithFormat:@"%f", coord.latitude] forKey:@"lat"];
             [response setValue:[NSString stringWithFormat:@"%f", coord.longitude] forKey:@"long"];
+            
+            if ( requireLatLong == NO || ([response objectForKey:(@"lat")] != nil && [response objectForKey:(@"long")] != nil )) {
+                [response setValue:@true forKey:@"success"];
+            }
+            
             handler(response);
         }
     }];
@@ -1016,9 +1031,15 @@ static Arbiter *_sharedInstance = nil;
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
-            NSDictionary *postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
-                                         @"lat": [self.user objectForKey:@"lat"],
-                                         @"long": [self.user objectForKey:@"long"]};
+            
+            NSDictionary *postParams;
+            if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
+                postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+            } else {
+                postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
+                               @"lat": [self.user objectForKey:@"lat"],
+                               @"long": [self.user objectForKey:@"long"]};
+            }
             NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
             [verificationUrl appendString: [self.user objectForKey:@"id"]];
             [verificationUrl appendString: @"/verify"];

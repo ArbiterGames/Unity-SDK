@@ -287,7 +287,12 @@ static Arbiter *_sharedInstance = nil;
 - (void)verifyUser:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
 {
     NSLog(@"ttt verifyUser was called.");
-    // ttt check for no user (and require login)
+    
+    if( self.user == nil ) {
+        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
+        handler( @{@"success": @"false"} );
+        return;
+    }
 
     if ( !self.hasConnection ) {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -307,6 +312,7 @@ static Arbiter *_sharedInstance = nil;
                 [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
             }
         } else {
+            // ttt td: This triggers an infinite loop somewhere. Track it down!
             // Pass the handler into this alert and assume it will either call the handler or verifyUser to start the check again
             if( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"

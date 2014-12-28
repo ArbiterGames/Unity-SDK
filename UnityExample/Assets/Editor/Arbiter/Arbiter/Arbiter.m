@@ -300,7 +300,7 @@ static Arbiter *_sharedInstance = nil;
 
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse ) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
-        if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+        if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
                 [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
@@ -320,11 +320,14 @@ static Arbiter *_sharedInstance = nil;
                 [alert show];
             }            
         }
+        [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
     };
 
     if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
-        [self getDeviceLocation:locationCallback requireLatLong:tryToGetLatLong];
-//    } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
+        // NOTE: Lat/Long is a happy benevit but not a REQUIREMENT at this step
+        [self getDeviceLocation:locationCallback requireLatLong:NO];
+    } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
+        [self getDeviceLocation:locationCallback requireLatLong:YES];
 // else if agreed_to_terms
 // else if location_approved
     } else {
@@ -510,7 +513,7 @@ static Arbiter *_sharedInstance = nil;
             [response setValue:placemark.postalCode forKey:@"postalCode"];
             CLLocation* loc = placemark.location;
             CLLocationCoordinate2D coord = loc.coordinate;
-//ttt keep            [response setValue:[NSString stringWithFormat:@"%f", coord.latitude] forKey:@"lat"];
+            [response setValue:[NSString stringWithFormat:@"%f", coord.latitude] forKey:@"lat"];
             [response setValue:[NSString stringWithFormat:@"%f", coord.longitude] forKey:@"long"];
             
             if ( requireLatLong == NO || ([response objectForKey:(@"lat")] != nil && [response objectForKey:(@"long")] != nil )) {

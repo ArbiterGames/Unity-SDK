@@ -396,6 +396,7 @@ static Arbiter *_sharedInstance = nil;
     [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
 }
 
+/* ttt kill
 - (void)verifyUserOLD:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
 {
     // ttt NOTES: Consider refactoring this function into a decision tree that sets a flag for asynchronous steps. EG
@@ -513,7 +514,7 @@ static Arbiter *_sharedInstance = nil;
         }
     }
 }
-
+*/
 - (bool)isUserVerified
 {
     bool termsExists = !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]);

@@ -298,7 +298,7 @@ static Arbiter *_sharedInstance = nil;
      * Once all checks pass, this function calls the handler
      */
 
-    void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse ) {
+    void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
@@ -323,13 +323,40 @@ static Arbiter *_sharedInstance = nil;
         [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
     };
 
+    void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
+        NSLog(@"ttt response=%@", verifyResponse);
+        if( [verifyResponse objectForKey:@"errors"] ) {
+            NSLog(@"ttt test some errors. maybe disconnect internet?");
+            handler( @{@"success":@false} );
+        } else {
+            NSLog(@"ttt was a success? going on.");
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
+        }
+    };
+
     if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
-        // NOTE: Lat/Long is a happy benevit but not a REQUIREMENT at this step
+        // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT at this step
         [self getDeviceLocation:locationCallback requireLatLong:NO];
+
     } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
         [self getDeviceLocation:locationCallback requireLatLong:YES];
-// else if agreed_to_terms
-// else if location_approved
+
+    } else if( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
+                                                        message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
+                                                       delegate: self
+                                              cancelButtonTitle:@"Agree"
+                                              otherButtonTitles:@"View terms", @"Cancel", nil];
+        [_alertViewHandlerRegistry setObject:postVerifyCallback forKey:@"agreedToTermsHandler"];
+        [alert setTag:VERIFICATION_ALERT_TAG];
+        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+        [alert show];
+        [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
+
+    } else if( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+        [self postVerify:postVerifyCallback];
+
     } else {
         // Sanity check to ensure our isUserVerified() function validates the behavior of this function
         if( [self isUserVerified] ) {
@@ -344,6 +371,23 @@ static Arbiter *_sharedInstance = nil;
             [[ARBTracking arbiterInstance] track:@"ERR: SDK Verify"];
         }
     }
+}
+
+- (void)postVerify:(void(^)(NSDictionary *))handler
+{
+    NSLog(@"ttt calling postVerifty user=%@", self.user);
+    NSDictionary *postParams;
+    if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
+        postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
+    } else {
+        postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
+                       @"lat": [self.user objectForKey:@"lat"],
+                       @"long": [self.user objectForKey:@"long"]};
+    }
+    NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
+    [verificationUrl appendString: [self.user objectForKey:@"id"]];
+    [verificationUrl appendString: @"/verify"];
+    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
 }
 
 - (void)verifyUserOLD:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
@@ -1111,31 +1155,17 @@ static Arbiter *_sharedInstance = nil;
             if ([[responseDict objectForKey:@"success"] boolValue] == true) {
                 self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
                 self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-                [self.user setObject:@"false" forKey:@"wait_for_verify"];
-                void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
-                handler(responseDict);
+                [self.user setObject:@"false" forKey:@"wait_for_verify"]; // ttt kill all of these
             }
+            void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
+            handler(responseDict);
         } copy];
         
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
-            NSLog(@"ttt user=%@", self.user);
-            NSDictionary *postParams;
-            if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
-                postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
-            } else {
-                postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
-                               @"lat": [self.user objectForKey:@"lat"],
-                               @"long": [self.user objectForKey:@"long"]};
-            }
-            NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-            [verificationUrl appendString: [self.user objectForKey:@"id"]];
-            [verificationUrl appendString: @"/verify"];
-            [self httpPost:verificationUrl params:postParams isBlocking:YES handler:connectionHandler];
-//ttt            [self.user setObject:@"true" forKey:@"wait_for_verify"];
-            // think I can kill all of the wait_for_verify? Or use the new one?
-            
+            [self postVerify:connectionHandler];
+
         // View Terms
         } else if ( buttonIndex == 1 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked View Terms"];
@@ -1144,6 +1174,7 @@ static Arbiter *_sharedInstance = nil;
         
         // Cancel
         if (buttonIndex == 2) {
+            NSLog(@"ttt clicked cancel.");
             [[ARBTracking arbiterInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
             connectionHandler(dict);

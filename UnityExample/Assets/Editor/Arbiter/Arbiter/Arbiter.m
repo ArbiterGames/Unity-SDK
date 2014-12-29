@@ -299,10 +299,15 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
 
+
     /* Recursively call this function to check each thing that needs to be verified in order.
-     * Once all checks pass, this function calls the handler
+     * Once all checks pass, this function calls the handler (this method argument)
      */
 
+
+    /**********************************************
+     * ASYNC HANDLER DECLARATIONS
+     **********************************************/
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
@@ -331,15 +336,34 @@ static Arbiter *_sharedInstance = nil;
 
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         NSLog(@"ttt response=%@", verifyResponse);
-        if( [verifyResponse objectForKey:@"errors"] ) {
+        if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
             NSLog(@"ttt test some errors. maybe disconnect internet?");
-            handler( @{@"success":@false} );
+            handler( @{@"success":@false} ); // ttt also report back some errors?
         } else {
-            NSLog(@"ttt was a success? going on.");
-            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
+            NSLog(@"ttt was a success going on.");
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
+            [self.user setObject:@"false" forKey:@"wait_for_verify"]; // ttt kill all of these
+
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];   
         }
     };
 
+    void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
+        if( [[response objectForKey:@"success"] boolValue] == true ) {
+            [self postVerify:postVerifyCallback];
+        } else {
+            // ttt try doing this instead:
+            //handler(response);
+            handler( @{@"success":@false, @"errors":@[@"User did not agree to terms of service."]} );
+        }
+    } copy];
+    
+
+
+    /**********************************************
+     * VERIFICATION CHECKS
+     **********************************************/
     if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
         // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT at this step
         [self getDeviceLocation:locationCallback requireLatLong:NO];
@@ -354,7 +378,7 @@ static Arbiter *_sharedInstance = nil;
                                                        delegate: self
                                               cancelButtonTitle:@"Agree"
                                               otherButtonTitles:@"View terms", @"Cancel", nil];
-        [_alertViewHandlerRegistry setObject:postVerifyCallback forKey:@"agreedToTermsHandler"];
+        [_alertViewHandlerRegistry setObject:alertViewHandler forKey:@"agreedToTermsHandler"];
         [alert setTag:VERIFICATION_ALERT_TAG];
         [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [alert show];
@@ -1158,20 +1182,14 @@ static Arbiter *_sharedInstance = nil;
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"invalidLoginHandler"];
         handler(@{});
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
-        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-            if ([[responseDict objectForKey:@"success"] boolValue] == true) {
-                self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-                self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-                [self.user setObject:@"false" forKey:@"wait_for_verify"]; // ttt kill all of these
-            }
-            void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
-            handler(responseDict);
-        } copy];
-        
+
+        void(^agreeHandler)(NSDictionary*) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
+
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
-            [self postVerify:connectionHandler];
+            agreeHandler(@{@"success":@true}); // ttt do a similar manner for cancel
+            //ttt [self postVerify:connectionHandler];
 
         // View Terms
         } else if ( buttonIndex == 1 ) {
@@ -1184,7 +1202,7 @@ static Arbiter *_sharedInstance = nil;
             NSLog(@"ttt clicked cancel.");
             [[ARBTracking arbiterInstance] track:@"Clicked Cancel Terms"];
             NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-            connectionHandler(dict);
+            agreeHandler(dict);
         }
         
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {

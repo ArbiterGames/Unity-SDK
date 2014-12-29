@@ -286,8 +286,6 @@ static Arbiter *_sharedInstance = nil;
 }
 - (void)verifyUser:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
 {
-    NSLog(@"ttt verifyUser was called.");
-    
     if( self.user == nil ) {
         NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
         handler( @{@"success": @"false"} );
@@ -314,10 +312,15 @@ static Arbiter *_sharedInstance = nil;
 
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
-                [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
-                [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
+                NSString* lat = [geoCodeResponse objectForKey:@"lat"];
+                NSString* lon = [geoCodeResponse objectForKey:@"long"];
+                if( lat != nil )
+                    [self.user setObject:lat forKey:@"lat"];
+                if( lon != nil )
+                    [self.user setObject:lon forKey:@"long"];
             }
-            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
+            // Don't try to get lat/long more than 1 time--since we just tried to get it and it's optional, move on no matter what next time
+            [self verifyUser:handler tryToGetLatLong:NO];
         } else {
 
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
@@ -344,14 +347,12 @@ static Arbiter *_sharedInstance = nil;
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
             NSLog(@"ttt post verify callback failure case");
-            NSLog(@"ttt test some errors. maybe disconnect internet?");
-            //handler( @{@"success":@false} ); // ttt also report back some errors?
+            // NOTE: Currently the endpoint returns some false positives. Once fixed, test this case again
             handler(verifyResponse);
         } else {
             NSLog(@"ttt post verify callback success case");
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
-            [self.user setObject:@"false" forKey:@"wait_for_verify"]; // ttt kill all of these
 
             [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];   
         }
@@ -362,17 +363,16 @@ static Arbiter *_sharedInstance = nil;
     /**********************************************
      * VERIFICATION CHECKS
      **********************************************/
-    if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
-        // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT at this step
+    if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {        
         [self getDeviceLocation:locationCallback requireLatLong:NO];
 
     } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
-        [self getDeviceLocation:locationCallback requireLatLong:YES];
+        // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT to verify a user
+        [self getDeviceLocation:locationCallback requireLatLong:NO];
 
     } else if( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
-            NSLog(@"ttt alertViewHandler agree. response=%@", response);
             if( [[response objectForKey:@"success"] boolValue] == true ) {
                 [self postVerify:postVerifyCallback];
             } else {
@@ -411,7 +411,6 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)postVerify:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt calling postVerify user=%@", self.user);
     NSDictionary *postParams;
     if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
         postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
@@ -424,128 +423,9 @@ static Arbiter *_sharedInstance = nil;
     [verificationUrl appendString: [self.user objectForKey:@"id"]];
     [verificationUrl appendString: @"/verify"];
 //ttt keep    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
-    [self httpPost:verificationUrl params:@{} isBlocking:YES handler:handler];
+    [self httpPost:verificationUrl params:@{} isBlocking:YES handler:handler]; // This is to test what happens if verify returns success:false (which is currently broken)
 }
 
-/* ttt kill
-- (void)verifyUserOLD:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
-{
-    // ttt NOTES: Consider refactoring this function into a decision tree that sets a flag for asynchronous steps. EG
-    //   Test 1: Needs Postal code -> check for & set flag "is_checking_for_postal_code" and then noop but in the handler, set flag to false & call verifyUser again
-    //   Test 2: Needs lat/long -> if "is_checking_for_lat_long" then no-op (wait for handler to set flag to false and then call verifyUser again)
-    //   ... else (no tests said they need anything) return true
-    void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
-        if ( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
-            NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
-            [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
-            if ( tryToGetLatLong ) {
-                [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
-                [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
-            }
-            
-            // If they are verified and ready to play
-            if ([self isUserVerified]) {
-                handler(@{@"user": self.user,
-                          @"success": @true});
-            } else {
-                // Any of these below may be asynchronous calls, so check the async flag
-                if ( [[self.user objectForKey:@"wait_for_verify"] boolValue] == false ) {
-                    [self.user setObject:@"true" forKey:@"wait_for_verify"];
-                    
-                    // If they need to agree to the terms
-                    if ( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-
-                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
-                                                                        message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
-                                                                       delegate: self
-                                                              cancelButtonTitle:@"Agree"
-                                                              otherButtonTitles:@"View terms", @"Cancel", nil];
-                        [_alertViewHandlerRegistry setObject:handler forKey:@"agreedToTermsHandler"];
-                        [alert setTag:VERIFICATION_ALERT_TAG];
-                        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
-                        [alert show];
-                        [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
-                        
-                    // If they have already agreed to the terms, but still need their location approved
-                    } else if ( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
-                        // ttt pretty sure this code can never be executed... can it!?
-                        void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-                            if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
-                                self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-                                ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-                                [arbiterInstance identify:[self.user objectForKey:@"id"]];
-                                [self.user setObject:@"false" forKey:@"wait_for_verify"];
-                            }
-                            handler(responseDict);
-                        } copy];
-
-                        NSDictionary *postParams = @{
-                            @"postal_code": [self.user objectForKey:@"postal_code"],
-                            @"lat": [self.user objectForKey:@"lat"],
-                            @"long": [self.user objectForKey:@"long"]
-                        };
-                        NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
-                        [verificationUrl appendString: [self.user objectForKey:@"id"]];
-                        [verificationUrl appendString: @"/verify"];
-                        [self httpPost:verificationUrl params:postParams isBlocking:NO handler:connectionHandler];
-                    }
-                }
-            }
-        } else {
-            if ( self.user == nil ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Arbiter Error"
-                                                                message:@"No user is currently logged in. Use one of the Arbiter Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser."
-                                                               delegate:self
-                                                      cancelButtonTitle:@"Close"
-                                                      otherButtonTitles:nil];
-                [alert setTag:NO_ACTION_ALERT_TAG];
-                [[UIApplication sharedApplication] endIgnoringInteractionEvents];
-                [alert show];
-            } else {
-                if ( self.locationVerificationAttempts < 4 ) {
-                    [NSThread sleepForTimeInterval:2 * self.locationVerificationAttempts];
-                    self.locationVerificationAttempts++;
-                    [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
-                } else {
-                    // It's possible the geoCode response found a postal address but hasn't found a lat/long lookup. In that case let's ignore lat/long and try again
-                    if( [geoCodeResponse objectForKey:@"postalCode"] != nil ) {
-                        NSLog(@"Found zip code but could not get Lat/Long. Trying again while ignoring Lat/Long...");
-                        [self verifyUser:handler tryToGetLatLong:NO];
-                    } else if ( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
-                        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
-                                                                        message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash challenges.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
-                                                                       delegate:self
-                                                              cancelButtonTitle:@"Keep disabled"
-                                                              otherButtonTitles:@"Check again", nil];
-                        [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
-                        [alert setTag:ENABLE_LOCATION_ALERT_TAG];
-                        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
-                        [alert show];
-                    }
-                }
-            }
-        }
-    };
-    
-    NSLog(@"ttt user=%@", self.user);
-    if ( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ||
-        ( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]))) ) {
-        if ( self.hasConnection ) {
-            [self getDeviceLocation:locationCallback requireLatLong:tryToGetLatLong];
-        } else {
-            handler(_NO_CONNECTION_RESPONSE_DICT);
-        }
-    } else {
-        if (self.user == nil) {
-            NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
-            locationCallback(@{@"success": @"false"});
-        } else {
-            locationCallback(@{@"success": @true,
-                               @"postalCode": [self.user objectForKey:@"postal_code"]});
-        }
-    }
-}
-*/
 - (bool)isUserVerified
 {
     bool termsExists = !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]);
@@ -1172,7 +1052,6 @@ static Arbiter *_sharedInstance = nil;
 #pragma mark UIAlertView Delegate Methods
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
-    // ttt td: Figure out why this is getting called once per button when lat/long aren't found
     
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
     
@@ -1204,10 +1083,8 @@ static Arbiter *_sharedInstance = nil;
         
         // Cancel
         if (buttonIndex == 2) {
-            NSLog(@"ttt clicked cancel.");
             [[ARBTracking arbiterInstance] track:@"Clicked Cancel Terms"];
-            NSDictionary *dict = @{@"success": @"false", @"errors":@[@"User has canceled verification."]};
-            agreeHandler(dict);
+            agreeHandler(@{@"success": @"false", @"errors":@[@"User has canceled verification."]});
         }
         
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
@@ -1238,7 +1115,6 @@ static Arbiter *_sharedInstance = nil;
         handler();
     } else if ( alertView.tag == NO_ACTION_ALERT_TAG ) {
         // Don't do anything since no action is required
-        NSLog(@"ttt this might be relevant...");
         NSLog(@"Unrecognized alertView tag: %@", alertView.tag);
     }
     

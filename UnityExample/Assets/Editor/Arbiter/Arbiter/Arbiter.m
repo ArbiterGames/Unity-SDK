@@ -306,7 +306,7 @@ static Arbiter *_sharedInstance = nil;
 
 
     /**********************************************
-     * ASYNC HANDLER DECLARATIONS
+     * COMMON ASYNC HANDLER DECLARATIONS
      **********************************************/
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
@@ -317,15 +317,21 @@ static Arbiter *_sharedInstance = nil;
                 [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
             }
         } else {
-            // ttt td: This triggers an infinite loop somewhere. Track it down!
-            // Pass the handler into this alert and assume it will either call the handler or verifyUser to start the check again
+
+            void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
+                if( [[response objectForKey:@"success"] boolValue] == true ) {
+                    [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
+                } else {
+                    handler(response);
+                }
+            } copy];
             if( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
                 UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
                                                                 message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash challenges.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                delegate:self
                                                       cancelButtonTitle:@"Keep disabled"
                                                       otherButtonTitles:@"Check again", nil];
-                [_alertViewHandlerRegistry setObject:handler forKey:@"enableLocationServices"];
+                [_alertViewHandlerRegistry setObject:alertViewHandler forKey:@"enableLocationServices"];
                 [alert setTag:ENABLE_LOCATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
@@ -349,16 +355,6 @@ static Arbiter *_sharedInstance = nil;
         }
     };
 
-    void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
-        if( [[response objectForKey:@"success"] boolValue] == true ) {
-            [self postVerify:postVerifyCallback];
-        } else {
-            // ttt try doing this instead:
-            //handler(response);
-            handler( @{@"success":@false, @"errors":@[@"User did not agree to terms of service."]} );
-        }
-    } copy];
-    
 
 
     /**********************************************
@@ -373,6 +369,15 @@ static Arbiter *_sharedInstance = nil;
 
     } else if( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
+        void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
+            if( [[response objectForKey:@"success"] boolValue] == true ) {
+                [self postVerify:postVerifyCallback];
+            } else {
+                // ttt try doing this instead:
+                //handler(response);
+                handler( @{@"success":@false, @"errors":@[@"User did not agree to terms of service."]} );
+            }
+        } copy];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
                                                         message: @"By clicking Agree below, you are confirming that you are at least 18 years old and agree to the terms of service."
                                                        delegate: self
@@ -1211,7 +1216,7 @@ static Arbiter *_sharedInstance = nil;
         
         if (buttonIndex == 1) {
             [[ARBTracking arbiterInstance] track:@"Clicked Check LS"];
-            [self verifyUser:handler];
+            handler(@{@"success":@true});
         } else {
             [[ARBTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
             handler( @{@"success": @false, @"errors":@[@"Could not get device location."]});

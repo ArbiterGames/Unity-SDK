@@ -311,7 +311,7 @@ static Arbiter *_sharedInstance = nil;
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
-            NSLog(@"ttt gcr true");
+
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
                 [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
@@ -319,7 +319,7 @@ static Arbiter *_sharedInstance = nil;
             }
             [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
         } else {
-NSLog(@"ttt gcr false");
+
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
                 if( [[response objectForKey:@"success"] boolValue] == true ) {
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
@@ -342,12 +342,13 @@ NSLog(@"ttt gcr false");
     };
 
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
-        NSLog(@"ttt response=%@", verifyResponse);
         if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
+            NSLog(@"ttt post verify callback failure case");
             NSLog(@"ttt test some errors. maybe disconnect internet?");
-            handler( @{@"success":@false} ); // ttt also report back some errors?
+            //handler( @{@"success":@false} ); // ttt also report back some errors?
+            handler(verifyResponse);
         } else {
-            NSLog(@"ttt was a success going on.");
+            NSLog(@"ttt post verify callback success case");
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
             [self.user setObject:@"false" forKey:@"wait_for_verify"]; // ttt kill all of these
@@ -371,12 +372,11 @@ NSLog(@"ttt gcr false");
     } else if( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
+            NSLog(@"ttt alertViewHandler agree. response=%@", response);
             if( [[response objectForKey:@"success"] boolValue] == true ) {
                 [self postVerify:postVerifyCallback];
             } else {
-                // ttt try doing this instead:
-                //handler(response);
-                handler( @{@"success":@false, @"errors":@[@"User did not agree to terms of service."]} );
+                handler(response);
             }
         } copy];
         UIAlertView *alert = [[UIAlertView alloc] initWithTitle: @"Terms and Conditions"
@@ -411,7 +411,7 @@ NSLog(@"ttt gcr false");
 
 - (void)postVerify:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt calling postVerifty user=%@", self.user);
+    NSLog(@"ttt calling postVerify user=%@", self.user);
     NSDictionary *postParams;
     if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
         postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
@@ -423,7 +423,8 @@ NSLog(@"ttt gcr false");
     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
     [verificationUrl appendString: [self.user objectForKey:@"id"]];
     [verificationUrl appendString: @"/verify"];
-    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
+//ttt keep    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
+    [self httpPost:verificationUrl params:@{} isBlocking:YES handler:handler];
 }
 
 /* ttt kill
@@ -601,7 +602,6 @@ NSLog(@"ttt gcr false");
                 [response setValue:@true forKey:@"success"];
             }
             
-            NSLog(@"ttt handler=%@", handler);
             handler(response);
         }
     }];
@@ -1194,8 +1194,7 @@ NSLog(@"ttt gcr false");
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
-            agreeHandler(@{@"success":@true}); // ttt do a similar manner for cancel
-            //ttt [self postVerify:connectionHandler];
+            agreeHandler(@{@"success":@true});
 
         // View Terms
         } else if ( buttonIndex == 1 ) {

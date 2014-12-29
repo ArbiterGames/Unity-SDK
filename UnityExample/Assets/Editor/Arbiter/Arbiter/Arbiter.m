@@ -311,13 +311,15 @@ static Arbiter *_sharedInstance = nil;
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+            NSLog(@"ttt gcr true");
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
                 [self.user setObject:[geoCodeResponse objectForKey:@"lat"] forKey:@"lat"];
                 [self.user setObject:[geoCodeResponse objectForKey:@"long"] forKey:@"long"];
             }
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
         } else {
-
+NSLog(@"ttt gcr false");
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
                 if( [[response objectForKey:@"success"] boolValue] == true ) {
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
@@ -337,7 +339,6 @@ static Arbiter *_sharedInstance = nil;
                 [alert show];
             }            
         }
-        [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
     };
 
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {

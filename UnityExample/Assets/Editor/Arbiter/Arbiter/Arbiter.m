@@ -329,10 +329,8 @@ static Arbiter *_sharedInstance = nil;
 
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
                 if( [[response objectForKey:@"success"] boolValue] == true ) {
-                    [[ARBTracking arbiterInstance] track:@"Clk Check Location"];
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
                 } else {
-                    [[ARBTracking arbiterInstance] track:@"Clk Disable Check Location"];
                     handler(response);
                 }
             } copy];

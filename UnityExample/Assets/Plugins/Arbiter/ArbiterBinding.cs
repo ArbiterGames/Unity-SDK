@@ -645,7 +645,7 @@ namespace ArbiterInternal {
 		
 		
 		private bool wasSuccess( JSONNode json ) {
-			return json["success"].AsBool;
+			return json["success"].Value == "1" || json["success"].Value.ToLower() == "true";
 		}
 		
 		private bool isVerified( JSONNode userNode) {

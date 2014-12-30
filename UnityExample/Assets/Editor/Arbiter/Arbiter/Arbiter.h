@@ -52,6 +52,7 @@ void ClientCallbackWalletUpdated();
 - (bool)isUserVerified;
 - (bool)isUserAuthenticated;
 - (void)verifyUser:(void(^)(NSDictionary *))handler;
+- (void)verifyUser:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong;
 - (void)getCachedUser:(void(^)(NSDictionary *))handler;
 
 - (void)getCachedUser:(void(^)(NSDictionary *))handler;
@@ -61,7 +62,7 @@ void ClientCallbackWalletUpdated();
 - (void)addWalletObserver:(id<ARBWalletObserver>)observer;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
-- (void)getDevicePostalCode:(void(^)(NSDictionary *))handler;
+- (void)getDeviceLocation:(void(^)(NSDictionary *))handler requireLatLong:(BOOL)requireLatLong;
 
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString *)buyIn filters:(NSString *)filters;
 - (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)excludeViewed;

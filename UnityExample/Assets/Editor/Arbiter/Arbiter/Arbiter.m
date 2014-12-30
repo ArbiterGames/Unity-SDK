@@ -111,15 +111,12 @@ static Arbiter *_sharedInstance = nil;
 
         NSNumber* timesSeen = [NSNumber numberWithInt:0];
         NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
-        NSLog(@"ttt=%@", [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId]);
         if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
             timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
         }
-        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
-        NSLog(@"ttt seenThisGameBefore=%@", timesSeen);
-        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
         NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
-        NSLog(@"ttt trackingProperties=%@", trackingProperties);
+        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
+        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
         
         ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];

@@ -297,6 +297,7 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
 
+    [[ARBTracking arbiterInstance] track:@"Verifying User"];
 
     /* Recursively call this function to check each thing that needs to be verified in order.
      * Once all checks pass, this function calls the handler (this method argument)
@@ -319,14 +320,19 @@ static Arbiter *_sharedInstance = nil;
                 if( lon != nil )
                     [self.user setObject:lon forKey:@"long"];
             }
+
+            [[ARBTracking arbiterInstance] track:@"Device Location Found"];
+
             // Don't try to get lat/long more than 1 time--since we just tried to get it and it's optional, move on no matter what next time
             [self verifyUser:handler tryToGetLatLong:NO];
         } else {
 
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
                 if( [[response objectForKey:@"success"] boolValue] == true ) {
+                    [[ARBTracking arbiterInstance] track:@"Clk Check Location"];
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
                 } else {
+                    [[ARBTracking arbiterInstance] track:@"Clk Disable Check Location"];
                     handler(response);
                 }
             } copy];
@@ -346,10 +352,12 @@ static Arbiter *_sharedInstance = nil;
 
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
+            [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
             NSLog(@"ttt post verify callback failure case");
             // NOTE: Currently the endpoint returns some false positives. Once fixed, test this case again
             handler(verifyResponse);
         } else {
+            [[ARBTracking arbiterInstance] track:@"Verify API Success"];
             NSLog(@"ttt post verify callback success case");
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
@@ -363,10 +371,12 @@ static Arbiter *_sharedInstance = nil;
     /**********************************************
      * VERIFICATION CHECKS
      **********************************************/
-    if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {        
+    if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
+        [[ARBTracking arbiterInstance] track:@"Ask Device For Location"];
         [self getDeviceLocation:locationCallback requireLatLong:NO];
 
     } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
+        [[ARBTracking arbiterInstance] track:@"Ask Device For LatLong"];
         // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT to verify a user
         [self getDeviceLocation:locationCallback requireLatLong:NO];
 
@@ -448,8 +458,10 @@ static Arbiter *_sharedInstance = nil;
     locationManager.distanceFilter = 500;
     
     if ( [locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] ) {
+        NSLog(@"ttt loc check 1");
         [locationManager requestWhenInUseAuthorization];
     }
+    NSLog(@"ttt loc check 2");
     
     [locationManager startUpdatingLocation];
     
@@ -485,8 +497,6 @@ static Arbiter *_sharedInstance = nil;
             handler(response);
         }
     }];
-
-    
 }
 
 

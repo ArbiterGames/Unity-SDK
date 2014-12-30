@@ -558,7 +558,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)showWalletPanel:(void(^)(void))handler
 {
-    [[ARBTracking arbiterInstance] track:@"Clicked Show Wallet"];
+    [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
     if ( [self isUserAuthenticated] ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;

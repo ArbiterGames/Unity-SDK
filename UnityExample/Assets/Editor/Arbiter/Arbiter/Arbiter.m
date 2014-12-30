@@ -108,10 +108,23 @@ static Arbiter *_sharedInstance = nil;
         } else {
             [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
+
+        NSNumber* timesSeen = [NSNumber numberWithInt:0];
+        NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
+        NSLog(@"ttt=%@", [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId]);
+        if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
+            timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+        }
+        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
+        NSLog(@"ttt seenThisGameBefore=%@", timesSeen);
+        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
+        NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
+        NSLog(@"ttt trackingProperties=%@", trackingProperties);
+        
         ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
         [arbiterInstance identify:arbiterInstance.distinctId];
         [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-        [arbiterInstance track:@"Loaded Game"];
+        [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
         handler(@{@"success": @true});
     } copy];
     

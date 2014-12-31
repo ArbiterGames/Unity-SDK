@@ -158,8 +158,12 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)saveUserToken:(NSMutableDictionary*)user
 {
-    NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
-    [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
+    if( user == nil ) {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:DEFAULTS_USER_TOKEN];
+    } else {
+        NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
+        [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
+    }
 }
 
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler

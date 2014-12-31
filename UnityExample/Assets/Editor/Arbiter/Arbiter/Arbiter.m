@@ -377,12 +377,9 @@ static Arbiter *_sharedInstance = nil;
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
             [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
-            NSLog(@"ttt post verify callback failure case");
-            // NOTE: Currently the endpoint returns some false positives. Once fixed, test this case again
             handler(verifyResponse);
         } else {
             [[ARBTracking arbiterInstance] track:@"Verify API Success"];
-            NSLog(@"ttt post verify callback success case");
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
 
@@ -456,8 +453,7 @@ static Arbiter *_sharedInstance = nil;
     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
     [verificationUrl appendString: [self.user objectForKey:@"id"]];
     [verificationUrl appendString: @"/verify"];
-//ttt keep    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
-    [self httpPost:verificationUrl params:@{} isBlocking:YES handler:handler]; // This is to test what happens if verify returns success:false (which is currently broken)
+    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
 }
 
 - (bool)isUserVerified
@@ -482,10 +478,8 @@ static Arbiter *_sharedInstance = nil;
     locationManager.distanceFilter = 500;
     
     if ( [locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] ) {
-        NSLog(@"ttt loc check 1");
         [locationManager requestWhenInUseAuthorization];
     }
-    NSLog(@"ttt loc check 2");
     
     [locationManager startUpdatingLocation];
     

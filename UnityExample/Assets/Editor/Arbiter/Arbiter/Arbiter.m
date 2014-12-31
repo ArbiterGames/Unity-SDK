@@ -164,18 +164,24 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
+    // ttt TODO: Verify this block reads the response from the server correctly once the new code is deployed
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
+        NSNumber* successObj = [responseDict objectForKey:@"success"];
+        NSLog(@"ttt succesObj=%@",successObj);
+        if( successObj != nil && [successObj boolValue] == YES ) {
+            NSLog(@"ttt asbool=%c", [successObj boolValue]);
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
+        }
         handler(responseDict);
     } copy];
     
     if ( self.hasConnection ) {
         // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
         // ttt TODO: this is the correct way:
-        NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
-        //NSString* savedToken = @"arbitrary fake token";
+        //NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
+        NSString* savedToken = @"arbitrary fake token";
         NSLog(@"ttt previously saved token=%@", savedToken);
         if ( !IS_NULL_NS(savedToken)) {
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];

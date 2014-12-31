@@ -37,3 +37,6 @@ extern NSString *const GameSettingsURL;
 extern NSString *const BundleURL;
 extern NSString *const StripeTestPublishableKey;
 extern NSString *const StripeLivePublishableKey;
+
+extern NSString* const USER_TOKEN;
+extern NSString* const DEFAULTS_USER_TOKEN;

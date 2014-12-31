@@ -8,6 +8,7 @@
 //
 
 
+#import <Foundation/Foundation.h>
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
 #import "Reachability.h"
@@ -142,6 +143,7 @@ static Arbiter *_sharedInstance = nil;
 {
     self._user = user;
     ClientCallbackUserUpdated();
+    [self saveUserToken:user];
 }
 
 - (NSMutableDictionary *)user
@@ -154,16 +156,34 @@ static Arbiter *_sharedInstance = nil;
     handler(self.user);
 }
 
+- (void)saveUserToken:(NSMutableDictionary*)user
+{
+    if( user == nil ) {
+        [[NSUserDefaults standardUserDefaults] removeObjectForKey:DEFAULTS_USER_TOKEN];
+    } else {
+        NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
+        [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
+    }
+}
+
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-        self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-        [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
+        NSNumber* successObj = [responseDict objectForKey:@"success"];
+        if( successObj != nil && [successObj boolValue] == YES ) {
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
+        }
         handler(responseDict);
     } copy];
     
     if ( self.hasConnection ) {
+        // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
+        NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
+        if ( !IS_NULL_NS(savedToken)) {
+            self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
+        }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
         [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
     } else {
@@ -361,12 +381,9 @@ static Arbiter *_sharedInstance = nil;
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
             [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
-            NSLog(@"ttt post verify callback failure case");
-            // NOTE: Currently the endpoint returns some false positives. Once fixed, test this case again
             handler(verifyResponse);
         } else {
             [[ARBTracking arbiterInstance] track:@"Verify API Success"];
-            NSLog(@"ttt post verify callback success case");
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
 
@@ -440,8 +457,7 @@ static Arbiter *_sharedInstance = nil;
     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
     [verificationUrl appendString: [self.user objectForKey:@"id"]];
     [verificationUrl appendString: @"/verify"];
-//ttt keep    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
-    [self httpPost:verificationUrl params:@{} isBlocking:YES handler:handler]; // This is to test what happens if verify returns success:false (which is currently broken)
+    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
 }
 
 - (bool)isUserVerified
@@ -466,10 +482,8 @@ static Arbiter *_sharedInstance = nil;
     locationManager.distanceFilter = 500;
     
     if ( [locationManager respondsToSelector:@selector(requestWhenInUseAuthorization)] ) {
-        NSLog(@"ttt loc check 1");
         [locationManager requestWhenInUseAuthorization];
     }
-    NSLog(@"ttt loc check 2");
     
     [locationManager startUpdatingLocation];
     
@@ -896,12 +910,13 @@ static Arbiter *_sharedInstance = nil;
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
 
-    if ( !IS_NULL_NS([self.user objectForKey:@"token"]) ) {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    if ( !IS_NULL_NS([self.user objectForKey:USER_TOKEN]) ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
     
+    [request setHTTPShouldHandleCookies:NO];
     [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -921,8 +936,8 @@ static Arbiter *_sharedInstance = nil;
     NSString *tokenValue;
     NSString *key = [url stringByAppendingString:@":POST"];
     
-    if ( [self.user objectForKey:@"token"] != NULL ) {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:@"token"], self.apiKey];
+    if ( [self.user objectForKey:USER_TOKEN] != NULL ) {
+        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
@@ -949,6 +964,7 @@ static Arbiter *_sharedInstance = nil;
                                        timeoutInterval:60.0];
         
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPShouldHandleCookies:NO];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
@@ -986,6 +1002,7 @@ static Arbiter *_sharedInstance = nil;
                                                                cachePolicy:NSURLRequestUseProtocolCachePolicy
                                                            timeoutInterval:60.0];
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
+        [request setHTTPShouldHandleCookies:NO];
         [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];

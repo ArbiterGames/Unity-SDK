@@ -12,6 +12,7 @@
 @interface ARBWalletDashboardWebView : ARBPanelView <UIWebViewDelegate>
 
 @property (strong) void (^callback)(void);
+@property (strong) UIActivityIndicatorView *spinnerView;
 
 - (void)backButtonClicked;
 

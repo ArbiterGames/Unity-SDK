@@ -24,7 +24,6 @@
     self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
     self.spinnerView.backgroundColor = [UIColor clearColor];
 
-    
     [request setURL:[NSURL URLWithString:APIWalletDashboardWebViewURL]];
     [request setHTTPMethod:@"POST"];
     [request setHTTPBody:postData];
@@ -45,12 +44,13 @@
 
 - (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
 {
-    
-    NSLog(@"navigating to: %@", [[request URL] absoluteString]);
-    if ([[[request URL] absoluteString] hasPrefix:@"ios:"]) {
+    NSString *url = [[request URL] absoluteString];
+    if ([url hasPrefix:@"ios:"]) {
         [self performSelector:@selector(backButtonClicked)];
-    } else {
-        // TODO: Open any other links in safari
+        return NO;
+    } else if ( [url rangeOfString:@"support.arbiter"].location != NSNotFound ) {
+        [[UIApplication sharedApplication] openURL:[NSURL URLWithString:url]];
+        return NO;
     }
     return YES;
 }

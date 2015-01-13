@@ -9,10 +9,11 @@
 #import <UIKit/UIKit.h>
 #import "ARBPanelView.h"
 
-@interface ARBWalletDashboardWebView : ARBPanelView
+@interface ARBWalletDashboardWebView : ARBPanelView <UIWebViewDelegate>
 
 @property (strong) void (^callback)(void);
+@property (strong) UIActivityIndicatorView *spinnerView;
 
-- (void)backButtonClicked:(id)sender;
+- (void)backButtonClicked;
 
 @end

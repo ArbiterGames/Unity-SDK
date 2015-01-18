@@ -16,9 +16,6 @@ public partial class Arbiter : MonoBehaviour {
 	public string accessToken;
 	public string gameApiKey;
 	
-	[HideInInspector]
-	public string SelectedUnfinishedTournamentId;
-	
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		HasWallet					{ get { return WalletExists(false); } }
@@ -409,6 +406,11 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.DumpLogs( "" );
 	}
 
+
+	#region Hooks for testing
+	[HideInInspector]
+	public string SelectedUnfinishedTournamentId;
+	#endregion
 
 	private static string _gameApiKey;
 	private static string _accessToken;

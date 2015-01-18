@@ -18,10 +18,10 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserVerified();
 		public static bool IsUserVerified() {
-#if UNITY_EDITOR
-			return true;
-#elif UNITY_IOS
+#if UNITY_IOS
 			return _isUserVerified();
+#else
+			return true;
 #endif
 		}
 
@@ -29,10 +29,10 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
-#if UNITY_EDITOR
-			return Arbiter.UserId != null;
-#elif UNITY_IOS
+#if UNITY_IOS
 			return _isUserAuthenticated();
+#else
+			return Arbiter.UserId != null;
 #endif
 		}
 

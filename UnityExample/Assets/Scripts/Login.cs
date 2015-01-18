@@ -38,6 +38,7 @@ public class Login : MonoBehaviour {
 			Arbiter.LoginAsAnonymous( SuccessHandler, ErrorHandler );
 		}
 
+#if UNITY_IOS
 		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 2) + padding + boxY, buttonWidth, buttonHeight), "Login with Game Center", buttonStyle)) {
 			Action<bool> processAuth = ( success ) => {
 				if( success ) {
@@ -48,6 +49,7 @@ public class Login : MonoBehaviour {
 			};
 			Social.localUser.Authenticate( processAuth );
 		}
+#endif
 		
 		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 3) + (padding * 2) + boxY, buttonWidth, buttonHeight), "Basic Login", buttonStyle)) {
 			Arbiter.Login( SuccessHandler, ErrorHandler );

@@ -50,25 +50,7 @@ static Arbiter *_sharedInstance = nil;
 {
     static dispatch_once_t oncePredicate;
     dispatch_once(&oncePredicate, ^{
-        void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            //NSLog(@"ttt response=%@", innerResponse);
-            /*
-            if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-
-            } else {
-                handler(innerResponse);
-            }
-            */
-            // ttt make this a function and find cases of it
-            NSNumber* successObj = [innerResponse objectForKey:@"success"];
-            if( successObj != nil && [successObj boolValue] == YES 
-                    && !IS_NULL_STRING([self.user objectForKey:USER_TOKEN])) {
-                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
-            } else {
-                handler(innerResponse);    
-            }
-        } copy];
-        _sharedInstance = [[Arbiter alloc] init:handlerWrapper apiKey:apiKey accessToken:accessToken];
+        _sharedInstance = [[Arbiter alloc] init:handler apiKey:apiKey accessToken:accessToken];
     });
     return _sharedInstance;
 }
@@ -112,7 +94,29 @@ static Arbiter *_sharedInstance = nil;
             [self loginWithToken:[self.user objectForKey:USER_TOKEN]];
         }
         */
-        [self establishConnection:handler];
+        void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
+            //NSLog(@"ttt response=%@", innerResponse);
+            /*
+            if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
+
+            } else {
+                handler(innerResponse);
+            }
+            */
+            // ttt make this a function and find cases of it
+            NSNumber* successObj = [innerResponse objectForKey:@"success"];
+            if( successObj != nil && [successObj boolValue] == YES ) {
+//                    && !IS_NULL_STRING([self.user objectForKey:USER_TOKEN])) {
+                if( [self hydrateUserWithCachedToken] ) {
+                    [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
+                } else {
+                    handler(innerResponse);
+                }
+            } else {
+                handler(innerResponse);
+            }
+        } copy];
+        [self establishConnection:handlerWrapper];
     } else {
         handler(@{@"success": @true});
     }

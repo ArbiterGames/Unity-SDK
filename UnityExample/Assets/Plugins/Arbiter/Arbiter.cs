@@ -51,7 +51,7 @@ public partial class Arbiter : MonoBehaviour {
 		
 		wallet = null;
 		user = null;
-		setupPollers();
+		setupPollers(); // ttt this should be moved later
 
 		ErrorHandler initializeErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot initialize Arbiter. Resolve errors below:" );

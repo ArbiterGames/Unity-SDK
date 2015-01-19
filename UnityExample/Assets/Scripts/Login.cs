@@ -15,6 +15,19 @@ public class Login : MonoBehaviour {
 	
 	
 	void Start() {
+		/* ttt moved
+		if ( Arbiter.IsAuthenticated ) {
+			if ( Arbiter.IsVerified ) {
+				Application.LoadLevel("MainMenu");
+			} else {
+				Application.LoadLevel("Verification");
+			}
+		}
+		*/
+	}
+
+
+	void Update() {
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");

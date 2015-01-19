@@ -50,7 +50,25 @@ static Arbiter *_sharedInstance = nil;
 {
     static dispatch_once_t oncePredicate;
     dispatch_once(&oncePredicate, ^{
-        _sharedInstance = [[Arbiter alloc] init:handler apiKey:apiKey accessToken:accessToken];
+        void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
+            //NSLog(@"ttt response=%@", innerResponse);
+            /*
+            if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
+
+            } else {
+                handler(innerResponse);
+            }
+            */
+            // ttt make this a function and find cases of it
+            NSNumber* successObj = [innerResponse objectForKey:@"success"];
+            if( successObj != nil && [successObj boolValue] == YES 
+                    && !IS_NULL_STRING([self.user objectForKey:USER_TOKEN])) {
+                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
+            } else {
+                handler(innerResponse);    
+            }
+        } copy];
+        _sharedInstance = [[Arbiter alloc] init:handlerWrapper apiKey:apiKey accessToken:accessToken];
     });
     return _sharedInstance;
 }
@@ -88,6 +106,12 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
 
+        // ttt need to move this to a place after connection has been established...
+        /*
+        if( [self hydrateUserWithCachedToken] ) {
+            [self loginWithToken:[self.user objectForKey:USER_TOKEN]];
+        }
+        */
         [self establishConnection:handler];
     } else {
         handler(@{@"success": @true});
@@ -166,6 +190,42 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
+- (bool)hydrateUserWithCachedToken {
+    NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
+    if ( !IS_NULL_STRING(savedToken)) {
+        // ttt
+        NSLog(@"self.user=%@", self.user);
+        if (self.user == nil) {
+            self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
+        } else {
+            [self.user setObject:savedToken forKey:USER_TOKEN];
+        }
+                NSLog(@"self.user=%@", self.user);
+        return true;
+    }
+    return false;
+}
+
+- (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token {
+    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        NSNumber* successObj = [responseDict objectForKey:@"success"];
+        if( successObj != nil && [successObj boolValue] == YES ) {
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
+        }
+        // ttt handler(responseDict);
+    } copy];
+
+    if ( self.hasConnection ) {
+        NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+        [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
+    } else {
+        // ttt handler(_NO_CONNECTION_RESPONSE_DICT);
+    }
+}
+
+// ttt update this function...
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -181,7 +241,7 @@ static Arbiter *_sharedInstance = nil;
     if ( self.hasConnection ) {
         // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
         NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
-        if ( !IS_NULL_NS(savedToken)) {
+        if ( !IS_NULL_STRING(savedToken)) {
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
@@ -307,7 +367,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (bool)isUserAuthenticated
 {
-    return self.user != nil && !IS_NULL_NS([self.user objectForKey:@"id"]);
+    return self.user != nil && !IS_NULL_STRING([self.user objectForKey:@"id"]);
 }
 
 - (void)verifyUser:(void(^)(NSDictionary *))handler
@@ -396,16 +456,16 @@ static Arbiter *_sharedInstance = nil;
     /**********************************************
      * VERIFICATION CHECKS
      **********************************************/
-    if( IS_NULL_NS([self.user objectForKey:@"postal_code"]) ) {
+    if( IS_NULL_STRING([self.user objectForKey:@"postal_code"]) ) {
         [[ARBTracking arbiterInstance] track:@"Ask Device For Location"];
         [self getDeviceLocation:locationCallback requireLatLong:NO];
 
-    } else if( tryToGetLatLong && (IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"])) ) {
+    } else if( tryToGetLatLong && (IS_NULL_STRING([self.user objectForKey:@"lat"]) || IS_NULL_STRING([self.user objectForKey:@"long"])) ) {
         [[ARBTracking arbiterInstance] track:@"Ask Device For LatLong"];
         // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT to verify a user
         [self getDeviceLocation:locationCallback requireLatLong:NO];
 
-    } else if( IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
+    } else if( IS_NULL_STRING([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
             if( [[response objectForKey:@"success"] boolValue] == true ) {
@@ -425,7 +485,7 @@ static Arbiter *_sharedInstance = nil;
         [alert show];
         [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
 
-    } else if( IS_NULL_NS([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
+    } else if( IS_NULL_STRING([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
         [self postVerify:postVerifyCallback];
 
     } else {
@@ -447,7 +507,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)postVerify:(void(^)(NSDictionary *))handler
 {
     NSDictionary *postParams;
-    if( IS_NULL_NS([self.user objectForKey:@"lat"]) || IS_NULL_NS([self.user objectForKey:@"long"]) ){
+    if( IS_NULL_STRING([self.user objectForKey:@"lat"]) || IS_NULL_STRING([self.user objectForKey:@"long"]) ){
         postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"]};
     } else {
         postParams = @{@"postal_code": [self.user objectForKey:@"postal_code"],
@@ -462,8 +522,8 @@ static Arbiter *_sharedInstance = nil;
 
 - (bool)isUserVerified
 {
-    bool termsExists = !IS_NULL_NS([self.user objectForKey:@"agreed_to_terms"]);
-    bool locationExists = !IS_NULL_NS([self.user objectForKey:@"location_approved"]);
+    bool termsExists = !IS_NULL_STRING([self.user objectForKey:@"agreed_to_terms"]);
+    bool locationExists = !IS_NULL_STRING([self.user objectForKey:@"location_approved"]);
     if (self.user != nil && termsExists && locationExists) {
         return [[self.user objectForKey:@"agreed_to_terms"] boolValue] == true &&
         [[self.user objectForKey:@"location_approved"] boolValue] == true;
@@ -910,7 +970,7 @@ static Arbiter *_sharedInstance = nil;
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
 
-    if ( !IS_NULL_NS([self.user objectForKey:USER_TOKEN]) ) {
+    if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
         tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];

@@ -15,6 +15,7 @@ public class Login : MonoBehaviour {
 	
 	
 	void Start() {
+		UnityEngine.Debug.Log ("ttt Login.Start. is authed?="+Arbiter.IsAuthenticated);
 		/* ttt moved
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
@@ -28,6 +29,7 @@ public class Login : MonoBehaviour {
 
 
 	void Update() {
+		UnityEngine.Debug.Log ("ttt Login.Update. is authed?="+Arbiter.IsAuthenticated);
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
@@ -39,7 +41,8 @@ public class Login : MonoBehaviour {
 	
 	
 	void OnGUI() {
-	
+		UnityEngine.Debug.Log ("ttt Login.OnGUI");
+
 		GUIStyle buttonStyle = new GUIStyle("button");
 		buttonStyle.fontSize = 32;
 		GUIStyle boxStyle = new GUIStyle("box");
@@ -71,6 +74,7 @@ public class Login : MonoBehaviour {
 	
 	
 	private void SuccessHandler() {
+		UnityEngine.Debug.Log ("ttt Login.SuccessHAndler. is authed?="+Arbiter.IsAuthenticated);
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");

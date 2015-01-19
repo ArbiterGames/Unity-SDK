@@ -218,14 +218,14 @@ static Arbiter *_sharedInstance = nil;
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
         }
-        // ttt handler(responseDict);
+        handler(responseDict);
     } copy];
 
     if ( self.hasConnection ) {
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
         [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
     } else {
-        // ttt handler(_NO_CONNECTION_RESPONSE_DICT);
+        handler(_NO_CONNECTION_RESPONSE_DICT);
     }
 }
 

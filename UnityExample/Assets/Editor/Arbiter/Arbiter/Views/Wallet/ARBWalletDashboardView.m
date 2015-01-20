@@ -76,14 +76,14 @@
         self.activeWalletObserver = view;
         [self navigateToView:view];
     } else if ( segment.selectedSegmentIndex == 1 ) {
-        [[ARBTracking arbiterInstance] track:@"Clicked Deposit"];
+        [[ARBTracking arbiterInstance] track:@"Loaded Deposit Amount Select"];
         ARBWalletDepositView *view = [[ARBWalletDepositView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                       andArbiterInstance:self.arbiter];
         view.parentDelegate = self;
         self.activeWalletObserver = view;
         [self navigateToView:view];
     } else {
-        [[ARBTracking arbiterInstance] track:@"Clicked Withdraw"];
+        [[ARBTracking arbiterInstance] track:@"Loaded Withdrawal Amount Select"];
         ARBWalletWithdrawView *view = [[ARBWalletWithdrawView alloc] initWithFrame:CGRectMake(0.0, 0.0, self.frame.size.width, 220.0)
                                                                         andArbiterInstance:self.arbiter];
         view.parentDelegate = self;

@@ -60,7 +60,7 @@
     } else if ( self.activeViewIndex == WITHDRAW_INFO_UI_TAG ) {
         [self setupWithdrawInfoUI];
     } else if ( self.activeViewIndex == PAYMENT_INFO_UI_TAG ) {
-        [[ARBTracking arbiterInstance] track:@"Selected Withdraw Amount" properties:@{@"amount": [NSString stringWithFormat:@"%f", self.withdrawAmount]}];
+        [[ARBTracking arbiterInstance] track:@"Submitted Withdrawal Amount" properties:@{@"amount": [NSString stringWithFormat:@"%f", self.withdrawAmount]}];
         [self setupPaymentInfoUI];
     } else if ( self.activeViewIndex == SUCCESS_MESSAGE_UI_TAG ) {
         [self setupSuccessMessageUI];

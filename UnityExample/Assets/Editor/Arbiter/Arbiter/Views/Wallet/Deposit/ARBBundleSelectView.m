@@ -29,7 +29,7 @@
 - (void)tableView:(UITableView *)tableView didSelectRowAtIndexPath:(NSIndexPath *)indexPath
 {
     NSDictionary *bundle = [self.availableBundles objectAtIndex:indexPath.row];
-    [[ARBTracking arbiterInstance] track:@"Selected Credit Amount" properties:@{@"amount": [bundle objectForKey:@"value"]}];
+    [[ARBTracking arbiterInstance] track:@"Selected Deposit Amount" properties:@{@"amount": [bundle objectForKey:@"value"]}];
     self.selectionCallback(bundle);
 }
 

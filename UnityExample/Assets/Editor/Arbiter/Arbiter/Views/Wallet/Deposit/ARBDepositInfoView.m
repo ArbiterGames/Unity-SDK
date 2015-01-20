@@ -132,8 +132,9 @@
     if ( [self.emailField isFirstResponder] ) {
         [self.usernameField becomeFirstResponder];
     } else {
-        [[ARBTracking arbiterInstance] track:@"Submitted Deposit Info" properties:@{@"email": self.emailField.text,
-                                                                                @"username": self.usernameField.text}];
+        [[ARBTracking arbiterInstance] track:@"Submitted Deposit Contact Info"
+                                  properties:@{@"email": self.emailField.text,
+                                               @"username": self.usernameField.text}];
         self.callback(@{@"email": self.emailField.text,
                         @"username": self.usernameField.text});
     }

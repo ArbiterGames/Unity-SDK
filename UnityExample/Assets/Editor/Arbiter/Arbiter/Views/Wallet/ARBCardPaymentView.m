@@ -69,10 +69,10 @@
     [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
         if ([[responseDict objectForKey:@"errors"] count]) {
             NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
-            [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];
+            [[ARBTracking arbiterInstance] track:@"Received Withdrawal Error" properties:@{@"error": message}];
             [self handleError:message];
         } else {
-            [[ARBTracking arbiterInstance] track:@"Received Withdraw Success"];
+            [[ARBTracking arbiterInstance] track:@"Received Withdrawal Success"];
             self.arbiter.wallet = [responseDict objectForKey:@"wallet"];
             self.arbiter.user = [responseDict objectForKey:@"user"];
             self.onPaymentSuccess();

@@ -166,7 +166,7 @@
             alert.message = @"Please enter your full name as it appears on your debit card before continuing.";
             [alert show];
         } else {
-            [[ARBTracking arbiterInstance] track:@"Submitted Withdraw Info" properties:@{@"email": self.emailField.text,
+            [[ARBTracking arbiterInstance] track:@"Submitted Withdrawal Contact Info" properties:@{@"email": self.emailField.text,
                                                                                      @"fullName": self.nameField.text}];
             self.callback(@{@"email": self.emailField.text, @"fullName": self.nameField.text});
         }

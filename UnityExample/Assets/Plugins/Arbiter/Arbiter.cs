@@ -66,7 +66,7 @@ public partial class Arbiter : MonoBehaviour {
 		postInitActions = null;
 		initted = true;
 
-		setupPollers(); // ttt td test that wallet polling happens at the earliest moment but without errors
+		setupPollers();
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {
@@ -116,19 +116,7 @@ public partial class Arbiter : MonoBehaviour {
 
 
 	public static void Logout( SuccessHandler success, ErrorHandler failure ) {
-		if ( walletPoller ) {
-			walletPoller.Stop();
-			walletPoller = null;
-		}
-		if ( tournamentPoller ) {
-			tournamentPoller.Stop();
-			tournamentPoller = null;
-		}
-		wallet = null;
-		user = null;
-
-		// If we wanted to be less noisy, could turn off pollers here...
-
+		teardownPollers();
 		ArbiterBinding.Logout( success, failure );
 	}
 
@@ -397,6 +385,18 @@ public partial class Arbiter : MonoBehaviour {
 			DontDestroyOnLoad( tournamentPoller.gameObject );
 			tournamentPoller.Verbose = true;
 		}
+	}
+	private static void teardownPollers() {
+		if ( walletPoller ) {
+			walletPoller.Stop();
+			walletPoller = null;
+		}
+		if ( tournamentPoller ) {
+			tournamentPoller.Stop();
+			tournamentPoller = null;
+		}
+		wallet = null;
+		user = null;
 	}
 
 

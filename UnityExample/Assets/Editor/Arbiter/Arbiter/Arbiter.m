@@ -154,8 +154,12 @@ static Arbiter *_sharedInstance = nil;
 - (void)setUser:(NSMutableDictionary*)user
 {
     self._user = user;
-    ClientCallbackUserUpdated();
-    [self saveUserToken:user];
+    
+    // If this is a "full" user, save it and alert any listeners
+    if( !IS_NULL_STRING([user objectForKey:@"id"]) ) {
+        ClientCallbackUserUpdated();
+        [self saveUserToken:user];
+    }
 }
 
 - (NSMutableDictionary *)user
@@ -225,7 +229,7 @@ static Arbiter *_sharedInstance = nil;
         NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
         if ( !IS_NULL_STRING(savedToken)) {
             // This will blow away the local state (minus the auth token) of any in memory user, but the 
-            //      server should return the same info back down to the client, anyway
+            //      server should return the same info back down to the client, anyway.
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};

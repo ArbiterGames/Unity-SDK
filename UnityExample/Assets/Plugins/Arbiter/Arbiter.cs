@@ -147,6 +147,9 @@ public partial class Arbiter : MonoBehaviour {
 	} }
 
 
+	/// <summary>
+	/// For when the currently-authenticated user updates a piece of his/her info
+	/// </summary>
 	public static void AddUserUpdatedListener( Action listener ) {
 		if( !userUpdatedListeners.Contains( listener ))
 			userUpdatedListeners.Add( listener );
@@ -154,6 +157,9 @@ public partial class Arbiter : MonoBehaviour {
 	public static void RemoveUserUpdatedListener( Action listener ) {
 		userUpdatedListeners.Remove( listener );
 	}
+	/// <summary>
+	/// For when a new or different user just authenticated
+	/// </summary>
 	public static void AddNewUserListener( Action listener ) {
 		if( !newUserListeners.Contains( listener ))
 			newUserListeners.Add( listener );

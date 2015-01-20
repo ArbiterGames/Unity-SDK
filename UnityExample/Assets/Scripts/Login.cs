@@ -15,9 +15,8 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		// ttt td test that the user still auto-auths. after this change...
 		if( !Arbiter.IsAuthenticated ) {
-			Arbiter.AddUserUpdatedListener( ContinueLoading );	// ttt td what bout first time? Maybe dispatch this as user==null?
+			Arbiter.AddNewUserListener( ContinueLoading );
 			// tttd also need to remove this listener at the appropriate time.
 		}
 	}
@@ -29,29 +28,34 @@ public class Login : MonoBehaviour {
 		boxStyle.fontSize = 38;
 		
 		GUI.Box(new Rect(padding, boxY, boxWidth, boxHeight), "Login Options", boxStyle);
-		
-		if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login with Device ID", buttonStyle)) {
-			Arbiter.LoginWithDeviceId( SuccessHandler, ErrorHandler );
-		}
+
+		if( needsNewUser ) {
+			if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login with Device ID", buttonStyle)) {
+				Arbiter.LoginWithDeviceId( SuccessHandler, ErrorHandler );
+			}
 
 #if UNITY_IOS
-		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 2) + padding + boxY, buttonWidth, buttonHeight), "Login with Game Center", buttonStyle)) {
-			Action<bool> processAuth = ( success ) => {
-				if( success ) {
-					Arbiter.LoginWithGameCenter( SuccessHandler, ErrorHandler );
-				} else {
-					Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
-				}
-			};
-			Social.localUser.Authenticate( processAuth );
-		}
+			if(GUI.Button(new Rect(padding * 2, (buttonHeight * 2) + padding + boxY, buttonWidth, buttonHeight), "Login with Game Center", buttonStyle)) {
+				Action<bool> processAuth = ( success ) => {
+					if( success ) {
+						Arbiter.LoginWithGameCenter( SuccessHandler, ErrorHandler );
+					} else {
+						Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
+					}
+				};
+				Social.localUser.Authenticate( processAuth );
+			}
 #endif
-		
-		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 3) + (padding * 2) + boxY, buttonWidth, buttonHeight), "Basic Login", buttonStyle)) {
-			Arbiter.Login( SuccessHandler, ErrorHandler );
+			
+			if(GUI.Button(new Rect(padding * 2, (buttonHeight * 3) + (padding * 2) + boxY, buttonWidth, buttonHeight), "Basic Login", buttonStyle)) {
+				Arbiter.Login( SuccessHandler, ErrorHandler );
+			}
+		} else {
+			GUI.Box(new Rect(padding, boxY + buttonHeight, boxWidth, boxHeight), "Initializing...", boxStyle);
 		}
 	}
 	private void SuccessHandler() {
+		Debug.Log ("ttt SuccessHandler!");
 		ContinueLoading(); // ttt td test trying without this case and letting the native sdk catch the userUpdated event instead (which is already implemented).
 	}
 	private void ErrorHandler( List<string> errors ) {
@@ -60,6 +64,7 @@ public class Login : MonoBehaviour {
 
 
 	void ContinueLoading() {
+		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
@@ -69,8 +74,11 @@ public class Login : MonoBehaviour {
 		} else {
 			// ttt td call the new(ish) create device user here
 			Debug.Log ("Error logging in!");
+			needsNewUser = true;
 		}	
 	}
-	
+
+
+	bool needsNewUser = false;
 
 }

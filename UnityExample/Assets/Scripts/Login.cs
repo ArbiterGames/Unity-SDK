@@ -13,36 +13,13 @@ public class Login : MonoBehaviour {
 	private static int boxY = (Screen.height - boxHeight) / 2;
 	private static int buttonWidth = boxWidth - (padding * 2);
 	
-	
+
 	void Start() {
-		UnityEngine.Debug.Log ("ttt Login.Start. is authed?="+Arbiter.IsAuthenticated);
-		/* ttt moved
-		if ( Arbiter.IsAuthenticated ) {
-			if ( Arbiter.IsVerified ) {
-				Application.LoadLevel("MainMenu");
-			} else {
-				Application.LoadLevel("Verification");
-			}
-		}
-		*/
+		// ttt listen for it later...
+		// Arbiter.OnAuthenticated( do stuff );
 	}
 
-
-	void Update() {
-		UnityEngine.Debug.Log ("ttt Login.Update. is authed?="+Arbiter.IsAuthenticated);
-		if ( Arbiter.IsAuthenticated ) {
-			if ( Arbiter.IsVerified ) {
-				Application.LoadLevel("MainMenu");
-			} else {
-				Application.LoadLevel("Verification");
-			}
-		}
-	}
-	
-	
 	void OnGUI() {
-		UnityEngine.Debug.Log ("ttt Login.OnGUI");
-
 		GUIStyle buttonStyle = new GUIStyle("button");
 		buttonStyle.fontSize = 32;
 		GUIStyle boxStyle = new GUIStyle("box");
@@ -72,9 +49,9 @@ public class Login : MonoBehaviour {
 		}
 	}
 	
-	
+
+	// ttt td test that this is enough to catch the "auto-login"
 	private void SuccessHandler() {
-		UnityEngine.Debug.Log ("ttt Login.SuccessHAndler. is authed?="+Arbiter.IsAuthenticated);
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
@@ -82,6 +59,7 @@ public class Login : MonoBehaviour {
 				Application.LoadLevel("Verification");
 			}
 		} else {
+			// ttt td call the new(ish) create device user hiere
 			Debug.Log ("Error logging in");
 		}	
 	}

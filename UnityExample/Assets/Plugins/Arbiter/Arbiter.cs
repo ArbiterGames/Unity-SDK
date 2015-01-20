@@ -15,8 +15,10 @@ public partial class Arbiter : MonoBehaviour {
 
 	public string accessToken;
 	public string gameApiKey;
-	
+
+	/// <summary>True when the SDK knows which user is playing.</summary><remarks>Might be too slow to call this each frame.</remarks>
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
+	/// <summary>True when the authenticated user is able to participate in cash contests.</summary><remarks>Might be too slow to call this each frame.</remarks>
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		HasWallet					{ get { return WalletExists(false); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  		return user.Id; } }
@@ -51,7 +53,6 @@ public partial class Arbiter : MonoBehaviour {
 		
 		wallet = null;
 		user = null;
-		setupPollers(); // ttt this should be moved later
 
 		ErrorHandler initializeErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot initialize Arbiter. Resolve errors below:" );
@@ -64,6 +65,8 @@ public partial class Arbiter : MonoBehaviour {
 		postInitActions.ForEach( a => a.Invoke() );
 		postInitActions = null;
 		initted = true;
+
+		setupPollers(); // ttt td test that wallet polling happens at the earliest moment but without errors
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {
@@ -121,7 +124,7 @@ public partial class Arbiter : MonoBehaviour {
 		wallet = null;
 		user = null;
 
-		setupPollers();
+		// If we wanted to be less noisy, could turn off pollers here...
 
 		ArbiterBinding.Logout( success, failure );
 	}
@@ -230,13 +233,6 @@ public partial class Arbiter : MonoBehaviour {
 	
 	public delegate void JoinTournamentCallback( Tournament tournament );
 	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback success, FriendlyErrorHandler failure ) {
-
-		/* ttt keep this check clientside for now...
-		if( !IsVerified ) {
-			List<string> errors = new List<string>() { "The current user is not verified and cannot play in tournaments." };
-			failure( errors, errors );
-			return;
-		}*/
 
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
 			return (tournament.Status == Tournament.StatusType.Initializing ||

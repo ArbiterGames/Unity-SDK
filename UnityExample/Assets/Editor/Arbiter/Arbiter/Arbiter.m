@@ -88,25 +88,11 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
 
-        // ttt need to move this to a place after connection has been established...
-        /*
-        if( [self hydrateUserWithCachedToken] ) {
-            [self loginWithToken:[self.user objectForKey:USER_TOKEN]];
-        }
-        */
-        void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            //NSLog(@"ttt response=%@", innerResponse);
-            /*
-            if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
 
-            } else {
-                handler(innerResponse);
-            }
-            */
+        void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
             // ttt make this a function and find cases of it
             NSNumber* successObj = [innerResponse objectForKey:@"success"];
             if( successObj != nil && [successObj boolValue] == YES ) {
-//                    && !IS_NULL_STRING([self.user objectForKey:USER_TOKEN])) {
                 if( [self hydrateUserWithCachedToken] ) {
                     [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
                 } else {
@@ -197,14 +183,11 @@ static Arbiter *_sharedInstance = nil;
 - (bool)hydrateUserWithCachedToken {
     NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
     if ( !IS_NULL_STRING(savedToken)) {
-        // ttt
-        NSLog(@"self.user=%@", self.user);
         if (self.user == nil) {
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         } else {
             [self.user setObject:savedToken forKey:USER_TOKEN];
         }
-                NSLog(@"self.user=%@", self.user);
         return true;
     }
     return false;
@@ -257,6 +240,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
+    // ttt this function needs to handle linking w/ GC (it likes it maybe already does that?)
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         handler(@{@"success": @false,

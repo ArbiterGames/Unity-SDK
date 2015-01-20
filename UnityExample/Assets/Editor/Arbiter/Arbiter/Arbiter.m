@@ -90,9 +90,7 @@ static Arbiter *_sharedInstance = nil;
 
 
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            // ttt make this a function and find cases of it
-            NSNumber* successObj = [innerResponse objectForKey:@"success"];
-            if( successObj != nil && [successObj boolValue] == YES ) {
+            if ([self isSuccessfulResponse:innerResponse]) {
                 if( [self hydrateUserWithCachedToken] ) {
                     [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
                 } else {
@@ -195,8 +193,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSNumber* successObj = [responseDict objectForKey:@"success"];
-        if( successObj != nil && [successObj boolValue] == YES ) {
+        if ([self isSuccessfulResponse:responseDict]) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
@@ -216,8 +213,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSNumber* successObj = [responseDict objectForKey:@"success"];
-        if( successObj != nil && [successObj boolValue] == YES ) {
+        if ([self isSuccessfulResponse:responseDict]) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
@@ -303,7 +299,7 @@ static Arbiter *_sharedInstance = nil;
     
     
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        if ( [[responseDict objectForKey:@"success"] boolValue] == true ) {
+        if ([self isSuccessfulResponse:responseDict]) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
             ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
@@ -387,7 +383,7 @@ static Arbiter *_sharedInstance = nil;
      **********************************************/
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
-        if( [[geoCodeResponse objectForKey:@"success"] boolValue] == true ) {
+        if ([self isSuccessfulResponse:responseDict]) {
 
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
@@ -406,7 +402,7 @@ static Arbiter *_sharedInstance = nil;
         } else {
 
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
-                if( [[response objectForKey:@"success"] boolValue] == true ) {
+                if ([self isSuccessfulResponse:response]) {
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
                 } else {
                     handler(response);
@@ -427,15 +423,15 @@ static Arbiter *_sharedInstance = nil;
     };
 
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
-        if( [[verifyResponse objectForKey:@"success"] boolValue] == false ) {
-            [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
-            handler(verifyResponse);
-        } else {
+        if ([self isSuccessfulResponse:verifyResponse]) {
             [[ARBTracking arbiterInstance] track:@"Verify API Success"];
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
 
             [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];   
+        } else {
+            [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
+            handler(verifyResponse);
         }
     };
 
@@ -456,7 +452,7 @@ static Arbiter *_sharedInstance = nil;
     } else if( IS_NULL_STRING([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
-            if( [[response objectForKey:@"success"] boolValue] == true ) {
+            if ([self isSuccessfulResponse:responseDict]) {
                 [self postVerify:postVerifyCallback];
             } else {
                 handler(response);
@@ -683,7 +679,7 @@ static Arbiter *_sharedInstance = nil;
     
     if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
         void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
-            if ( [[dict objectForKey:@"success"] boolValue] == true ) {
+            if ([self isSuccessfulResponse:dict]) {
                 [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
             }
         } copy];
@@ -930,6 +926,13 @@ static Arbiter *_sharedInstance = nil;
     [self.panelWindow show:view];
 }
 
+
+#pragma mark Utility Helper Methods
+
+- (bool)isSuccessfulResponse:(NSDictionary*)response {
+    NSNumber* successObj = [response objectForKey:@"success"];
+    return successObj != nil && [successObj boolValue] == YES;
+}
 
 
 #pragma mark NSURLConnection Delegate Methods

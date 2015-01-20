@@ -15,8 +15,11 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		// ttt listen for it later...
-		// Arbiter.OnAuthenticated( do stuff );
+		// ttt td test that the user still auto-auths. after this change...
+		if( !Arbiter.IsAuthenticated ) {
+			Arbiter.AddUserUpdatedListener( ContinueLoading );	// ttt td what bout first time? Maybe dispatch this as user==null?
+			// tttd also need to remove this listener at the appropriate time.
+		}
 	}
 
 	void OnGUI() {
@@ -48,10 +51,15 @@ public class Login : MonoBehaviour {
 			Arbiter.Login( SuccessHandler, ErrorHandler );
 		}
 	}
-	
-
-	// ttt td test that this is enough to catch the "auto-login"
 	private void SuccessHandler() {
+		ContinueLoading(); // ttt td test trying without this case and letting the native sdk catch the userUpdated event instead (which is already implemented).
+	}
+	private void ErrorHandler( List<string> errors ) {
+		errors.ForEach( error => Debug.Log( error ));
+	}
+
+
+	void ContinueLoading() {
 		if ( Arbiter.IsAuthenticated ) {
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
@@ -59,12 +67,10 @@ public class Login : MonoBehaviour {
 				Application.LoadLevel("Verification");
 			}
 		} else {
-			// ttt td call the new(ish) create device user hiere
-			Debug.Log ("Error logging in");
+			// ttt td call the new(ish) create device user here
+			Debug.Log ("Error logging in!");
 		}	
 	}
 	
-	private void ErrorHandler( List<string> errors ) {
-		errors.ForEach( error => Debug.Log( error ));
-	}
+
 }

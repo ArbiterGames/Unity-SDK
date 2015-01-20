@@ -15,7 +15,7 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		Arbiter.AddNewUserListener( ContinueLoading );
+		Arbiter.AddSwitchedUserListener( ContinueLoading );
 		if( Arbiter.IsAuthenticated ) {
 			ContinueLoading();
 		}
@@ -55,8 +55,6 @@ public class Login : MonoBehaviour {
 		}
 	}
 	private void SuccessHandler() {
-		Debug.Log ("ttt SuccessHandler!");
-		ContinueLoading(); // ttt td test trying without this case and letting the native sdk catch the userUpdated event instead (which is already implemented).
 	}
 	private void ErrorHandler( List<string> errors ) {
 		errors.ForEach( error => Debug.Log( error ));
@@ -66,7 +64,7 @@ public class Login : MonoBehaviour {
 	void ContinueLoading() {
 		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
-			Arbiter.RemoveNewUserListener( ContinueLoading );
+			Arbiter.RemoveSwitchedUserListener( ContinueLoading );
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
 			} else {

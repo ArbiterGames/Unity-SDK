@@ -237,7 +237,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-    // ttt this function needs to handle linking w/ GC (it likes it maybe already does that?)
+    // ttt td this function needs to handle linking w/ GC (it looks like it maybe already does that?? test that this is the case...)
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         handler(@{@"success": @false,

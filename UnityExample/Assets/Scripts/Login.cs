@@ -27,8 +27,8 @@ public class Login : MonoBehaviour {
 		
 		GUI.Box(new Rect(padding, boxY, boxWidth, boxHeight), "Login Options", boxStyle);
 		
-		if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login as Anonymous", buttonStyle)) {
-			Arbiter.LoginAsAnonymous( SuccessHandler, ErrorHandler );
+		if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login with Device ID", buttonStyle)) {
+			Arbiter.LoginWithDeviceId( SuccessHandler, ErrorHandler );
 		}
 
 #if UNITY_IOS

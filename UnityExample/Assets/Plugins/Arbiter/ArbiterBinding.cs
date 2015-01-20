@@ -77,20 +77,20 @@ namespace ArbiterInternal {
 		}
 		
 
-		const string LOGIN_ANONYMOUS = "login_anon";
+		const string LOGIN_DEVICE = "login_device";
 		[DllImport ("__Internal")]
-		private static extern void _loginAsAnonymous();
-		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-			SetCallbacksWithErrors( LOGIN_ANONYMOUS, success, failure );
+		private static extern void _loginWithDeviceId();
+		public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
+			SetCallbacksWithErrors( LOGIN_DEVICE, success, failure );
 #if UNITY_EDITOR
-			ReportIgnore( "Login:Anonymous" );
+			ReportIgnore( "Login:Device" );
 			User user = new User();
 			user.Id = "FakeId123";
 			user.Name = "Anonymock";
 			Arbiter.user = user;
 			success();
 #elif UNITY_IOS
-			_loginAsAnonymous();
+			_loginWithDeviceId();
 #endif
 		}
 		
@@ -452,8 +452,8 @@ namespace ArbiterInternal {
 			SimpleCallback( INIT, jsonString );
 		}
 
-		public void LoginAsAnonymousHandler( string jsonString ) {
-			SimpleCallback( LOGIN_ANONYMOUS, jsonString );
+		public void LoginWithDeviceIdHandler( string jsonString ) {
+			SimpleCallback( LOGIN_DEVICE, jsonString );
 		}
 
 		public void LoginWithGameCenterHandler( string jsonString ) {

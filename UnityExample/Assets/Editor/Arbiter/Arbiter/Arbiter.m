@@ -209,8 +209,7 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-// ttt update this function...
-- (void)loginAsAnonymous:(void(^)(NSDictionary *))handler
+- (void)loginWithDeviceId:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([self isSuccessfulResponse:responseDict]) {
@@ -222,9 +221,11 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if ( self.hasConnection ) {
-        // Check to see if a previously-anonymous user token was saved. If so, pass that along so the server doesn't create a new user
+        // Check to see if a previous user token was saved. If so, pass that along so the server doesn't create a new user
         NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
         if ( !IS_NULL_STRING(savedToken)) {
+            // This will blow away the local state (minus the auth token) of any in memory user, but the 
+            //      server should return the same info back down to the client, anyway
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
@@ -361,7 +362,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)verifyUser:(void(^)(NSDictionary *))handler tryToGetLatLong:(BOOL)tryToGetLatLong
 {
     if( self.user == nil ) {
-        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling VerifyUser.");
+        NSLog(@"Arbiter Error: Cannot verify users since no user is currently logged in. Call one of the Login first.");
         handler( @{@"success": @"false"} );
         return;
     }
@@ -383,7 +384,7 @@ static Arbiter *_sharedInstance = nil;
      **********************************************/
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
-        if ([self isSuccessfulResponse:responseDict]) {
+        if ([self isSuccessfulResponse:geoCodeResponse]) {
 
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
@@ -452,7 +453,7 @@ static Arbiter *_sharedInstance = nil;
     } else if( IS_NULL_STRING([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
 
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
-            if ([self isSuccessfulResponse:responseDict]) {
+            if ([self isSuccessfulResponse:response]) {
                 [self postVerify:postVerifyCallback];
             } else {
                 handler(response);
@@ -608,7 +609,7 @@ static Arbiter *_sharedInstance = nil;
         }
     } else {
         handler(@{@"success": @"false",
-                  @"errors": @[@"No user is currently logged in. Use the Login, LoginAsAnonymous, or LoginWithGameCenter, to get an Arbiter User."]
+                  @"errors": @[@"No user is currently logged in."]
                   });
     }
 }
@@ -649,7 +650,7 @@ static Arbiter *_sharedInstance = nil;
             populateThenShowPanel();
         }
     } else {
-        NSLog(@"Arbiter Error: No user is currently logged in. Use one of the Authentication methods (LoginAsAnonymous, LoginWithGameCenter, or Login) to initalize a user before calling ShowWalletPanel.");
+        NSLog(@"Arbiter Error: No user is currently logged in.");
     }
 }
 

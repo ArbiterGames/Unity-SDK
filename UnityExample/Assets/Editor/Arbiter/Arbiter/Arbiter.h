@@ -45,7 +45,7 @@ void ClientCallbackWalletUpdated();
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token;
-- (void)loginAsAnonymous:(void(^)(NSDictionary *))handler;
+- (void)loginWithDeviceId:(void(^)(NSDictionary *))handler;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;
 - (void)logout:(void(^)(NSDictionary *))handler;

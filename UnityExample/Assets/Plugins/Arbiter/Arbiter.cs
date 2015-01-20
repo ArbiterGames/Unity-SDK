@@ -97,9 +97,12 @@ public partial class Arbiter : MonoBehaviour {
 		});
 	}
 
-	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
+	/// <summary>
+	/// This is only necessary to call if there is no cached user credentials on device. But calling it reduantly (ttt sp) is harmless.
+	/// </summary>
+	public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
 		WaitUntilInitted( () => { 
-			ArbiterBinding.LoginAsAnonymous( success, failure );
+			ArbiterBinding.LoginWithDeviceId( success, failure );
 		});
 	}
 

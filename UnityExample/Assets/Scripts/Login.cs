@@ -15,9 +15,9 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		if( !Arbiter.IsAuthenticated ) {
-			Arbiter.AddNewUserListener( ContinueLoading );
-			// tttd also need to remove this listener at the appropriate time.
+		Arbiter.AddNewUserListener( ContinueLoading );
+		if( Arbiter.IsAuthenticated ) {
+			ContinueLoading();
 		}
 	}
 
@@ -66,6 +66,7 @@ public class Login : MonoBehaviour {
 	void ContinueLoading() {
 		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
+			Arbiter.RemoveNewUserListener( ContinueLoading );
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
 			} else {

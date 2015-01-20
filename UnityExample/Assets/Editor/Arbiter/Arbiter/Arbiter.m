@@ -259,6 +259,12 @@ static Arbiter *_sharedInstance = nil;
                     handler( @{@"success": @false,
                                @"errors": @[[error localizedDescription]]});
                 } else {
+                    // ttt td: test that the server responds w/ an error if this authtoken (and hence device id) is already associated
+                    //      with a GC account that differs from the one the player is currently logged-in as
+
+                    // XOR - in this case just ditch the authtoken or replace it w/ what the GC call uses? Which
+                    //        implies that the server ignores the authtoken for this call and treats the GC
+                    //          credentials authoritatively.
                     NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
                                                  @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
                                                  @"signature":[signature base64EncodedStringWithOptions:0],

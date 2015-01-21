@@ -15,10 +15,12 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		Arbiter.AddSwitchedUserListener( ContinueLoading );
-		if( Arbiter.IsAuthenticated ) {
-			ContinueLoading();
-		}
+		Debug.Log ("ttt Login.Start()");
+		Arbiter.AddSwitchedUserListener( ReactToUserChange );
+		//if( Arbiter.IsAuthenticated || !firstTimeStartingLogin ) {
+			ReactToUserChange();
+		//}
+		//ttt firstTimeStartingLogin = false;
 	}
 
 	void OnGUI() {
@@ -55,29 +57,30 @@ public class Login : MonoBehaviour {
 		}
 	}
 	private void SuccessHandler() {
+		Debug.Log ("ttt init success!");
+		ReactToUserChange();
 	}
 	private void ErrorHandler( List<string> errors ) {
 		errors.ForEach( error => Debug.Log( error ));
 	}
 
 
-	void ContinueLoading() {
+	void ReactToUserChange() {
 		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
-			Arbiter.RemoveSwitchedUserListener( ContinueLoading );
+			Arbiter.RemoveSwitchedUserListener( ReactToUserChange );
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
 			} else {
 				Application.LoadLevel("Verification");
 			}
 		} else {
-			// ttt td call the new(ish) create device user here
-			Debug.Log ("Error logging in!");
+			// Signal that we should show the UI to have the user pick which way to log in
 			needsNewUser = true;
-		}	
+		}
 	}
 
 
+	static bool firstTimeStartingLogin = true;
 	bool needsNewUser = false;
-
 }

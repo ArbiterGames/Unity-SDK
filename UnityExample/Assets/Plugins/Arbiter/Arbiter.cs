@@ -70,7 +70,7 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {
-			a.Invoke ();
+			a.Invoke();
 		} else {
 			Debug.Log( "Arbiter is not yet logged-in, queueing request Action: "+a );
 			postInitActions.Add( a );
@@ -148,7 +148,7 @@ public partial class Arbiter : MonoBehaviour {
 	/// <summary>
 	/// For when a new or different user just authenticated
 	/// </summary>
-	public static void AddSwitchedUserListener( Action listener ) {
+	public static void AddSwitchedUserListener( Action listener ) { // ttt rename to ChangedUser?
 		if( !switchedUserListeners.Contains( listener ))
 			switchedUserListeners.Add( listener );
 	}

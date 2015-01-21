@@ -95,6 +95,9 @@ static Arbiter *_sharedInstance = nil;
                     [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
                 } else {
                     handler(innerResponse);
+                    // At this point, we know that no user is logged in. So we are going from
+                    //      undefined user to no user.
+                    ClientCallbackUserUpdated();
                 }
             } else {
                 handler(innerResponse);
@@ -153,10 +156,12 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)setUser:(NSMutableDictionary*)user
 {
+    bool wasNil = self._user == nil;
     self._user = user;
     
     // If this is a "full" user, save it and alert any listeners
-    if( !IS_NULL_STRING([user objectForKey:@"id"]) ) {
+    // Also need to alert when the user first goes null (eg logout)
+    if( !IS_NULL_STRING([user objectForKey:@"id"]) || (!wasNil && self._user == nil)) {
         ClientCallbackUserUpdated();
         [self saveUserToken:user];
     }
@@ -241,7 +246,6 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-    // ttt td this function needs to handle linking w/ GC (it looks like it maybe already does that?? test that this is the case...)
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
         handler(@{@"success": @false,
@@ -263,12 +267,8 @@ static Arbiter *_sharedInstance = nil;
                     handler( @{@"success": @false,
                                @"errors": @[[error localizedDescription]]});
                 } else {
-                    // ttt td: test that the server responds w/ an error if this authtoken (and hence device id) is already associated
-                    //      with a GC account that differs from the one the player is currently logged-in as
-
-                    // XOR - in this case just ditch the authtoken or replace it w/ what the GC call uses? Which
-                    //        implies that the server ignores the authtoken for this call and treats the GC
-                    //          credentials authoritatively.
+                    // ttt td: test that the server properly uses the GC credentials instead of the token for when
+                    //      the user deliberately switches to a new GC account.
                     NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
                                                  @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
                                                  @"signature":[signature base64EncodedStringWithOptions:0],

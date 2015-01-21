@@ -981,7 +981,8 @@ static Arbiter *_sharedInstance = nil;
 
 - (NSString*)buildDeviceHash {
     ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-    NSString* deviceId = arbiterInstance.distinctId;
+    //NSString* deviceId = arbiterInstance.distinctId;
+    NSString* deviceId = [UIDevice currentDevice].identifierForVendor.UUIDString;
     NSString* apiKey = self.apiKey;
     NSString* hash = [self sha1:[deviceId stringByAppendingString:apiKey]];
     return [NSString stringWithFormat:@"Did: %@", hash];

@@ -15,7 +15,6 @@ public class Login : MonoBehaviour {
 	
 
 	void Start() {
-		Debug.Log ("ttt Login.Start()");
 		Arbiter.AddUserChangedListener( ReactToUserChange );
 		ReactToUserChange();
 	}
@@ -55,7 +54,6 @@ public class Login : MonoBehaviour {
 		}
 	}
 	private void SuccessHandler() {
-		Debug.Log ("ttt init success!");
 		ReactToUserChange();
 	}
 	private void ErrorHandler( List<string> errors ) {
@@ -64,7 +62,6 @@ public class Login : MonoBehaviour {
 
 
 	void ReactToUserChange() {
-		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
 			Arbiter.RemoveUserChangedListener( ReactToUserChange );
 			if ( Arbiter.IsVerified ) {

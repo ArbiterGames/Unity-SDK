@@ -950,13 +950,20 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    [self httpGet:url params:nil isBlocking:isBlocking handler:handler];
+    [self httpGet:url params:nil authHeader:[self getAuthToken] isBlocking:isBlocking handler:handler];
 }
 
-- (void)httpGet:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+- (NSString*)getAuthToken {
+    if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
+        return [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
+    } else {
+        return [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
+    }
+}
+
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params authHeader:(NSString*)authHeader isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
-    NSString *tokenValue;
     
     if( params != nil ) {
         [urlParams appendString:@"?"];
@@ -971,15 +978,9 @@ static Arbiter *_sharedInstance = nil;
                                     requestWithURL:[NSURL URLWithString:fullUrl]
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
-
-    if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
-    } else {
-        tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
-    }
     
     [request setHTTPShouldHandleCookies:NO];
-    [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
+    [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
     [_connectionHandlerRegistry setObject:handler forKey:key];
     if ( isBlocking ) {

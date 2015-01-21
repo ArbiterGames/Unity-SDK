@@ -976,7 +976,7 @@ static Arbiter *_sharedInstance = nil;
 }
 
 - (NSString*)buildDeviceAuthToken {
-    return [NSString stringWithFormat:@"Token: %@::did:%@", self.accessToken, [self buildDeviceHash]];
+    return [NSString stringWithFormat:@"Token %@::did:%@", self.accessToken, [self buildDeviceHash]];
 }
 
 

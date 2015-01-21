@@ -16,11 +16,8 @@ public class Login : MonoBehaviour {
 
 	void Start() {
 		Debug.Log ("ttt Login.Start()");
-		Arbiter.AddSwitchedUserListener( ReactToUserChange );
-		//if( Arbiter.IsAuthenticated || !firstTimeStartingLogin ) {
-			ReactToUserChange();
-		//}
-		//ttt firstTimeStartingLogin = false;
+		Arbiter.AddUserChangedListener( ReactToUserChange );
+		ReactToUserChange();
 	}
 
 	void OnGUI() {
@@ -45,6 +42,7 @@ public class Login : MonoBehaviour {
 						Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
 					}
 				};
+				// tttd why is this failing!?
 				Social.localUser.Authenticate( processAuth );
 			}
 #endif
@@ -68,7 +66,7 @@ public class Login : MonoBehaviour {
 	void ReactToUserChange() {
 		UnityEngine.Debug.Log("ttt ContinueLoading called!");
 		if ( Arbiter.IsAuthenticated ) {
-			Arbiter.RemoveSwitchedUserListener( ReactToUserChange );
+			Arbiter.RemoveUserChangedListener( ReactToUserChange );
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
 			} else {
@@ -80,7 +78,6 @@ public class Login : MonoBehaviour {
 		}
 	}
 
-
-	static bool firstTimeStartingLogin = true;
+	
 	bool needsNewUser = false;
 }

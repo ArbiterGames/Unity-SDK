@@ -148,12 +148,12 @@ public partial class Arbiter : MonoBehaviour {
 	/// <summary>
 	/// For when a new or different user just authenticated
 	/// </summary>
-	public static void AddSwitchedUserListener( Action listener ) { // ttt rename to ChangedUser?
-		if( !switchedUserListeners.Contains( listener ))
-			switchedUserListeners.Add( listener );
+	public static void AddUserChangedListener( Action listener ) {
+		if( !userChangedListeners.Contains( listener ))
+			userChangedListeners.Add( listener );
 	}
-	public static void RemoveSwitchedUserListener( Action listener ) {
-		switchedUserListeners.Remove( listener );
+	public static void RemoveUserChangedListener( Action listener ) {
+		userChangedListeners.Remove( listener );
 	}
 
 
@@ -429,7 +429,7 @@ public partial class Arbiter : MonoBehaviour {
 	internal static Wallet wallet;
 
 	internal static List<Action> userUpdatedListeners = new List<Action>();
-	internal static List<Action> switchedUserListeners = new List<Action>();
+	internal static List<Action> userChangedListeners = new List<Action>();
 	internal static List<Action> walletUpdatedListeners = new List<Action>();
 	private static Action walletSuccessCallback;
 

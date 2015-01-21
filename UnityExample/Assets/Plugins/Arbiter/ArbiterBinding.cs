@@ -48,7 +48,7 @@ namespace ArbiterInternal {
 			} else {
 				Debug.Log ("ttt New");
 				Arbiter.user = UserProtocol.Parse( jsonString );
-				Arbiter.switchedUserListeners.ForEach( listener => listener() );
+				Arbiter.userChangedListeners.ForEach( listener => listener() );
 			}
 		}
 

@@ -11,6 +11,7 @@
 #import <Foundation/Foundation.h>
 #import <GameKit/GameKit.h>
 #import <CoreLocation/CoreLocation.h>
+#import <CommonCrypto/CommonDigest.h>
 #import "Reachability.h"
 #import "ARBConstants.h"
 #import "Arbiter.h"
@@ -212,7 +213,7 @@ static Arbiter *_sharedInstance = nil;
 
     if ( self.hasConnection ) {
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
+        [self httpGet:APIUserInitializeURL params:urlParams authHeader:[self getAuthToken] isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -238,7 +239,7 @@ static Arbiter *_sharedInstance = nil;
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpGet:APIUserInitializeURL params:urlParams isBlocking:NO handler:connectionHandler];
+        [self httpGet:APIUserInitializeURL params:urlParams authHeader:[self buildDeviceHash] isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -945,6 +946,23 @@ static Arbiter *_sharedInstance = nil;
     return successObj != nil && [successObj boolValue] == YES;
 }
 
+-(NSString*) sha1:(NSString*)str
+{
+    const char *cstr = [str cStringUsingEncoding:NSUTF8StringEncoding];
+    NSData *data = [NSData dataWithBytes:cstr length:str.length];
+ 
+    uint8_t digest[CC_SHA1_DIGEST_LENGTH];
+    CC_SHA1(data.bytes, data.length, digest);
+ 
+    NSMutableString* hash = [NSMutableString stringWithCapacity:CC_SHA1_DIGEST_LENGTH * 2];
+ 
+    for(int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++)
+        [hash appendFormat:@"%02x", digest[i]];
+ 
+    return hash;
+}
+
+
 
 #pragma mark NSURLConnection Delegate Methods
 
@@ -959,6 +977,14 @@ static Arbiter *_sharedInstance = nil;
     } else {
         return [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
     }
+}
+
+- (NSString*)buildDeviceHash {
+    ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+    NSString* deviceId = arbiterInstance.distinctId;
+    NSString* apiKey = self.apiKey;
+    NSString* hash = [self sha1:[deviceId stringByAppendingString:apiKey]];
+    return [NSString stringWithFormat:@"Did: %@", hash];
 }
 
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authHeader:(NSString*)authHeader isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler

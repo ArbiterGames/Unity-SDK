@@ -964,9 +964,9 @@ static Arbiter *_sharedInstance = nil;
 
 - (NSString*)getExistingAuthToken {
     if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-        return [NSString stringWithFormat:@"Token %@::%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
+        return [NSString stringWithFormat:@"Token %@::key:%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
     } else {
-        return [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
+        return [NSString stringWithFormat:@"Token %@::key:%@", self.accessToken, self.apiKey];
     }
 }
 

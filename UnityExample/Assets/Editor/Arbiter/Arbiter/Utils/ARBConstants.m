@@ -7,32 +7,32 @@
 //
 #import "ARBConstants.h"
 
-NSString *const APIUserInitializeURL = @"https://staging.arbiter.me/api/v1/user/initialize";
-NSString *const APIWalletURL = @"https://staging.arbiter.me/api/v1/wallet/";
-NSString *const APIWalletDashboardWebViewURL = @"https://staging.arbiter.me/api/v1/wallet/webview/";
-NSString *const APISendPromoCreditsURL = @"https://staging.arbiter.me/api/v1/promo-credits/send";
-NSString *const APIUserLoginURL = @"https://staging.arbiter.me/api/v1/user/login";
-NSString *const APIUserLogoutURL = @"https://staging.arbiter.me/api/v1/user/logout";
-NSString *const APILinkWithGameCenterURL = @"https://staging.arbiter.me/api/v1/user/link-with-game-center";
-NSString *const APIUserDetailsURL = @"https://staging.arbiter.me/api/v1/user/";
-NSString *const APITournamentCreateURL = @"https://staging.arbiter.me/api/v1/tournament/create";
-NSString *const APIRequestTournamentURL = @"https://staging.arbiter.me/api/v1/tournament";
-NSString *const APITournamentBaseURL = @"https://staging.arbiter.me/api/v1/tournament/";
-NSString *const APITournamentMarkAsViewed = @"https://staging.arbiter.me/api/v1/tournament/mark-as-viewed";
+NSString *const APIUserInitializeURL = @"http://staging.arbiter.me/api/v1/user/initialize";
+NSString *const APIWalletURL = @"http://staging.arbiter.me/api/v1/wallet/";
+NSString *const APIWalletDashboardWebViewURL = @"http://staging.arbiter.me/api/v1/wallet/webview/";
+NSString *const APISendPromoCreditsURL = @"http://staging.arbiter.me/api/v1/promo-credits/send";
+NSString *const APIUserLoginURL = @"http://staging.arbiter.me/api/v1/user/login";
+NSString *const APIUserLogoutURL = @"http://staging.arbiter.me/api/v1/user/logout";
+NSString *const APILinkWithGameCenterURL = @"http://staging.arbiter.me/api/v1/user/link-with-game-center";
+NSString *const APIUserDetailsURL = @"http://staging.arbiter.me/api/v1/user/";
+NSString *const APITournamentCreateURL = @"http://staging.arbiter.me/api/v1/tournament/create";
+NSString *const APIRequestTournamentURL = @"http://staging.arbiter.me/api/v1/tournament";
+NSString *const APITournamentBaseURL = @"http://staging.arbiter.me/api/v1/tournament/";
+NSString *const APITournamentMarkAsViewed = @"http://staging.arbiter.me/api/v1/tournament/mark-as-viewed";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
-NSString *const APICashChallengeCreateURL = @"https://staging.arbiter.me/api/v1/score-challenge/create";
-NSString *const APICashChallengeBaseURL = @"https://staging.arbiter.me/api/v1/score-challenge/";
-NSString *const APICashChallengeRulesURL = @"https://staging.arbiter.me/api/v1/regulation/challenge-rules/";
+NSString *const APICashChallengeCreateURL = @"http://staging.arbiter.me/api/v1/score-challenge/create";
+NSString *const APICashChallengeBaseURL = @"http://staging.arbiter.me/api/v1/score-challenge/";
+NSString *const APICashChallengeRulesURL = @"http://staging.arbiter.me/api/v1/regulation/challenge-rules/";
 NSString *const APICashChallengeAcceptURLPart2 = @"/accept";
 NSString *const APICashChallengeRejectURLPart2 = @"/reject";
 NSString *const APICashChallengeReportURLPart2 = @"/report-score";
 
-NSString *const APIDepositURL = @"https://staging.arbiter.me/stripe/deposit";
-NSString *const APIWithdrawURL = @"https://staging.arbiter.me/stripe/withdraw";
+NSString *const APIDepositURL = @"http://staging.arbiter.me/stripe/deposit";
+NSString *const APIWithdrawURL = @"http://staging.arbiter.me/stripe/withdraw";
 
-NSString *const GameSettingsURL = @"https://staging.arbiter.me/api/v1/games/";
-NSString *const BundleURL = @"https://staging.arbiter.me/cashier/bundle";
+NSString *const GameSettingsURL = @"http://staging.arbiter.me/api/v1/games/";
+NSString *const BundleURL = @"http://staging.arbiter.me/cashier/bundle";
 NSString *const StripeTestPublishableKey = @"pk_test_1SQ84edElZEWoGqlR7XB9V5j";
 NSString *const StripeLivePublishableKey = @"pk_live_VxZ9u3zgtCRtaDe62rQyMwuj";
 

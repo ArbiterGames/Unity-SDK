@@ -91,17 +91,13 @@ static Arbiter *_sharedInstance = nil;
 
 
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            if ([self isSuccessfulResponse:innerResponse]) {    // ttt need to remove this check and assume it's always successfule
-                if( [self hydrateUserWithCachedToken] ) {
-                    [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
-                } else {
-                    handler(innerResponse);
-                    // At this point, we know that no user is logged in. So we are going from
-                    //      undefined user to no user.
-                    ClientCallbackUserUpdated();
-                }
+            if( [self hydrateUserWithCachedToken] ) {
+                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
             } else {
                 handler(innerResponse);
+                // At this point, we know that no user is logged in. So we are going from
+                //      undefined user to no user.
+                ClientCallbackUserUpdated();
             }
         } copy];
         [self establishConnection:handlerWrapper];

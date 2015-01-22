@@ -41,7 +41,6 @@ public class Login : MonoBehaviour {
 						Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
 					}
 				};
-				// tttd why is this failing!?
 				Social.localUser.Authenticate( processAuth );
 			}
 #endif

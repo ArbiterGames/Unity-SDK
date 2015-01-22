@@ -79,7 +79,7 @@ void _init( const char *apiKey, const char *accessToken )
 
 void _loginWithDeviceId()
 {
-    [[Arbiter sharedInstance] loginWithDeviceId:^(NSDictionary *jsonDict) {
+    [[Arbiter sharedInstance] loginWithDevice:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "LoginWithDeviceIdHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }

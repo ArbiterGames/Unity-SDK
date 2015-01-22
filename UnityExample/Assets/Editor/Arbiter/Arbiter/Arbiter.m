@@ -93,7 +93,8 @@ static Arbiter *_sharedInstance = nil;
 
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
             if( [self hydrateUserWithCachedToken] ) {
-                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
+                [self loginWithDevice:handler];
+//ttt                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
             } else {
                 handler(innerResponse);
                 // At this point, we know that no user is logged in. So we are going from
@@ -208,7 +209,7 @@ static Arbiter *_sharedInstance = nil;
         return false;
     }
 }
-
+/* ttt kill?
 - (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([self isSuccessfulResponse:responseDict]) {
@@ -226,8 +227,8 @@ static Arbiter *_sharedInstance = nil;
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
 }
-
-- (void)loginWithDeviceId:(void(^)(NSDictionary *))handler
+*/
+- (void)loginWithDevice:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([self isSuccessfulResponse:responseDict]) {

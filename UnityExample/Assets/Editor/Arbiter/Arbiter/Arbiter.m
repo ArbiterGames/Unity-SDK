@@ -145,7 +145,7 @@ static Arbiter *_sharedInstance = nil;
     [reach startNotifier];
 
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl params:nil authToken:self.accessToken isBlocking:NO handler:connectionHandler];
+    [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
 }
 
 
@@ -221,7 +221,7 @@ static Arbiter *_sharedInstance = nil;
 
     if ( self.hasConnection ) {
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -250,7 +250,7 @@ static Arbiter *_sharedInstance = nil;
         // }  ... and if that is able to be removed, try just combining loginWithDeviceId & loginWithToken
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
         //tttt [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
-        [self httpPost:APIUserLoginDevice params:urlParams authToken:nil isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -287,7 +287,7 @@ static Arbiter *_sharedInstance = nil;
                                                  @"game_center_username": localPlayer.alias,
                                                  @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
                                                  @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-                    [self httpPost:APILinkWithGameCenterURL params:paramsDict authToken:nil isBlocking:NO handler:connectionHandler];
+                    [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
                 }
             }];
         } else {
@@ -339,7 +339,7 @@ static Arbiter *_sharedInstance = nil;
             if ( self.hasConnection ) {
                 NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
                 [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
-                [self httpPost:APIUserLoginURL params:params authToken:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+                [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
             } else {
                 handler(_NO_CONNECTION_RESPONSE_DICT);
             }
@@ -364,7 +364,7 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if ( self.hasConnection ) {
-        [self httpPost:APIUserLogoutURL params:nil authHeader:nil isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -522,7 +522,7 @@ static Arbiter *_sharedInstance = nil;
     NSMutableString *verificationUrl = [NSMutableString stringWithString: APIUserDetailsURL];
     [verificationUrl appendString: [self.user objectForKey:@"id"]];
     [verificationUrl appendString: @"/verify"];
-    [self httpPost:verificationUrl params:postParams authHeader:[self getExistingAuthToken] isBlocking:YES handler:handler];
+    [self httpPost:verificationUrl params:postParams isBlocking:YES handler:handler];
 }
 
 - (bool)isUserVerified
@@ -677,9 +677,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
     if ( self.hasConnection ) {
-        [self httpPostAsDeveloper:APISendPromoCreditsURL
-                           params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]}
-                          handler:handler];
+        [self httpPost:APISendPromoCreditsURL params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]} authTokenOverride:self.accessToken isBlocking:NO handler:handler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -701,13 +699,13 @@ static Arbiter *_sharedInstance = nil;
     if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
         void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
             if ([self isSuccessfulResponse:dict]) {
-                [self httpPost:APITournamentCreateURL params:paramsDict authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+                [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
             }
         } copy];
         [self verifyUser:verifyCallback];
     } else {
         if ( self.hasConnection ) {
-            [self httpPost:APITournamentCreateURL params:paramsDict authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+            [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
         } else {
             handler(_NO_CONNECTION_RESPONSE_DICT);
         }
@@ -863,7 +861,7 @@ static Arbiter *_sharedInstance = nil;
     
     if ( self.hasConnection ) {
         NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
-        [self httpPost:requestUrl params:paramsDict authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+        [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -871,7 +869,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)markViewedTournament:(void(^)(void))handler tournamentIds:(NSMutableArray*)tournamentIds
 {
-    [self httpPost:APITournamentMarkAsViewed params:@{@"tournaments": tournamentIds} authHeader:[self getExistingAuthToken] isBlocking:NO handler:[handler copy]];
+    [self httpPost:APITournamentMarkAsViewed params:@{@"tournaments": tournamentIds} isBlocking:NO handler:[handler copy]];
 }
 
 - (void)showWalkThrough:(void (^)(void))handler walkThroughId:(NSString *)walkThroughId
@@ -896,7 +894,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)requestCashChallenge:(void(^)(NSDictionary *))handler filters:(NSString*)filters
 {
     if ( self.hasConnection ) {
-        [self httpPost:APICashChallengeCreateURL params:@{@"filters":filters} authHeader:[self getExistingAuthToken] isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:APICashChallengeCreateURL params:@{@"filters":filters} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {
@@ -908,7 +906,7 @@ static Arbiter *_sharedInstance = nil;
 {
     if ( self.hasConnection ) {
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeAcceptURLPart2];
-        [self httpPost:url params:nil authHeader:[self getExistingAuthToken] isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {
@@ -920,7 +918,7 @@ static Arbiter *_sharedInstance = nil;
 {
     if ( self.hasConnection ) {
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeRejectURLPart2];
-        [self httpPost:url params:nil authHeader:[self getExistingAuthToken] isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {
@@ -932,7 +930,7 @@ static Arbiter *_sharedInstance = nil;
 {
     if ( self.hasConnection ) {
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeReportURLPart2];
-        [self httpPost:url params:@{@"score": score} authHeader:[self getExistingAuthToken] isBlocking:NO handler:[^(NSDictionary *responseDict) {
+        [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
     } else {
@@ -999,14 +997,17 @@ static Arbiter *_sharedInstance = nil;
 
 #pragma mark NSURLConnection Delegate Methods
 
-/* ttt kill??
+
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    [self httpGet:url params:nil authHeader:[self getExistingAuthToken] isBlocking:isBlocking handler:handler];
+    [self httpGet:url params:nil authTokenOverride:[self.user objectForKey:USER_TOKEN] isBlocking:isBlocking handler:handler];
 }
-*/
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+{
+    [self httpGet:url params:params authTokenOverride:[self.user objectForKey:USER_TOKEN] isBlocking:isBlocking handler:handler];
+}
 
-- (void)httpGet:(NSString*)url params:(NSDictionary*)params authToken:(NSString*)authToken isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
     if( params != nil ) {
@@ -1016,7 +1017,7 @@ static Arbiter *_sharedInstance = nil;
         }];
     }
 
-    NSString *authHeader = [self formattedAuthHeaderForToken:authToken];
+    NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
 
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
     NSLog( @"ArbiterSDK GET %@", fullUrl );
@@ -1036,7 +1037,11 @@ static Arbiter *_sharedInstance = nil;
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
--(void)httpPost:(NSString*)url params:(NSDictionary*)params authToken:(NSString*)authToken isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+{
+    [self httpPost:url params:params authTokenOverride:[self.user objectForKey:USER_TOKEN] isBlocking:isBlocking handler:handler];
+}
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
@@ -1052,7 +1057,8 @@ static Arbiter *_sharedInstance = nil;
                                                    error:&error];
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
 
-    NSString *authHeader = [self formattedAuthHeaderForToken:authToken];
+    NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
+    NSLog(@"ttt authHeader=%@", authHeader);
     
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);
@@ -1081,6 +1087,7 @@ static Arbiter *_sharedInstance = nil;
 }
 
 // ttt use this for places where the SDK is posting w/ the developer's access token. And then can drop the whole accessToken param from this function
+/*
 -(void)httpPostAsDeveloper:(NSString *)url params:(NSDictionary *)params handler:(void (^)(NSDictionary *))handler
 {
     NSLog( @"ArbiterSDK POST %@", url );
@@ -1114,6 +1121,7 @@ static Arbiter *_sharedInstance = nil;
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
 }
+*/
 
 - (void)addRequestToQueue:(NSString *)key
 {

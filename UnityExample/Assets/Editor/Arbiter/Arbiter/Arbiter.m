@@ -91,7 +91,7 @@ static Arbiter *_sharedInstance = nil;
 
 
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            if ([self isSuccessfulResponse:innerResponse]) {
+            if ([self isSuccessfulResponse:innerResponse]) {    // ttt need to remove this check and assume it's always successfule
                 if( [self hydrateUserWithCachedToken] ) {
                     [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
                 } else {
@@ -213,7 +213,7 @@ static Arbiter *_sharedInstance = nil;
 
     if ( self.hasConnection ) {
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpGet:APIUserInitializeURL params:urlParams authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -239,7 +239,7 @@ static Arbiter *_sharedInstance = nil;
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpGet:APIUserInitializeURL params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -268,8 +268,6 @@ static Arbiter *_sharedInstance = nil;
                     handler( @{@"success": @false,
                                @"errors": @[[error localizedDescription]]});
                 } else {
-                    // ttt td: test that the server properly uses the GC credentials instead of the token for when
-                    //      the user deliberately switches to a new GC account.
                     NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
                                                  @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
                                                  @"signature":[signature base64EncodedStringWithOptions:0],
@@ -962,21 +960,23 @@ static Arbiter *_sharedInstance = nil;
     return hash;
 }
 
+// ttt it'd be better if we didn't have to do an if in here. That logic probably belongs in one/more of the caller functions.
 - (NSString*)getExistingAuthToken {
     if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-        return [NSString stringWithFormat:@"Token %@::key:%@", [self.user objectForKey:USER_TOKEN], self.apiKey];
+        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", [self.user objectForKey:USER_TOKEN], self.apiKey, [self buildDeviceHash]];
     } else {
-        return [NSString stringWithFormat:@"Token %@::key:%@", self.accessToken, self.apiKey];
+        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]];
     }
 }
 
-- (NSString*)buildDeviceHash {
+- (NSString*)buildDeviceHash { // ttt probably should cache this for speed
     NSString* deviceId = [UIDevice currentDevice].identifierForVendor.UUIDString;
     return [self sha1:[deviceId stringByAppendingString:self.apiKey]];
 }
 
 - (NSString*)buildDeviceAuthToken {
-    return [NSString stringWithFormat:@"Token %@::did:%@", self.accessToken, [self buildDeviceHash]];
+    NSLog(@"ttt authorizationTokenHeaderThing=%@",[NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]]);
+    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]];
 }
 
 

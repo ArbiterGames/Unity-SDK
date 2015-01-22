@@ -9,12 +9,13 @@
 
 #define IS_NULL_STRING(value) (value == nil || value == (id)[NSNull null] || ([value isKindOfClass:[NSString class]] && ([value isEqualToString:@""] || [value isEqualToString:@"<null>"]))) ? YES : NO
 
-extern NSString *const APIUserInitializeURL;
+// tttt extern NSString *const APIUserInitializeURL;
 extern NSString *const APIWalletURL;
 extern NSString *const APIWalletDashboardWebViewURL;
 extern NSString *const APISendPromoCreditsURL;
 extern NSString *const APIUserLoginURL;
 extern NSString *const APIUserLogoutURL;
+extern NSString *const APIUserLoginDevice;
 extern NSString *const APILinkWithGameCenterURL;
 extern NSString *const APIUserDetailsURL;
 extern NSString *const APITournamentCreateURL;

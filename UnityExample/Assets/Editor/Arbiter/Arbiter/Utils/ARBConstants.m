@@ -7,12 +7,13 @@
 //
 #import "ARBConstants.h"
 
-NSString *const APIUserInitializeURL = @"http://staging.arbiter.me/api/v1/user/initialize";
+// ttt remove NSString *const APIUserInitializeURL = @"http://staging.arbiter.me/api/v1/user/initialize";
 NSString *const APIWalletURL = @"http://staging.arbiter.me/api/v1/wallet/";
 NSString *const APIWalletDashboardWebViewURL = @"http://staging.arbiter.me/api/v1/wallet/webview/";
 NSString *const APISendPromoCreditsURL = @"http://staging.arbiter.me/api/v1/promo-credits/send";
 NSString *const APIUserLoginURL = @"http://staging.arbiter.me/api/v1/user/login";
 NSString *const APIUserLogoutURL = @"http://staging.arbiter.me/api/v1/user/logout";
+NSString *const APIUserLoginDevice = @"http://staging.arbiter.me/api/v1/user/login-by-device";
 NSString *const APILinkWithGameCenterURL = @"http://staging.arbiter.me/api/v1/user/link-with-game-center";
 NSString *const APIUserDetailsURL = @"http://staging.arbiter.me/api/v1/user/";
 NSString *const APITournamentCreateURL = @"http://staging.arbiter.me/api/v1/tournament/create";

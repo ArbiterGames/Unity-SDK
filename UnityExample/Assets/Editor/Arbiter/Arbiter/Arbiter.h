@@ -32,6 +32,9 @@ void ClientCallbackWalletUpdated();
 @property (copy) NSString *currentIncompleteTournamentId;
 @property (strong, atomic) id<ARBWalletObserver> walletObserver;
 
+@property (strong, atomic) NSString* _deviceHash;
+- (NSString*)deviceHash;
+
 @property (strong, atomic) NSMutableDictionary* _user;
 - (void)setUser:(NSMutableDictionary *)user;
 - (NSMutableDictionary *)user;

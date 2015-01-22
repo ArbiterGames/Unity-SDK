@@ -77,6 +77,7 @@ static Arbiter *_sharedInstance = nil;
         self.hasConnection = NO;
         self.apiKey = apiKey;
         self.accessToken = accessToken;
+        self._deviceHash = [self buildDeviceHash];
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
@@ -144,7 +145,18 @@ static Arbiter *_sharedInstance = nil;
     [reach startNotifier];
 
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl isBlocking:NO handler:connectionHandler];
+    [self httpGet:gameSettingsUrl params:nil authToken:self.accessToken isBlocking:NO handler:connectionHandler];
+}
+
+
+- (NSString*)deviceHash
+{
+    return self._deviceHash;
+}
+// NOTE: Use the self.deviceHash property to get the hash. This is designed to be called once and then cash it in the deviceHash property.
+- (NSString*)buildDeviceHash {
+    NSString* deviceId = [UIDevice currentDevice].identifierForVendor.UUIDString;
+    return [self sha1:[deviceId stringByAppendingString:self.apiKey]];
 }
 
 
@@ -163,7 +175,6 @@ static Arbiter *_sharedInstance = nil;
         [self saveUserToken:user];
     }
 }
-
 - (NSMutableDictionary *)user
 {
     return self._user;
@@ -193,8 +204,9 @@ static Arbiter *_sharedInstance = nil;
             [self.user setObject:savedToken forKey:USER_TOKEN];
         }
         return true;
+    } else {
+        return false;
     }
-    return false;
 }
 
 - (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token {
@@ -227,6 +239,7 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if ( self.hasConnection ) {
+        // ttt remove this logic {
         // Check to see if a previous user token was saved. If so, pass that along so the server doesn't create a new user
         NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
         if ( !IS_NULL_STRING(savedToken)) {
@@ -234,8 +247,10 @@ static Arbiter *_sharedInstance = nil;
             //      server should return the same info back down to the client, anyway.
             self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
         }
+        // }  ... and if that is able to be removed, try just combining loginWithDeviceId & loginWithToken
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
+        //tttt [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
+        [self httpPost:APIUserLoginDevice params:urlParams authToken:nil isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
     }
@@ -272,7 +287,7 @@ static Arbiter *_sharedInstance = nil;
                                                  @"game_center_username": localPlayer.alias,
                                                  @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
                                                  @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-                    [self httpPost:APILinkWithGameCenterURL params:paramsDict authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
+                    [self httpPost:APILinkWithGameCenterURL params:paramsDict authToken:nil isBlocking:NO handler:connectionHandler];
                 }
             }];
         } else {
@@ -324,7 +339,7 @@ static Arbiter *_sharedInstance = nil;
             if ( self.hasConnection ) {
                 NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
                 [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
-                [self httpPost:APIUserLoginURL params:params authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
+                [self httpPost:APIUserLoginURL params:params authToken:[self getExistingAuthToken] isBlocking:NO handler:connectionHandler];
             } else {
                 handler(_NO_CONNECTION_RESPONSE_DICT);
             }
@@ -957,42 +972,51 @@ static Arbiter *_sharedInstance = nil;
 }
 
 // ttt it'd be better if we didn't have to do an if in here. That logic probably belongs in one/more of the caller functions.
+// ttt think this function should be refactored out at this point...
 - (NSString*)getExistingAuthToken {
+    /*
     if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", [self.user objectForKey:USER_TOKEN], self.apiKey, [self buildDeviceHash]];
+        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", [self.user objectForKey:USER_TOKEN], self.apiKey, self.deviceHash];
     } else {
-        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]];
+        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, self.deviceHash];
     }
+    */
+    return [self.user objectForKey:USER_TOKEN];
 }
 
-- (NSString*)buildDeviceHash { // ttt probably should cache this for speed
-    NSString* deviceId = [UIDevice currentDevice].identifierForVendor.UUIDString;
-    return [self sha1:[deviceId stringByAppendingString:self.apiKey]];
-}
-
+// ttt kill this
+/*
 - (NSString*)buildDeviceAuthToken {
     NSLog(@"ttt authorizationTokenHeaderThing=%@",[NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]]);
-    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]];
+    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, self.deviceHash];
+}
+*/
+
+- (NSString*)formattedAuthHeaderForToken:(NSString*)authToken {
+    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", authToken, self.apiKey, self.deviceHash];
 }
 
 
 #pragma mark NSURLConnection Delegate Methods
 
+/* ttt kill??
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     [self httpGet:url params:nil authHeader:[self getExistingAuthToken] isBlocking:isBlocking handler:handler];
 }
+*/
 
-- (void)httpGet:(NSString*)url params:(NSDictionary*)params authHeader:(NSString*)authHeader isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params authToken:(NSString*)authToken isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
-    
     if( params != nil ) {
         [urlParams appendString:@"?"];
         [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
             [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
         }];
     }
+
+    NSString *authHeader = [self formattedAuthHeaderForToken:authToken];
 
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
     NSLog( @"ArbiterSDK GET %@", fullUrl );
@@ -1012,7 +1036,7 @@ static Arbiter *_sharedInstance = nil;
     [NSURLConnection connectionWithRequest:request delegate:self];
 }
 
--(void)httpPost:(NSString*)url params:(NSDictionary*)params authHeader:(NSString*)authHeader isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
+-(void)httpPost:(NSString*)url params:(NSDictionary*)params authToken:(NSString*)authToken isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
@@ -1023,11 +1047,12 @@ static Arbiter *_sharedInstance = nil;
     if( params == nil ) {
         params = @{};
     }
-
     paramsData = [NSJSONSerialization dataWithJSONObject:params
                                                  options:0
                                                    error:&error];
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
+
+    NSString *authHeader = [self formattedAuthHeaderForToken:authToken];
     
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);
@@ -1055,6 +1080,7 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
+// ttt use this for places where the SDK is posting w/ the developer's access token. And then can drop the whole accessToken param from this function
 -(void)httpPostAsDeveloper:(NSString *)url params:(NSDictionary *)params handler:(void (^)(NSDictionary *))handler
 {
     NSLog( @"ArbiterSDK POST %@", url );

@@ -7,7 +7,6 @@
 //
 #import "ARBConstants.h"
 
-// ttt remove NSString *const APIUserInitializeURL = @"http://staging.arbiter.me/api/v1/user/initialize";
 NSString *const APIWalletURL = @"http://staging.arbiter.me/api/v1/wallet/";
 NSString *const APIWalletDashboardWebViewURL = @"http://staging.arbiter.me/api/v1/wallet/webview/";
 NSString *const APISendPromoCreditsURL = @"http://staging.arbiter.me/api/v1/promo-credits/send";

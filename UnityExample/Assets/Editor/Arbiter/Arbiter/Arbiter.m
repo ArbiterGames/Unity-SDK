@@ -969,27 +969,6 @@ static Arbiter *_sharedInstance = nil;
     return hash;
 }
 
-// ttt it'd be better if we didn't have to do an if in here. That logic probably belongs in one/more of the caller functions.
-// ttt think this function should be refactored out at this point...
-- (NSString*)getExistingAuthToken {
-    /*
-    if ( !IS_NULL_STRING([self.user objectForKey:USER_TOKEN]) ) {
-        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", [self.user objectForKey:USER_TOKEN], self.apiKey, self.deviceHash];
-    } else {
-        return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, self.deviceHash];
-    }
-    */
-    return [self.user objectForKey:USER_TOKEN];
-}
-
-// ttt kill this
-/*
-- (NSString*)buildDeviceAuthToken {
-    NSLog(@"ttt authorizationTokenHeaderThing=%@",[NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, [self buildDeviceHash]]);
-    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", self.accessToken, self.apiKey, self.deviceHash];
-}
-*/
-
 - (NSString*)formattedAuthHeaderForToken:(NSString*)authToken {
     return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", authToken, self.apiKey, self.deviceHash];
 }
@@ -1085,43 +1064,6 @@ static Arbiter *_sharedInstance = nil;
         [NSURLConnection connectionWithRequest:request delegate:self];
     }
 }
-
-// ttt use this for places where the SDK is posting w/ the developer's access token. And then can drop the whole accessToken param from this function
-/*
--(void)httpPostAsDeveloper:(NSString *)url params:(NSDictionary *)params handler:(void (^)(NSDictionary *))handler
-{
-    NSLog( @"ArbiterSDK POST %@", url );
-    NSError *error = nil;
-    NSData *paramsData;
-    NSString *paramsStr;
-    NSString *tokenValue = [NSString stringWithFormat:@"Token %@::%@", self.accessToken, self.apiKey];
-    
-    if( params == nil ) {
-        params = @{};
-    }
-    paramsData = [NSJSONSerialization dataWithJSONObject:params
-                                                 options:0
-                                                   error:&error];
-    paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-    
-    if( error != nil ) {
-        NSLog(@"ERROR: %@", error);
-        handler( @{@"success": @"false",
-                   @"errors": @[error]});
-    } else {
-        NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:[NSURL URLWithString:url]
-                                                               cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                                           timeoutInterval:60.0];
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPShouldHandleCookies:NO];
-        [request setValue:tokenValue forHTTPHeaderField:@"Authorization"];
-        [request setHTTPMethod:@"POST"];
-        [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-        [_connectionHandlerRegistry setObject:handler forKey:[url stringByAppendingString:@":POST"]];
-        [NSURLConnection connectionWithRequest:request delegate:self];
-    }
-}
-*/
 
 - (void)addRequestToQueue:(NSString *)key
 {

@@ -94,7 +94,6 @@ static Arbiter *_sharedInstance = nil;
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
             if( [self hydrateUserWithCachedToken] ) {
                 [self loginWithDevice:handler];
-//ttt                [self loginWithToken:handler token:[self.user objectForKey:USER_TOKEN]];
             } else {
                 handler(innerResponse);
                 // At this point, we know that no user is logged in. So we are going from
@@ -209,25 +208,7 @@ static Arbiter *_sharedInstance = nil;
         return false;
     }
 }
-/* ttt kill?
-- (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token {
-    void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        if ([self isSuccessfulResponse:responseDict]) {
-            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
-            self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
-        }
-        handler(responseDict);
-    } copy];
 
-    if ( self.hasConnection ) {
-        NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
-    } else {
-        handler(_NO_CONNECTION_RESPONSE_DICT);
-    }
-}
-*/
 - (void)loginWithDevice:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -240,17 +221,7 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if ( self.hasConnection ) {
-        // ttt remove this logic {
-        // Check to see if a previous user token was saved. If so, pass that along so the server doesn't create a new user
-        NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
-        if ( !IS_NULL_STRING(savedToken)) {
-            // This will blow away the local state (minus the auth token) of any in memory user, but the 
-            //      server should return the same info back down to the client, anyway.
-            self.user = [[NSMutableDictionary alloc] initWithDictionary:@{USER_TOKEN:[NSString stringWithString:savedToken]}];
-        }
-        // }  ... and if that is able to be removed, try just combining loginWithDeviceId & loginWithToken
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-        //tttt [self httpPost:APIUserLoginDevice params:urlParams authHeader:[self buildDeviceAuthToken] isBlocking:NO handler:connectionHandler];
         [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -1038,7 +1009,6 @@ static Arbiter *_sharedInstance = nil;
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
 
     NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
-    NSLog(@"ttt authHeader=%@", authHeader);
     
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);

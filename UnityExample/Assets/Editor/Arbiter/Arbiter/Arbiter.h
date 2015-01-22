@@ -47,7 +47,6 @@ void ClientCallbackWalletUpdated();
 + (Arbiter *)sharedInstance;
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
-//ttt - (void)loginWithToken:(void(^)(NSDictionary *))handler token:(NSString*)token;
 - (void)loginWithDevice:(void(^)(NSDictionary *))handler;
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler;
 - (void)login:(void(^)(NSDictionary *))handler;

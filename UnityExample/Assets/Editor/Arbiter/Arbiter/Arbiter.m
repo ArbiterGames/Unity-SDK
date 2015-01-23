@@ -259,7 +259,7 @@ static Arbiter *_sharedInstance = nil;
                                                  @"game_center_username": localPlayer.alias,
                                                  @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
                                                  @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-                    [self httpPost:APILinkWithGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
+                    [self httpPost:APIUserLoginGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
                 }
             }];
         } else {

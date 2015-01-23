@@ -170,7 +170,8 @@ static Arbiter *_sharedInstance = nil;
     
     // If this is a "full" user, save it and alert any listeners
     // Also need to alert when the user first goes null (eg logout)
-    if( !IS_NULL_STRING([user objectForKey:@"id"]) || (!wasNil && self._user == nil)) {
+//ttt    if( !IS_NULL_STRING([user objectForKey:@"id"]) || (!wasNil && self._user == nil)) {
+    if( !IS_NULL_STRING([user objectForKey:@"id"]) || self._user == nil) {
         ClientCallbackUserUpdated();
         [self saveUserToken:user];
     }
@@ -193,6 +194,7 @@ static Arbiter *_sharedInstance = nil;
         NSString* token = [NSString stringWithString:[self.user objectForKey:USER_TOKEN]];
         [[NSUserDefaults standardUserDefaults] setObject:token forKey:DEFAULTS_USER_TOKEN];
     }
+    [[NSUserDefaults standardUserDefaults] synchronize];
 }
 
 - (bool)hydrateUserWithCachedToken {

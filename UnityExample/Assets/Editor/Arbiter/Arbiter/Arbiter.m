@@ -942,7 +942,11 @@ static Arbiter *_sharedInstance = nil;
 }
 
 - (NSString*)formattedAuthHeaderForToken:(NSString*)authToken {
-    return [NSString stringWithFormat:@"Token %@::key:%@::did:%@", authToken, self.apiKey, self.deviceHash];
+    NSString* tokenPrefix = @"";
+    if (!IS_NULL_STRING(authToken)) {
+        tokenPrefix = [NSString stringWithFormat:@"Token %@", authToken];
+    }
+    return [NSString stringWithFormat:@"%@::key:%@::did:%@", tokenPrefix, self.apiKey, self.deviceHash];
 }
 
 
@@ -969,6 +973,7 @@ static Arbiter *_sharedInstance = nil;
     }
 
     NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
+    NSLog(@"ttt authHeader=%@", authHeader);
 
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
     NSLog( @"ArbiterSDK GET %@", fullUrl );
@@ -1009,6 +1014,7 @@ static Arbiter *_sharedInstance = nil;
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
 
     NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
+    NSLog(@"ttt authHeader=%@", authHeader);
     
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);

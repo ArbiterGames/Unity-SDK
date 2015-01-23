@@ -18,10 +18,10 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserVerified();
 		public static bool IsUserVerified() {
-#if UNITY_EDITOR
-			return true;
-#elif UNITY_IOS
+#if UNITY_IOS
 			return _isUserVerified();
+#else
+			return true;
 #endif
 		}
 
@@ -29,10 +29,10 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
-#if UNITY_EDITOR
-			return Arbiter.UserId != null;
-#elif UNITY_IOS
+#if UNITY_IOS
 			return _isUserAuthenticated();
+#else
+			return Arbiter.UserId != null;
 #endif
 		}
 
@@ -45,7 +45,7 @@ namespace ArbiterInternal {
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
 				Arbiter.user = UserProtocol.Parse( jsonString );
-				Arbiter.newUserListeners.ForEach( listener => listener() );
+				Arbiter.userChangedListeners.ForEach( listener => listener() );
 			}
 		}
 
@@ -77,20 +77,20 @@ namespace ArbiterInternal {
 		}
 		
 
-		const string LOGIN_ANONYMOUS = "login_anon";
+		const string LOGIN_DEVICE = "login_device";
 		[DllImport ("__Internal")]
-		private static extern void _loginAsAnonymous();
-		public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
-			SetCallbacksWithErrors( LOGIN_ANONYMOUS, success, failure );
+		private static extern void _loginWithDeviceId();
+		public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
+			SetCallbacksWithErrors( LOGIN_DEVICE, success, failure );
 #if UNITY_EDITOR
-			ReportIgnore( "Login:Anonymous" );
+			ReportIgnore( "Login:Device" );
 			User user = new User();
 			user.Id = "FakeId123";
 			user.Name = "Anonymock";
 			Arbiter.user = user;
 			success();
 #elif UNITY_IOS
-			_loginAsAnonymous();
+			_loginWithDeviceId();
 #endif
 		}
 		
@@ -452,8 +452,8 @@ namespace ArbiterInternal {
 			SimpleCallback( INIT, jsonString );
 		}
 
-		public void LoginAsAnonymousHandler( string jsonString ) {
-			SimpleCallback( LOGIN_ANONYMOUS, jsonString );
+		public void LoginWithDeviceIdHandler( string jsonString ) {
+			SimpleCallback( LOGIN_DEVICE, jsonString );
 		}
 
 		public void LoginWithGameCenterHandler( string jsonString ) {

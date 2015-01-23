@@ -77,10 +77,10 @@ void _init( const char *apiKey, const char *accessToken )
     }];
 }
 
-void _loginAsAnonymous()
+void _loginWithDeviceId()
 {
-    [[Arbiter sharedInstance] loginAsAnonymous:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "LoginAsAnonymousHandler", ProcessDictionaryParams( jsonDict ));
+    [[Arbiter sharedInstance] loginWithDevice:^(NSDictionary *jsonDict) {
+        UnitySendMessage("ArbiterBinding", "LoginWithDeviceIdHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
 

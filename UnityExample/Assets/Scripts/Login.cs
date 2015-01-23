@@ -13,61 +13,67 @@ public class Login : MonoBehaviour {
 	private static int boxY = (Screen.height - boxHeight) / 2;
 	private static int buttonWidth = boxWidth - (padding * 2);
 	
-	
+
 	void Start() {
-		if ( Arbiter.IsAuthenticated ) {
-			if ( Arbiter.IsVerified ) {
-				Application.LoadLevel("MainMenu");
-			} else {
-				Application.LoadLevel("Verification");
-			}
-		}
+		Arbiter.AddUserChangedListener( ReactToUserChange );
+		ReactToUserChange();
 	}
-	
-	
+
 	void OnGUI() {
-	
 		GUIStyle buttonStyle = new GUIStyle("button");
 		buttonStyle.fontSize = 32;
 		GUIStyle boxStyle = new GUIStyle("box");
 		boxStyle.fontSize = 38;
 		
 		GUI.Box(new Rect(padding, boxY, boxWidth, boxHeight), "Login Options", boxStyle);
-		
-		if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login as Anonymous", buttonStyle)) {
-			Arbiter.LoginAsAnonymous( SuccessHandler, ErrorHandler );
-		}
 
-		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 2) + padding + boxY, buttonWidth, buttonHeight), "Login with Game Center", buttonStyle)) {
-			Action<bool> processAuth = ( success ) => {
-				if( success ) {
-					Arbiter.LoginWithGameCenter( SuccessHandler, ErrorHandler );
-				} else {
-					Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
-				}
-			};
-			Social.localUser.Authenticate( processAuth );
-		}
-		
-		if(GUI.Button(new Rect(padding * 2, (buttonHeight * 3) + (padding * 2) + boxY, buttonWidth, buttonHeight), "Basic Login", buttonStyle)) {
-			Arbiter.Login( SuccessHandler, ErrorHandler );
+		if( needsNewUser ) {
+			if(GUI.Button(new Rect(padding * 2, boxY + buttonHeight, buttonWidth, buttonHeight), "Login with Device ID", buttonStyle)) {
+				Arbiter.LoginWithDeviceId( SuccessHandler, ErrorHandler );
+			}
+
+#if UNITY_IOS
+			if(GUI.Button(new Rect(padding * 2, (buttonHeight * 2) + padding + boxY, buttonWidth, buttonHeight), "Login with Game Center", buttonStyle)) {
+				Action<bool> processAuth = ( success ) => {
+					if( success ) {
+						Arbiter.LoginWithGameCenter( SuccessHandler, ErrorHandler );
+					} else {
+						Debug.LogError( "Could not authenticate to Game Center! Make Sure the user has not disabled Game Center on their device, or have them create an Arbiter Account." );
+					}
+				};
+				Social.localUser.Authenticate( processAuth );
+			}
+#endif
+			
+			if(GUI.Button(new Rect(padding * 2, (buttonHeight * 3) + (padding * 2) + boxY, buttonWidth, buttonHeight), "Basic Login", buttonStyle)) {
+				Arbiter.Login( SuccessHandler, ErrorHandler );
+			}
+		} else {
+			GUI.Box(new Rect(padding, boxY + buttonHeight, boxWidth, boxHeight), "Initializing...", boxStyle);
 		}
 	}
-	
-	
 	private void SuccessHandler() {
+		ReactToUserChange();
+	}
+	private void ErrorHandler( List<string> errors ) {
+		errors.ForEach( error => Debug.Log( error ));
+	}
+
+
+	void ReactToUserChange() {
 		if ( Arbiter.IsAuthenticated ) {
+			Arbiter.RemoveUserChangedListener( ReactToUserChange );
 			if ( Arbiter.IsVerified ) {
 				Application.LoadLevel("MainMenu");
 			} else {
 				Application.LoadLevel("Verification");
 			}
 		} else {
-			Debug.Log ("Error logging in");
-		}	
+			// Signal that we should show the UI to have the user pick which way to log in
+			needsNewUser = true;
+		}
 	}
+
 	
-	private void ErrorHandler( List<string> errors ) {
-		errors.ForEach( error => Debug.Log( error ));
-	}
+	bool needsNewUser = false;
 }

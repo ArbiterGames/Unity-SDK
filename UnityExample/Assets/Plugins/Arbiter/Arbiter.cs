@@ -15,11 +15,10 @@ public partial class Arbiter : MonoBehaviour {
 
 	public string accessToken;
 	public string gameApiKey;
-	
-	[HideInInspector]
-	public string SelectedUnfinishedTournamentId;
-	
+
+	/// <summary>True when the SDK knows which user is playing.</summary><remarks>Might be too slow to call this each frame.</remarks>
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
+	/// <summary>True when the authenticated user is able to participate in cash contests.</summary><remarks>Might be too slow to call this each frame.</remarks>
 	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 	public static bool		HasWallet					{ get { return WalletExists(false); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  		return user.Id; } }
@@ -54,7 +53,6 @@ public partial class Arbiter : MonoBehaviour {
 		
 		wallet = null;
 		user = null;
-		setupPollers();
 
 		ErrorHandler initializeErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot initialize Arbiter. Resolve errors below:" );
@@ -67,10 +65,12 @@ public partial class Arbiter : MonoBehaviour {
 		postInitActions.ForEach( a => a.Invoke() );
 		postInitActions = null;
 		initted = true;
+
+		setupPollers();
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {
-			a.Invoke ();
+			a.Invoke();
 		} else {
 			Debug.Log( "Arbiter is not yet logged-in, queueing request Action: "+a );
 			postInitActions.Add( a );
@@ -97,9 +97,12 @@ public partial class Arbiter : MonoBehaviour {
 		});
 	}
 
-	public static void LoginAsAnonymous( SuccessHandler success, ErrorHandler failure ) {
+	/// <summary>
+	/// This is only necessary to call if there is no cached user credentials on device. But calling it redundantly is harmless.
+	/// </summary>
+	public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
 		WaitUntilInitted( () => { 
-			ArbiterBinding.LoginAsAnonymous( success, failure );
+			ArbiterBinding.LoginWithDeviceId( success, failure );
 		});
 	}
 
@@ -113,19 +116,7 @@ public partial class Arbiter : MonoBehaviour {
 
 
 	public static void Logout( SuccessHandler success, ErrorHandler failure ) {
-		if ( walletPoller ) {
-			walletPoller.Stop();
-			walletPoller = null;
-		}
-		if ( tournamentPoller ) {
-			tournamentPoller.Stop();
-			tournamentPoller = null;
-		}
-		wallet = null;
-		user = null;
-
-		setupPollers();
-
+		teardownPollers();
 		ArbiterBinding.Logout( success, failure );
 	}
 
@@ -144,6 +135,9 @@ public partial class Arbiter : MonoBehaviour {
 	} }
 
 
+	/// <summary>
+	/// For when the currently-authenticated user updates a piece of his/her info
+	/// </summary>
 	public static void AddUserUpdatedListener( Action listener ) {
 		if( !userUpdatedListeners.Contains( listener ))
 			userUpdatedListeners.Add( listener );
@@ -151,12 +145,15 @@ public partial class Arbiter : MonoBehaviour {
 	public static void RemoveUserUpdatedListener( Action listener ) {
 		userUpdatedListeners.Remove( listener );
 	}
-	public static void AddNewUserListener( Action listener ) {
-		if( !newUserListeners.Contains( listener ))
-			newUserListeners.Add( listener );
+	/// <summary>
+	/// For when a new or different user just authenticated
+	/// </summary>
+	public static void AddUserChangedListener( Action listener ) {
+		if( !userChangedListeners.Contains( listener ))
+			userChangedListeners.Add( listener );
 	}
-	public static void RemoveNewUserListener( Action listener ) {
-		newUserListeners.Remove( listener );
+	public static void RemoveUserChangedListener( Action listener ) {
+		userChangedListeners.Remove( listener );
 	}
 
 
@@ -233,13 +230,6 @@ public partial class Arbiter : MonoBehaviour {
 	
 	public delegate void JoinTournamentCallback( Tournament tournament );
 	public static void JoinTournament( string buyIn, Dictionary<string,string> filters, JoinTournamentCallback success, FriendlyErrorHandler failure ) {
-
-		/* ttt keep this check clientside for now...
-		if( !IsVerified ) {
-			List<string> errors = new List<string>() { "The current user is not verified and cannot play in tournaments." };
-			failure( errors, errors );
-			return;
-		}*/
 
 		Func<Tournament,bool> isScorableByCurrentUser = ( tournament ) => {
 			return (tournament.Status == Tournament.StatusType.Initializing ||
@@ -396,6 +386,18 @@ public partial class Arbiter : MonoBehaviour {
 			tournamentPoller.Verbose = true;
 		}
 	}
+	private static void teardownPollers() {
+		if ( walletPoller ) {
+			walletPoller.Stop();
+			walletPoller = null;
+		}
+		if ( tournamentPoller ) {
+			tournamentPoller.Stop();
+			tournamentPoller = null;
+		}
+		wallet = null;
+		user = null;
+	}
 
 
 	/// <summary>
@@ -410,6 +412,11 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 
+	#region Hooks for testing
+	[HideInInspector]
+	public string SelectedUnfinishedTournamentId;
+	#endregion
+
 	private static string _gameApiKey;
 	private static string _accessToken;
 
@@ -422,7 +429,7 @@ public partial class Arbiter : MonoBehaviour {
 	internal static Wallet wallet;
 
 	internal static List<Action> userUpdatedListeners = new List<Action>();
-	internal static List<Action> newUserListeners = new List<Action>();
+	internal static List<Action> userChangedListeners = new List<Action>();
 	internal static List<Action> walletUpdatedListeners = new List<Action>();
 	private static Action walletSuccessCallback;
 

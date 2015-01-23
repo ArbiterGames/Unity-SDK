@@ -13,7 +13,6 @@ NSString *const APISendPromoCreditsURL = @"http://staging.arbiter.me/api/v1/prom
 NSString *const APIUserLoginURL = @"http://staging.arbiter.me/api/v1/user/login";
 NSString *const APIUserLogoutURL = @"http://staging.arbiter.me/api/v1/user/logout";
 NSString *const APIUserLoginDevice = @"http://staging.arbiter.me/api/v1/user/login-by-device";
-//ttt NSString *const APILinkWithGameCenterURL = @"http://staging.arbiter.me/api/v1/user/link-with-game-center";
 NSString *const APIUserLoginGameCenterURL = @"http://staging.arbiter.me/api/v1/user/login-by-game-center";
 NSString *const APIUserDetailsURL = @"http://staging.arbiter.me/api/v1/user/";
 NSString *const APITournamentCreateURL = @"http://staging.arbiter.me/api/v1/tournament/create";

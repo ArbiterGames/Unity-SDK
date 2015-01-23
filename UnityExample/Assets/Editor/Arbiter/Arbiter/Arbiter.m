@@ -170,8 +170,7 @@ static Arbiter *_sharedInstance = nil;
     
     // If this is a "full" user, save it and alert any listeners
     // Also need to alert when the user first goes null (eg logout)
-//ttt    if( !IS_NULL_STRING([user objectForKey:@"id"]) || (!wasNil && self._user == nil)) {
-    if( !IS_NULL_STRING([user objectForKey:@"id"]) || self._user == nil) {
+    if( !IS_NULL_STRING([user objectForKey:@"id"]) || (!wasNil && self._user == nil)) {
         ClientCallbackUserUpdated();
         [self saveUserToken:user];
     }
@@ -975,7 +974,6 @@ static Arbiter *_sharedInstance = nil;
     }
 
     NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
-    NSLog(@"ttt authHeader=%@", authHeader);
 
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
     NSLog( @"ArbiterSDK GET %@", fullUrl );
@@ -1016,7 +1014,6 @@ static Arbiter *_sharedInstance = nil;
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
 
     NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
-    NSLog(@"ttt authHeader=%@", authHeader);
     
     if( error != nil ) {
         NSLog(@"ERROR: %@", error);

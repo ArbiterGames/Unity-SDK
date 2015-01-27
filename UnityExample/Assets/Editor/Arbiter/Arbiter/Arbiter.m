@@ -1055,16 +1055,35 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         }
         
         NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT"));
+        
+
         NSURLConnection* _connection = [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
 
                   // Here is the trick ttt
+        // this one works. Looking for something a litte better, though...
           NSPort* port = [NSPort port];
           NSRunLoop* rl = [NSRunLoop currentRunLoop]; // Get the runloop
           [rl addPort:port forMode:NSDefaultRunLoopMode];
           [_connection scheduleInRunLoop:rl forMode:NSDefaultRunLoopMode];
           [_connection start];
           [rl run];
+        // ttttd this run loop needs to be cleaned up later
+    
 
+          /* this doesn't work
+          while( true ) {
+            // Spin on this thread until the response occurs
+            NSLog(@"ttt sleep.");
+            [NSThread sleepForTimeInterval:10];
+          }
+          */
+    
+        /* this doesn't work either
+          [_connection scheduleInRunLoop:[NSRunLoop mainRunLoop] 
+            forMode:NSDefaultRunLoopMode];
+            [_connection start];
+         */
+    
 //    };
 //    makeCall();
 }

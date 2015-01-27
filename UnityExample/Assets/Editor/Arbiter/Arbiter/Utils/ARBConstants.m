@@ -39,3 +39,7 @@ NSString *const StripeLivePublishableKey = @"pk_live_VxZ9u3zgtCRtaDe62rQyMwuj";
 
 NSString* const USER_TOKEN = @"token";
 NSString* const DEFAULTS_USER_TOKEN = @"arbiter_user_token";
+
+int const ESTABLISHING_CONNECTION = 0;
+int const CONNECTED = 1;
+int const NOT_CONNECTED= -1;

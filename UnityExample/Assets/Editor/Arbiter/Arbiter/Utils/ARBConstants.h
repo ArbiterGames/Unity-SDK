@@ -40,3 +40,7 @@ extern NSString *const StripeLivePublishableKey;
 
 extern NSString* const USER_TOKEN;
 extern NSString* const DEFAULTS_USER_TOKEN;
+
+extern int const ESTABLISHING_CONNECTION;
+extern int const CONNECTED;
+extern int const NOT_CONNECTED;

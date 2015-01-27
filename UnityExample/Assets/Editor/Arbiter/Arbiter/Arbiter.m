@@ -74,7 +74,7 @@ static Arbiter *_sharedInstance = nil;
             @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
         };
         
-        self.hasConnection = NO;
+        self.connectionStatus = ESTABLISHING_CONNECTION;
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self._deviceHash = [self buildDeviceHash];
@@ -115,10 +115,10 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if (![self isSuccessfulResponse:responseDict]) { 
-            self.hasConnection = NO;
+//ttt kill            self.connectionStatus = CONNECTED;
             handler( responseDict );
         } else {
-            self.hasConnection = YES;
+//ttt kill            self.hasConnection = YES; // ttt use reachability instead?
             self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
             self.game = responseDict;
             if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
@@ -145,8 +145,8 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
-    reach.reachableBlock = ^(Reachability*reach) { self.hasConnection = YES; };
-    reach.unreachableBlock = ^(Reachability*reach) { self.hasConnection = NO; };
+    reach.reachableBlock = ^(Reachability*reach) { self.connectionStatus = CONNECTED; };
+    reach.unreachableBlock = ^(Reachability*reach) { self.connectionStatus = NOT_CONNECTED; };
     [reach startNotifier];
 
     NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
@@ -226,7 +226,7 @@ static Arbiter *_sharedInstance = nil;
         handler(responseDict);
     } copy];
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
         [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
     } else {
@@ -251,7 +251,7 @@ static Arbiter *_sharedInstance = nil;
             handler(responseDict);
         } copy];
         
-        if ( self.hasConnection ) {
+            if(true){//if ( self.hasConnection ) { // ttt kill
             [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
                 if (error) {
                     handler( @{@"success": @false,
@@ -314,7 +314,7 @@ static Arbiter *_sharedInstance = nil;
         if ( [loginCredentials objectForKey:@"errors"] ) {
             handler(@{@"success": @"false", @"errors":[loginCredentials objectForKey:@"errors"]});
         } else {
-            if ( self.hasConnection ) {
+    if(true){//            if ( self.hasConnection ) { // ttt kill
                 NSMutableDictionary *params = [[NSMutableDictionary alloc] initWithDictionary:loginCredentials];
                 [params setObject:[[ARBTracking arbiterInstance] distinctId] forKey:@"tracking_id"];
                 [self httpPost:APIUserLoginURL params:params isBlocking:NO handler:connectionHandler];
@@ -341,7 +341,7 @@ static Arbiter *_sharedInstance = nil;
         handler(responseDict);
     } copy];
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -365,7 +365,7 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
 
-    if ( !self.hasConnection ) {
+    if(true){//    if ( !self.hasConnection ) { // ttt kill
         handler(_NO_CONNECTION_RESPONSE_DICT);
         return;
     }
@@ -599,7 +599,7 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if ( self.user ) {
-        if ( self.hasConnection ) {
+    if(true){//        if ( self.hasConnection ) { // ttt kill
             NSString *walletUrl = [APIWalletURL stringByAppendingString:[self.user objectForKey:@"id"]];
             [self httpGet:walletUrl isBlocking:isBlocking handler:connectionHandler];
         } else {
@@ -628,7 +628,7 @@ static Arbiter *_sharedInstance = nil;
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
             
-            if ( self.isWalletDashboardWebViewEnabled && self.hasConnection ) {
+            if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) { // ttt td test what happens when there is no connection here
                 ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] init:self];
                 walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];
@@ -654,7 +654,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         [self httpPost:APISendPromoCreditsURL params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]} authTokenOverride:self.accessToken isBlocking:NO handler:handler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -682,7 +682,7 @@ static Arbiter *_sharedInstance = nil;
         } copy];
         [self verifyUser:verifyCallback];
     } else {
-        if ( self.hasConnection ) {
+    if(true){//        if ( self.hasConnection ) { // ttt kill
             [self httpPost:APITournamentCreateURL params:paramsDict isBlocking:NO handler:connectionHandler];
         } else {
             handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -697,7 +697,7 @@ static Arbiter *_sharedInstance = nil;
         handler(tournament);
     } copy];
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
          [self httpGet:[NSString stringWithFormat:@"%@%@", APITournamentBaseURL, tournamentId] isBlocking:isBlocking handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -729,7 +729,7 @@ static Arbiter *_sharedInstance = nil;
         tournamentsUrl = [NSString stringWithFormat:@"%@?excludeViewed=true", tournamentsUrl];
     }
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
          [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -771,7 +771,7 @@ static Arbiter *_sharedInstance = nil;
         tournamentsUrl = APIRequestTournamentURL;
     }
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         [self httpGet:tournamentsUrl isBlocking:isBlocking handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -837,7 +837,7 @@ static Arbiter *_sharedInstance = nil;
         handler(responseDict);
     } copy];
     
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         NSString *requestUrl = [APITournamentBaseURL stringByAppendingString: [tournamentId stringByAppendingString: [APIReportScoreURLPart2 stringByAppendingString:[self.user objectForKey:@"id"]]]];
         [self httpPost:requestUrl params:paramsDict isBlocking:NO handler:connectionHandler];
     } else {
@@ -871,7 +871,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)requestCashChallenge:(void(^)(NSDictionary *))handler filters:(NSString*)filters
 {
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         [self httpPost:APICashChallengeCreateURL params:@{@"filters":filters} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
         } copy]];
@@ -882,7 +882,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)acceptCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeAcceptURLPart2];
         [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
@@ -894,7 +894,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)rejectCashChallenge:(void(^)(NSDictionary *))handler challengeId:(NSString*)challengeId
 {
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeRejectURLPart2];
         [self httpPost:url params:nil isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
@@ -906,7 +906,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)reportScoreForChallenge:(void (^)(NSDictionary *))handler challengeId:(NSString *)challengeId score:(NSString *)score
 {
-    if ( self.hasConnection ) {
+    if(true){//    if ( self.hasConnection ) { // ttt kill
         NSString *url = [NSString stringWithFormat:@"%@%@%@", APICashChallengeBaseURL, challengeId, APICashChallengeReportURLPart2];
         [self httpPost:url params:@{@"score": score} isBlocking:NO handler:[^(NSDictionary *responseDict) {
             handler(responseDict);
@@ -970,6 +970,14 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
+    // ttt td copy this to POST
+    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
+        NSLog(@"ttt TODO: Queue this request and do it when possible!?");
+    } else if ( self.connectionStatus == NOT_CONNECTED ) {
+        handler( _NO_CONNECTION_RESPONSE_DICT );
+        return;
+    }
+
     NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
     if( params != nil ) {
         [urlParams appendString:@"?"];
@@ -1004,6 +1012,8 @@ static Arbiter *_sharedInstance = nil;
 }
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
+ 
+
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;

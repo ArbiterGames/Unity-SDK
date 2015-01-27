@@ -1023,7 +1023,7 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
 
 
 // ttt don't need to do this block thing
-    void (^makeCall)(void) = ^{
+//    void (^makeCall)(void) = ^{
         NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
         if( params != nil ) {
             [urlParams appendString:@"?"];
@@ -1050,8 +1050,8 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         }
         
         [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
-    };
-    makeCall();
+//    };
+//    makeCall();
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler

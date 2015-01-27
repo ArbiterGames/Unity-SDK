@@ -15,7 +15,6 @@ extern NSString *const APISendPromoCreditsURL;
 extern NSString *const APIUserLoginURL;
 extern NSString *const APIUserLogoutURL;
 extern NSString *const APIUserLoginDevice;
-//extern NSString *const APILinkWithGameCenterURL;
 extern NSString *const APIUserLoginGameCenterURL;
 extern NSString *const APIUserDetailsURL;
 extern NSString *const APITournamentCreateURL;

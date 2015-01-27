@@ -114,29 +114,34 @@ static Arbiter *_sharedInstance = nil;
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.hasConnection = YES;
-        self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
-        self.game = responseDict;
-        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+        if (![self isSuccessfulResponse:responseDict]) { 
+            self.hasConnection = NO;
+            handler( responseDict );
         } else {
-            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
-        }
+            self.hasConnection = YES;
+            self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
+            self.game = responseDict;
+            if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+                [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+            } else {
+                [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+            }
 
-        NSNumber* timesSeen = [NSNumber numberWithInt:0];
-        NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
-        if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
-            timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+            NSNumber* timesSeen = [NSNumber numberWithInt:0];
+            NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
+            if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
+                timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+            }
+            NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
+            timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
+            [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
+            
+            ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+            [arbiterInstance identify:arbiterInstance.distinctId];
+            [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+            [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
+            handler(@{@"success": @true});
         }
-        NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
-        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
-        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
-        
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-        [arbiterInstance identify:arbiterInstance.distinctId];
-        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-        [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
-        handler(@{@"success": @true});
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];

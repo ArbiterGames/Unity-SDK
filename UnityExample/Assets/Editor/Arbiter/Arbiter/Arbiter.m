@@ -74,7 +74,7 @@ static Arbiter *_sharedInstance = nil;
             @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
         };
         
-        self.connectionStatus = ESTABLISHING_CONNECTION;
+        self.connectionStatus = WAITING_FOR_REACHABILITY;
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self._deviceHash = [self buildDeviceHash];
@@ -118,7 +118,7 @@ static Arbiter *_sharedInstance = nil;
 //ttt kill            self.connectionStatus = CONNECTED;
             handler( responseDict );
         } else {
-//ttt kill            self.hasConnection = YES; // ttt use reachability instead?
+            self.connectionStatus = CONNECTED;
             self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
             self.game = responseDict;
             if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
@@ -144,13 +144,27 @@ static Arbiter *_sharedInstance = nil;
         }
     } copy];
     
-    Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
-    reach.reachableBlock = ^(Reachability*reach) { self.connectionStatus = CONNECTED; };
-    reach.unreachableBlock = ^(Reachability*reach) { self.connectionStatus = NOT_CONNECTED; };
-    [reach startNotifier];
+    void (^establishConnection)(void) = ^{
+        if( self.connectionStatus == WAITING_FOR_REACHABILITY || self.connectionStatus == NEVER_CONNECTED ) {
+            self.connectionStatus = ESTABLISHING_CONNECTION;
 
-    NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-    [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
+            NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
+            [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];   
+        } else {
+            self.connectionStatus = CONNECTED;
+        }
+    };
+    
+    Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
+    reach.reachableBlock = ^(Reachability* reach) { establishConnection(); };
+    reach.unreachableBlock = ^(Reachability* reach) {
+        if( self.connectionStatus == CONNECTED ) {
+            self.connectionStatus = TEMPORARILY_NOT_CONNECTED;
+        } else {
+            self.connectionStatus = NEVER_CONNECTED;
+        }
+    };
+    [reach startNotifier];
 }
 
 
@@ -971,39 +985,73 @@ static Arbiter *_sharedInstance = nil;
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
     // ttt td copy this to POST
+    /*
     if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
         NSLog(@"ttt TODO: Queue this request and do it when possible!?");
     } else if ( self.connectionStatus == NOT_CONNECTED ) {
         handler( _NO_CONNECTION_RESPONSE_DICT );
         return;
     }
+    */
 
-    NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
-    if( params != nil ) {
-        [urlParams appendString:@"?"];
-        [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
-            [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
-        }];
+
+/*
+    [^(NSDictionary *responseDict) {
+            handler(responseDict);
+    } copy]];
+
+void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
+        handler(responseDict);
+    } copy];
+    */
+
+
+    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
+        /* ttt need to be able to call this function from establish connection...
+        NSLog(@"Must wait for connection to be established before making http calls.");
+        handler( @{ 
+            @"success":@false,
+            @"errors":@[@"Arbiter SDK was not properly initialized."]
+        });
+        */
+    } else if( self.connectionStatus == NEVER_CONNECTED ) {
+        handler( _NO_CONNECTION_RESPONSE_DICT );
+        return;
+    } else if( self.connectionStatus == TEMPORARILY_NOT_CONNECTED ) {
+        NSLog(@"ttt temporarily not connected. Maybe this case needs to be treated just like never_connected? if so, just use NOT_CONNECTED isntead of the 2 types.");
     }
 
-    NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
 
-    NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
-    NSLog( @"ArbiterSDK GET %@", fullUrl );
-    NSMutableURLRequest *request = [NSMutableURLRequest
-                                    requestWithURL:[NSURL URLWithString:fullUrl]
-                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                    timeoutInterval:60.0];
-    
-    [request setHTTPShouldHandleCookies:NO];
-    [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
-    NSString *key = [fullUrl stringByAppendingString:@":GET"];
-    [_connectionHandlerRegistry setObject:handler forKey:key];
-    if ( isBlocking ) {
-        [self addRequestToQueue:key];
-    }
-    
-    [NSURLConnection connectionWithRequest:request delegate:self];
+// ttt don't need to do this block thing
+    void (^makeCall)(void) = ^{
+        NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
+        if( params != nil ) {
+            [urlParams appendString:@"?"];
+            [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
+                [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
+            }];
+        }
+
+        NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
+
+        NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
+        NSLog( @"ArbiterSDK GET %@", fullUrl );
+        NSMutableURLRequest *request = [NSMutableURLRequest
+                                        requestWithURL:[NSURL URLWithString:fullUrl]
+                                        cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                        timeoutInterval:60.0];
+        
+        [request setHTTPShouldHandleCookies:NO];
+        [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
+        NSString *key = [fullUrl stringByAppendingString:@":GET"];
+        [_connectionHandlerRegistry setObject:handler forKey:key];
+        if ( isBlocking ) {
+            [self addRequestToQueue:key];
+        }
+        
+        [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
+    };
+    makeCall();
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler

@@ -47,7 +47,7 @@
                              @"email": self.email,
                              @"username": self.username};
     [[ARBTracking arbiterInstance] track:@"Submitted Deposit Billing Info"];
-    [self.arbiter httpPost:APIDepositURL params:params authHeader:[self.arbiter getExistingAuthToken] isBlocking:YES handler:[^(NSDictionary *responseDict) {
+    [self.arbiter httpPost:APIDepositURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
         if ( [[responseDict objectForKey:@"errors"] count] ) {
             NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
             [[ARBTracking arbiterInstance] track:@"Received Deposit Error" properties:@{@"error": message}];
@@ -66,7 +66,7 @@
                              @"amount": [NSString stringWithFormat:@"%.0f", self.withdrawAmount],
                              @"email": self.email,
                              @"card_name": self.fullName};
-    [self.arbiter httpPost:APIWithdrawURL params:params authHeader:[self.arbiter getExistingAuthToken] isBlocking:YES handler:[^(NSDictionary *responseDict) {
+    [self.arbiter httpPost:APIWithdrawURL params:params isBlocking:YES handler:[^(NSDictionary *responseDict) {
         if ([[responseDict objectForKey:@"errors"] count]) {
             NSString *message = [[responseDict objectForKey:@"errors"] objectAtIndex:0];
             [[ARBTracking arbiterInstance] track:@"Received Withdraw Error" properties:@{@"error": message}];

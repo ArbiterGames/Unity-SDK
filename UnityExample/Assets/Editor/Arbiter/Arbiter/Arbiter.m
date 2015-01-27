@@ -144,7 +144,8 @@ static Arbiter *_sharedInstance = nil;
         }
     } copy];
     
-    void (^establishConnection)(void) = ^{
+    void (^establishConnection)(void) = [^{
+
         if( self.connectionStatus == WAITING_FOR_REACHABILITY || self.connectionStatus == NEVER_CONNECTED ) {
             self.connectionStatus = ESTABLISHING_CONNECTION;
 
@@ -153,10 +154,12 @@ static Arbiter *_sharedInstance = nil;
         } else {
             self.connectionStatus = CONNECTED;
         }
-    };
+    } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
-    reach.reachableBlock = ^(Reachability* reach) { establishConnection(); };
+    reach.reachableBlock = ^(Reachability* reach) {
+        establishConnection();
+    };
     reach.unreachableBlock = ^(Reachability* reach) {
         if( self.connectionStatus == CONNECTED ) {
             self.connectionStatus = TEMPORARILY_NOT_CONNECTED;
@@ -165,6 +168,8 @@ static Arbiter *_sharedInstance = nil;
         }
     };
     [reach startNotifier];
+    
+///ttt     establishConnection();
 }
 
 
@@ -1049,7 +1054,17 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             [self addRequestToQueue:key];
         }
         
-        [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
+        NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT"));
+        NSURLConnection* _connection = [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
+
+                  // Here is the trick ttt
+          NSPort* port = [NSPort port];
+          NSRunLoop* rl = [NSRunLoop currentRunLoop]; // Get the runloop
+          [rl addPort:port forMode:NSDefaultRunLoopMode];
+          [_connection scheduleInRunLoop:rl forMode:NSDefaultRunLoopMode];
+          [_connection start];
+          [rl run];
+
 //    };
 //    makeCall();
 }

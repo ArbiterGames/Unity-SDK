@@ -168,6 +168,8 @@ static Arbiter *_sharedInstance = nil;
         }
     };
     [reach startNotifier];
+
+    // ttttd Test out making calls from mulptiple non-main threads at once. Not just reachability
     
 ///ttt     establishConnection();
 }
@@ -1061,6 +1063,7 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
 
                   // Here is the trick ttt
         // this one works. Looking for something a litte better, though...
+        /*
           NSPort* port = [NSPort port];
           NSRunLoop* rl = [NSRunLoop currentRunLoop]; // Get the runloop
           [rl addPort:port forMode:NSDefaultRunLoopMode];
@@ -1068,7 +1071,35 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
           [_connection start];
           [rl run];
         // ttttd this run loop needs to be cleaned up later
+        */
     
+        // V2, slightly cleaned up
+          /*
+          NSRunLoop* rl = [NSRunLoop currentRunLoop];
+          int timeout = 10;
+          NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:timeout
+                                                     target:self
+                                                   selector:@selector(ttt:)
+                                                   userInfo:nil 
+                                                    repeats:NO];
+          [rl addTimer:timer forMode:NSRunLoopCommonModes];
+          [rl run];
+          */
+        // ttttd this run loop needs to be cleaned up later
+          //[timer invalideate];
+
+
+
+//ttttd could try doing this instead:
+        NSRunLoop* rl = [NSRunLoop currentRunLoop];
+        bool done = false;
+        while (!done) {
+            //NSLog(@"ttt in infinite loop");
+            [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+        }
+
+
+
 
           /* this doesn't work
           while( true ) {
@@ -1086,6 +1117,9 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
     
 //    };
 //    makeCall();
+}
+-(void)ttt {
+    NSLog(@"ttt called");
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler

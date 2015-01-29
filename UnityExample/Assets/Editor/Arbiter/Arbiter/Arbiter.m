@@ -74,7 +74,7 @@ static Arbiter *_sharedInstance = nil;
             @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
         };
         
-        self.connectionStatus = WAITING_FOR_REACHABILITY;
+        self.connectionStatus = UNKNOWN;;
         self.apiKey = apiKey;
         self.accessToken = accessToken;
         self._deviceHash = [self buildDeviceHash];
@@ -144,15 +144,12 @@ static Arbiter *_sharedInstance = nil;
 //        }
     } copy];
     
+    // tttd just put this directly into the reachability block instead of an anon function
     void (^establishConnection)(void) = [^{
-
-        if( self.connectionStatus == WAITING_FOR_REACHABILITY || self.connectionStatus == NEVER_CONNECTED ) {
-            self.connectionStatus = ESTABLISHING_CONNECTION;
-
+        // tttd need to lock connection status
+        if( self.connectionStatus != CONNECTED ) {
             NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
             [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];   
-        } else {
-            self.connectionStatus = CONNECTED;
         }
     } copy];
     
@@ -161,11 +158,8 @@ static Arbiter *_sharedInstance = nil;
         establishConnection();
     };
     reach.unreachableBlock = ^(Reachability* reach) {
-        if( self.connectionStatus == CONNECTED ) {
-            self.connectionStatus = TEMPORARILY_NOT_CONNECTED;
-        } else {
-            self.connectionStatus = NEVER_CONNECTED;
-        }
+        // ttttd lock connection status
+        self.connectionStatus = NOT_CONNECTED;
     };
     [reach startNotifier];
 
@@ -1013,7 +1007,7 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
     */
 
 
-    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
+//    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
         /* ttt need to be able to call this function from establish connection...
         NSLog(@"Must wait for connection to be established before making http calls.");
         handler( @{ 
@@ -1021,12 +1015,15 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
             @"errors":@[@"Arbiter SDK was not properly initialized."]
         });
         */
-    } else if( self.connectionStatus == NEVER_CONNECTED ) {
+//    } else if( self.connectionStatus == NEVER_CONNECTED ) {
+    if( self.connectionStatus == NOT_CONNECTED ) {
         handler( _NO_CONNECTION_RESPONSE_DICT );
         return;
-    } else if( self.connectionStatus == TEMPORARILY_NOT_CONNECTED ) {
+    }
+    /* else if( self.connectionStatus == TEMPORARILY_NOT_CONNECTED ) {
         NSLog(@"ttt temporarily not connected. Maybe this case needs to be treated just like never_connected? if so, just use NOT_CONNECTED isntead of the 2 types.");
     }
+     */
 
 
 // ttt don't need to do this block thing
@@ -1175,7 +1172,7 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
 }
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
- 
+    // ttttd need to copy the non-main thread functionality from httpget to this function.
 
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;

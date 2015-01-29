@@ -403,11 +403,11 @@ static Arbiter *_sharedInstance = nil;
                 }
             } copy];
             if( [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"] == nil ) {
-                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Tournaments are Disabled"
-                                                                message:@"Make sure Location Services are enabled in your phone\'s settings to play in cash challenges.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
+                UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Cash Features are Disabled"
+                                                                message:@"Make sure Location Services are enabled in your phone\'s settings and you are playing from a location that permits cash features.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                delegate:self
                                                       cancelButtonTitle:@"Keep disabled"
-                                                      otherButtonTitles:@"Check again", nil];
+                                                      otherButtonTitles:@"Check again", @"View locations", nil];
                 [_alertViewHandlerRegistry setObject:alertViewHandler forKey:@"enableLocationServices"];
                 [alert setTag:ENABLE_LOCATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
@@ -550,7 +550,7 @@ static Arbiter *_sharedInstance = nil;
             [response setValue:[NSString stringWithFormat:@"%f", coord.latitude] forKey:@"lat"];
             [response setValue:[NSString stringWithFormat:@"%f", coord.longitude] forKey:@"long"];
             
-            if ( requireLatLong == NO || ([response objectForKey:(@"lat")] != nil && [response objectForKey:(@"long")] != nil )) {
+            if ( placemark.postalCode != nil && (requireLatLong == NO || ([response objectForKey:(@"lat")] != nil && [response objectForKey:(@"long")] != nil)) ) {
                 [response setValue:@true forKey:@"success"];
             }
             
@@ -1155,10 +1155,12 @@ static Arbiter *_sharedInstance = nil;
     } else if ( alertView.tag == ENABLE_LOCATION_ALERT_TAG) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"enableLocationServices"];
         [_alertViewHandlerRegistry removeObjectForKey:@"enableLocationServices"];
-        
         if (buttonIndex == 1) {
             [[ARBTracking arbiterInstance] track:@"Clicked Check LS"];
             handler(@{@"success":@true});
+        } else if (buttonIndex == 2) {
+            handler(@{@"success":@true});
+            [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/is-not-gambling/"]];
         } else {
             [[ARBTracking arbiterInstance] track:@"Clicked Keep LS Disabled"];
             handler( @{@"success": @false, @"errors":@[@"Could not get device location."]});

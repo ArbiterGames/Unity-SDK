@@ -91,6 +91,8 @@ void ClientCallbackWalletUpdated();
 - (void)showWalkThrough:(void(^)(void))handler walkThroughId:(NSString*)walkThroughId;
 - (void)showTournamentDetailsPanel:(void(^)(void))handler tournamentId:(NSString *)tournamentId;
 
+- (bool)hasConnection:(void(^)(NSDictionary*))handler;
+- (void)makeHttpCall:(NSURLRequest*)request key:(NSString*)key isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverrde:(NSString*)authTokenOverrde isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;

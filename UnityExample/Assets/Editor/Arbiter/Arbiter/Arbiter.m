@@ -984,9 +984,53 @@ static Arbiter *_sharedInstance = nil;
     return [NSString stringWithFormat:@"%@::key:%@::did:%@", tokenPrefix, self.apiKey, self.deviceHash];
 }
 
+- (NSDictionary*)formatAsHandlerResponse:(NSError*)error {
+    NSLog(@"ERROR: %@", error);
+    return( @{
+                @"success": @"false",
+                @"errors": @[error]
+           });
+}
+
 
 #pragma mark NSURLConnection Delegate Methods
 
+
+- (bool)hasConnection:(void(^)(NSDictionary*))handler {
+    if( self.connectionStatus == NOT_CONNECTED ) {
+        handler( _NO_CONNECTION_RESPONSE_DICT );
+        return false;
+    }
+    return true;
+}
+
+- (void)makeHttpCall:(NSURLRequest*)request key:(NSString*)key isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler {
+    NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
+    if( [NSThread isMainThread] ) {
+        // Since this is the main thread, perform the web request asynchronously
+        [_connectionHandlerRegistry setObject:handler forKey:key];
+        if ( isBlocking ) { // ttt can this be moved below the request? or before the handler is registered?
+            [self addRequestToQueue:key];
+        }
+        [NSURLConnection connectionWithRequest:request delegate:self];
+    } else {
+        NSURLResponse* response = nil;
+        NSError* error = nil;
+        NSData* data = [NSURLConnection sendSynchronousRequest:request
+                                             returningResponse:&response
+                                                         error:&error];
+        
+        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];
+
+        if( error != nil ) {
+            handler( [self formatAsHandlerResponse:error] );
+        } else {
+            NSLog(@"ttt response.");
+            NSLog( @"%@", dict );
+            handler(dict);
+        }
+    }
+}
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
@@ -999,185 +1043,30 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    // ttt td copy this to POST
-    /*
-    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
-        NSLog(@"ttt TODO: Queue this request and do it when possible!?");
-    } else if ( self.connectionStatus == NOT_CONNECTED ) {
-        handler( _NO_CONNECTION_RESPONSE_DICT );
+    if( ![self hasConnection:handler] ) {
         return;
     }
-    */
 
-
-/*
-    [^(NSDictionary *responseDict) {
-            handler(responseDict);
-    } copy]];
-
-void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        handler(responseDict);
-    } copy];
-    */
-
-
-//    if( self.connectionStatus == ESTABLISHING_CONNECTION ) {
-        /* ttt need to be able to call this function from establish connection...
-        NSLog(@"Must wait for connection to be established before making http calls.");
-        handler( @{ 
-            @"success":@false,
-            @"errors":@[@"Arbiter SDK was not properly initialized."]
-        });
-        */
-//    } else if( self.connectionStatus == NEVER_CONNECTED ) {
-    if( self.connectionStatus == NOT_CONNECTED ) {
-        handler( _NO_CONNECTION_RESPONSE_DICT );
-        return;
+    NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
+    if( params != nil ) {
+        [urlParams appendString:@"?"];
+        [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
+            [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
+        }];
     }
-    /* else if( self.connectionStatus == TEMPORARILY_NOT_CONNECTED ) {
-        NSLog(@"ttt temporarily not connected. Maybe this case needs to be treated just like never_connected? if so, just use NOT_CONNECTED isntead of the 2 types.");
-    }
-     */
+    NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
 
-
-// ttt don't need to do this block thing
-//    void (^makeCall)(void) = ^{
-        NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
-        if( params != nil ) {
-            [urlParams appendString:@"?"];
-            [params enumerateKeysAndObjectsUsingBlock: ^(NSString *key, NSString *value, BOOL *stop) {
-                [urlParams appendString:[NSString stringWithFormat:@"%@=%@", key, value]];
-            }];
-        }
-
-        NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
-
-        NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
-        NSLog( @"ArbiterSDK GET %@", fullUrl );
-        NSMutableURLRequest *request = [NSMutableURLRequest
-                                        requestWithURL:[NSURL URLWithString:fullUrl]
-                                        cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                        timeoutInterval:60.0];
-        
-        [request setHTTPShouldHandleCookies:NO];
-        [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
-        NSString *key = [fullUrl stringByAppendingString:@":GET"];
-
-NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
-        if( [NSThread isMainThread] ) {
-            // Since this is the main thread, perform the web request asynchronously
-            [_connectionHandlerRegistry setObject:handler forKey:key];
-            if ( isBlocking ) { // ttt can this be moved below the request? or before the handler is registered?
-                [self addRequestToQueue:key];
-            }
-            [NSURLConnection connectionWithRequest:request delegate:self];
-        } else {
-            NSURLResponse* response = nil;
-            NSError* error = nil;
-            NSData* data = [NSURLConnection sendSynchronousRequest:request
-                                                 returningResponse:&response
-                                                             error:&error];
-            
-            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];
-
-            if (error == nil)
-            {
-                NSLog(@"ttt response.");
-                NSLog( @"%@", dict );
-                // ttt is this threadsafe!?
-                handler(dict);
-            }
-
-
-
-
-
-
-
-
-
-
-            /* ttt alt implementation...
-            // Spin on this thread instead for the response since this thread may die before the async response occurs
-            NSRunLoop* rl = [NSRunLoop currentRunLoop];
-            bool done = false;
-
-            // ttt do a syncronous request like this:
-            //   https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSURLConnection_Class/index.html#//apple_ref/occ/clm/NSURLConnection/sendSynchronousRequest:returningResponse:error:
-            //NSURLConnection* connection = [NSURLConnection connectionWithRequest:request delegate:self];
-            while (!done) {
-                //NSLog(@"ttt in infinite loop");
-                [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-                NSLog(@" ttt responded yet? %@", [connection didReceiveResponse]);
-            }
-            */
-        }
-        
-        
-        
-
-         // ttt why handler no get called?
-
-                  // Here is the trick ttt
-        // this one works. Looking for something a litte better, though...
-        /*
-          NSPort* port = [NSPort port];
-          NSRunLoop* rl = [NSRunLoop currentRunLoop]; // Get the runloop
-          [rl addPort:port forMode:NSDefaultRunLoopMode];
-          [_connection scheduleInRunLoop:rl forMode:NSDefaultRunLoopMode];
-          [_connection start];
-          [rl run];
-        // ttttd this run loop needs to be cleaned up later
-        */
+    NSLog( @"ArbiterSDK GET %@", fullUrl );
+    NSMutableURLRequest *request = [NSMutableURLRequest
+                                    requestWithURL:[NSURL URLWithString:fullUrl]
+                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                    timeoutInterval:60.0];
     
-        // V2, slightly cleaned up
-          /*
-          NSRunLoop* rl = [NSRunLoop currentRunLoop];
-          int timeout = 10;
-          NSTimer* timer = [NSTimer scheduledTimerWithTimeInterval:timeout
-                                                     target:self
-                                                   selector:@selector(ttt:)
-                                                   userInfo:nil 
-                                                    repeats:NO];
-          [rl addTimer:timer forMode:NSRunLoopCommonModes];
-          [rl run];
-          */
-        // ttttd this run loop needs to be cleaned up later
-          //[timer invalideate];
+    [request setHTTPShouldHandleCookies:NO];
+    [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
+    NSString *key = [fullUrl stringByAppendingString:@":GET"];
 
-
-
-//ttttd could try doing this instead:
-          /*
-        NSRunLoop* rl = [NSRunLoop currentRunLoop];
-        bool done = false;
-        while (!done) {
-            //NSLog(@"ttt in infinite loop");
-            [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
-        }
-*/
-
-
-
-          /* this doesn't work
-          while( true ) {
-            // Spin on this thread until the response occurs
-            NSLog(@"ttt sleep.");
-            [NSThread sleepForTimeInterval:10];
-          }
-          */
-    
-        /* this doesn't work either
-          [_connection scheduleInRunLoop:[NSRunLoop mainRunLoop] 
-            forMode:NSDefaultRunLoopMode];
-            [_connection start];
-         */
-    
-//    };
-//    makeCall();
-}
--(void)ttt {
-    NSLog(@"ttt called");
+    [self makeHttpCall:request key:key isBlocking:isBlocking handler:handler];
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
@@ -1186,7 +1075,9 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
 }
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    // ttttd need to copy the non-main thread functionality from httpget to this function.
+    if( ![self hasConnection:handler] ) {
+        return;
+    }
 
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
@@ -1202,14 +1093,8 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
                                                    error:&error];
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
 
-    NSString *authHeader = [self formattedAuthHeaderForToken:authTokenOverride];
-    
     if( error != nil ) {
-        NSLog(@"ERROR: %@", error);
-        handler( @{
-                   @"success": @"false",
-                   @"errors": @[error]
-                   });
+        handler( [self formatAsHandlerResponse:error] );
     } else {
         NSMutableURLRequest *request = [NSMutableURLRequest
                                         requestWithURL:[NSURL URLWithString:url]
@@ -1218,15 +1103,18 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
         
         [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
         [request setHTTPShouldHandleCookies:NO];
-        [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
+        [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
     
+        [self makeHttpCall:request key:key isBlocking:isBlocking handler:handler];
+        /* ttt
         if ( isBlocking ) {
             [self addRequestToQueue:key];
         }
         [_connectionHandlerRegistry setObject:handler forKey:key];
         [NSURLConnection connectionWithRequest:request delegate:self];
+        */
     }
 }
 

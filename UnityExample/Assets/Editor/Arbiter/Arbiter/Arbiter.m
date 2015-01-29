@@ -1051,15 +1051,34 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         [request setHTTPShouldHandleCookies:NO];
         [request setValue:authHeader forHTTPHeaderField:@"Authorization"];
         NSString *key = [fullUrl stringByAppendingString:@":GET"];
-        [_connectionHandlerRegistry setObject:handler forKey:key];
-        if ( isBlocking ) {
-            [self addRequestToQueue:key];
+
+NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
+        if( [NSThread isMainThread] ) {
+            // Since this is the main thread, perform the web request asynchronously
+            [_connectionHandlerRegistry setObject:handler forKey:key];
+            if ( isBlocking ) { // ttt can this be moved below the request? or before the handler is registered?
+                [self addRequestToQueue:key];
+            }
+            [NSURLConnection connectionWithRequest:request delegate:self];
+        } else {
+            // Spin on this thread instead for the response since this thread may die before the async response occurs
+            NSRunLoop* rl = [NSRunLoop currentRunLoop];
+            bool done = false;
+
+            // ttt do a syncronous request like this:
+            //   https://developer.apple.com/library/mac/documentation/Cocoa/Reference/Foundation/Classes/NSURLConnection_Class/index.html#//apple_ref/occ/clm/NSURLConnection/sendSynchronousRequest:returningResponse:error:
+            //NSURLConnection* connection = [NSURLConnection connectionWithRequest:request delegate:self];
+            while (!done) {
+                //NSLog(@"ttt in infinite loop");
+                [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
+                NSLog(@" ttt responded yet? %@", [connection didReceiveResponse]);
+            }
         }
         
-        NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT"));
+        
         
 
-        NSURLConnection* _connection = [NSURLConnection connectionWithRequest:request delegate:self]; // ttt why handler no get called?
+         // ttt why handler no get called?
 
                   // Here is the trick ttt
         // this one works. Looking for something a litte better, though...
@@ -1091,13 +1110,14 @@ void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
 
 
 //ttttd could try doing this instead:
+          /*
         NSRunLoop* rl = [NSRunLoop currentRunLoop];
         bool done = false;
         while (!done) {
             //NSLog(@"ttt in infinite loop");
             [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
         }
-
+*/
 
 
 

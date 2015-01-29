@@ -14,6 +14,7 @@ void ClientCallbackWalletUpdated();
 
 @interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
+@property (atomic) int connectionStatus;
 @property BOOL isWalletDashboardWebViewEnabled;
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
@@ -43,9 +44,11 @@ void ClientCallbackWalletUpdated();
 - (void)setWallet:(NSMutableDictionary *)wallet;
 - (NSMutableDictionary *)wallet;
 
-@property int _connectionStatus;
+/* ttt
+@property (atomic) int _connectionStatus;
 - (void)setConnectionStatus:(int)connectionStatus;
 - (int)connectionStatus;
+*/
 
 + (Arbiter *)sharedInstance;
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;

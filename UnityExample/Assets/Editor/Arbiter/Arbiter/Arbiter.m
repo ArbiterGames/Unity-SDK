@@ -111,6 +111,18 @@ static Arbiter *_sharedInstance = nil;
 
 # pragma mark Internet Connection Utilities
 
+- (void)setConnectionStatus:(int)connectionStatus {
+    @synchronized(self) {
+        self._connectionStatus = connectionStatus;
+    }
+}
+
+- (int)connectionStatus {
+    @synchronized(self) {
+        return self._connectionStatus;
+    }
+}
+
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {

@@ -114,10 +114,10 @@ static Arbiter *_sharedInstance = nil;
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        if (![self isSuccessfulResponse:responseDict]) { 
+//ttt no success from gamesettings        if (![self isSuccessfulResponse:responseDict]) {
 //ttt kill            self.connectionStatus = CONNECTED;
-            handler( responseDict );
-        } else {
+//            handler( responseDict );
+//        } else {
             self.connectionStatus = CONNECTED;
             self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
             self.game = responseDict;
@@ -141,7 +141,7 @@ static Arbiter *_sharedInstance = nil;
             [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
             [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
             handler(@{@"success": @true});
-        }
+//        }
     } copy];
     
     void (^establishConnection)(void) = [^{
@@ -1061,6 +1061,32 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
             }
             [NSURLConnection connectionWithRequest:request delegate:self];
         } else {
+            NSURLResponse* response = nil;
+            NSError* error = nil;
+            NSData* data = [NSURLConnection sendSynchronousRequest:request
+                                                 returningResponse:&response
+                                                             error:&error];
+            
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];
+
+            if (error == nil)
+            {
+                NSLog(@"ttt response.");
+                NSLog( @"%@", dict );
+                // ttt is this threadsafe!?
+                handler(dict);
+            }
+
+
+
+
+
+
+
+
+
+
+            /* ttt alt implementation...
             // Spin on this thread instead for the response since this thread may die before the async response occurs
             NSRunLoop* rl = [NSRunLoop currentRunLoop];
             bool done = false;
@@ -1073,6 +1099,7 @@ NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
                 [rl runUntilDate:[NSDate dateWithTimeIntervalSinceNow:1]];
                 NSLog(@" ttt responded yet? %@", [connection didReceiveResponse]);
             }
+            */
         }
         
         

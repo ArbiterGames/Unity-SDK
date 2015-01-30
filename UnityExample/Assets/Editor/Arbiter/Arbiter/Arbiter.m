@@ -114,29 +114,34 @@ static Arbiter *_sharedInstance = nil;
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        self.connectionStatus = CONNECTED;
-        self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
-        self.game = responseDict;
-        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
-        } else {
-            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
-        }
+        // ttt talk to Andy about adding a check for success == 1 here. For now, do a hack to presume that the success key only exists if it was a failure
+        if( IS_NULL_STRING([responseDict objectForKey:@"success"]) ) {
+            self.connectionStatus = CONNECTED;
+            self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
+            self.game = responseDict;
+            if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+                [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+            } else {
+                [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+            }
 
-        NSNumber* timesSeen = [NSNumber numberWithInt:0];
-        NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
-        if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
-            timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+            NSNumber* timesSeen = [NSNumber numberWithInt:0];
+            NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
+            if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
+                timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+            }
+            NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
+            timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
+            [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
+            
+            ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+            [arbiterInstance identify:arbiterInstance.distinctId];
+            [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+            [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
+            handler(@{@"success": @true});
+        } else {
+            handler( _NO_CONNECTION_RESPONSE_DICT );
         }
-        NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
-        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
-        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
-        
-        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-        [arbiterInstance identify:arbiterInstance.distinctId];
-        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-        [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
-        handler(@{@"success": @true});
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
@@ -145,18 +150,16 @@ static Arbiter *_sharedInstance = nil;
         //      about hitting gameSettings more than once at a time
         if( self.connectionStatus != CONNECTED ) {
             NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-            [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];   
+            [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
         }
     };
     reach.unreachableBlock = ^(Reachability* reach) {
-        // ttttd lock connection status
+        NSLog(@"ttt unreachable block reached.");
         self.connectionStatus = NOT_CONNECTED;
+        
+        connectionHandler(_NO_CONNECTION_RESPONSE_DICT);
     };
     [reach startNotifier];
-
-    // ttttd Test out making calls from mulptiple non-main threads at once. Not just reachability
-    
-///ttt     establishConnection();
 }
 
 
@@ -233,7 +236,10 @@ static Arbiter *_sharedInstance = nil;
     } copy];
     
     if(true){//    if ( self.hasConnection ) { // ttt kill
-        NSDictionary *urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+        NSDictionary *urlParams = @{};
+        if( [ARBTracking arbiterInstance] != nil ) {
+            urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+        }
         [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
     } else {
         handler(_NO_CONNECTION_RESPONSE_DICT);
@@ -368,10 +374,6 @@ static Arbiter *_sharedInstance = nil;
     if( self.user == nil ) {
         NSLog(@"Arbiter Error: Cannot verify users since no user is currently logged in. Call one of the Login first.");
         handler( @{@"success": @"false"} );
-        return;
-    }
-
-    if( ![self hasConnection:handler] ) {
         return;
     }
 
@@ -974,6 +976,7 @@ static Arbiter *_sharedInstance = nil;
 
 - (bool)hasConnection:(void(^)(NSDictionary*))handler {
     if( self.connectionStatus == NOT_CONNECTED ) {
+        NSLog(@"Connection status appears offline.");
         handler( _NO_CONNECTION_RESPONSE_DICT );
         return false;
     }

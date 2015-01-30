@@ -30,7 +30,8 @@ public partial class Arbiter : MonoBehaviour {
 
 
 
-	void Awake() {
+	void Start() {
+		Debug.Log ("ttt Arbiter.start()");
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
 			Debug.LogWarning( "Arbiter Error: Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
 		}

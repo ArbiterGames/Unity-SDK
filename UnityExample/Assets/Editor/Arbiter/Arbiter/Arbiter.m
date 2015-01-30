@@ -146,6 +146,9 @@ static Arbiter *_sharedInstance = nil;
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
+        // ttt td this needs to get called when the app resumes from turning airplane mode off and then back on
+        NSLog(@"ttt reachable block reached.");
+
         // Relying that this code executes on the non-main thread and therefore the http request is synchronous so we don't need to worry
         //      about hitting gameSettings more than once at a time
         if( self.connectionStatus != CONNECTED ) {
@@ -1013,7 +1016,6 @@ static Arbiter *_sharedInstance = nil;
         if( error != nil ) {
             handler( [self formatAsHandlerResponse:error] );
         } else {
-            NSLog(@"ttt response.");
             NSLog( @"%@", dict );
             handler(dict);
         }

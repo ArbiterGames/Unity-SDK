@@ -111,65 +111,42 @@ static Arbiter *_sharedInstance = nil;
 
 # pragma mark Internet Connection Utilities
 
-/* ttt
-- (void)setConnectionStatus:(int)connectionStatus {
-    @synchronized(self) {
-        self._connectionStatus = connectionStatus;
-    }
-}
-
-- (int)connectionStatus {
-    @synchronized(self) {
-        return self._connectionStatus;
-    }
-}
-*/
-
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-//ttt no success from gamesettings        if (![self isSuccessfulResponse:responseDict]) {
-//ttt kill            self.connectionStatus = CONNECTED;
-//            handler( responseDict );
-//        } else {
-            self.connectionStatus = CONNECTED;
-            self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
-            self.game = responseDict;
-            if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-                [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
-            } else {
-                [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
-            }
-
-            NSNumber* timesSeen = [NSNumber numberWithInt:0];
-            NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
-            if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
-                timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
-            }
-            NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
-            timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
-            [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
-            
-            ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
-            [arbiterInstance identify:arbiterInstance.distinctId];
-            [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
-            [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
-            handler(@{@"success": @true});
-//        }
-    } copy];
-    
-    // tttd just put this directly into the reachability block instead of an anon function
-    void (^establishConnection)(void) = [^{
-        // tttd need to lock connection status
-        if( self.connectionStatus != CONNECTED ) {
-            NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
-            [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];   
+        self.connectionStatus = CONNECTED;
+        self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
+        self.game = responseDict;
+        if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
+            [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+        } else {
+            [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
         }
+
+        NSNumber* timesSeen = [NSNumber numberWithInt:0];
+        NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
+        if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
+            timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
+        }
+        NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
+        timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
+        [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
+        
+        ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
+        [arbiterInstance identify:arbiterInstance.distinctId];
+        [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
+        [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
+        handler(@{@"success": @true});
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
-        establishConnection();
+        // Relying that this code executes on the non-main thread and therefore the http request is synchronous so we don't need to worry
+        //      about hitting gameSettings more than once at a time
+        if( self.connectionStatus != CONNECTED ) {
+            NSString *gameSettingsUrl = [NSString stringWithFormat:@"%@%@", GameSettingsURL, self.apiKey];
+            [self httpGet:gameSettingsUrl params:nil authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];   
+        }
     };
     reach.unreachableBlock = ^(Reachability* reach) {
         // ttttd lock connection status

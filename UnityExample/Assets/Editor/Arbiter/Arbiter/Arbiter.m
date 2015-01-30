@@ -394,8 +394,7 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
 
-    if(true){//    if ( !self.hasConnection ) { // ttt kill
-        handler(_NO_CONNECTION_RESPONSE_DICT);
+    if( ![self hasConnection:handler] ) {
         return;
     }
 
@@ -1004,8 +1003,16 @@ static Arbiter *_sharedInstance = nil;
     return true;
 }
 
-- (void)makeHttpCall:(NSURLRequest*)request key:(NSString*)key isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler {
-    NSLog(@"Is%@ main thread", ([NSThread isMainThread] ? @"" : @" NOT")); //ttt
+- (NSMutableURLRequest*)makeHttpRequest:(NSString*)url authTokenOverride:(NSString*)authTokenOverride {
+    NSMutableURLRequest *request = [NSMutableURLRequest
+                                    requestWithURL:[NSURL URLWithString:url]
+                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
+                                    timeoutInterval:60.0];
+    [request setHTTPShouldHandleCookies:NO];
+    [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
+    return request;
+}
+- (void)doHttpCall:(NSURLRequest*)request key:(NSString*)key isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler {
     if( [NSThread isMainThread] ) {
         // Since this is the main thread, perform the web request asynchronously
         [_connectionHandlerRegistry setObject:handler forKey:key];
@@ -1055,18 +1062,12 @@ static Arbiter *_sharedInstance = nil;
         }];
     }
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
-
-    NSLog( @"ArbiterSDK GET %@", fullUrl );
-    NSMutableURLRequest *request = [NSMutableURLRequest
-                                    requestWithURL:[NSURL URLWithString:fullUrl]
-                                    cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                    timeoutInterval:60.0];
-    
-    [request setHTTPShouldHandleCookies:NO];
-    [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
 
-    [self makeHttpCall:request key:key isBlocking:isBlocking handler:handler];
+    NSLog( @"ArbiterSDK GET %@", fullUrl );
+    
+    NSURLRequest* request = [self makeHttpRequest:fullUrl authTokenOverride:authTokenOverride];
+    [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
 }
 
 -(void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
@@ -1096,25 +1097,11 @@ static Arbiter *_sharedInstance = nil;
     if( error != nil ) {
         handler( [self formatAsHandlerResponse:error] );
     } else {
-        NSMutableURLRequest *request = [NSMutableURLRequest
-                                        requestWithURL:[NSURL URLWithString:url]
-                                           cachePolicy:NSURLRequestUseProtocolCachePolicy
-                                       timeoutInterval:60.0];
-        
-        [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
-        [request setHTTPShouldHandleCookies:NO];
-        [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
+        NSMutableURLRequest *request = [self makeHttpRequest:url authTokenOverride:authTokenOverride];
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
     
-        [self makeHttpCall:request key:key isBlocking:isBlocking handler:handler];
-        /* ttt
-        if ( isBlocking ) {
-            [self addRequestToQueue:key];
-        }
-        [_connectionHandlerRegistry setObject:handler forKey:key];
-        [NSURLConnection connectionWithRequest:request delegate:self];
-        */
+        [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
     }
 }
 

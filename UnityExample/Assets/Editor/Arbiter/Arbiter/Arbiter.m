@@ -1008,6 +1008,7 @@ static Arbiter *_sharedInstance = nil;
                                     requestWithURL:[NSURL URLWithString:url]
                                     cachePolicy:NSURLRequestUseProtocolCachePolicy
                                     timeoutInterval:60.0];
+    [request setValue:@"application/json" forHTTPHeaderField:@"Content-Type"];
     [request setHTTPShouldHandleCookies:NO];
     [request setValue:[self formattedAuthHeaderForToken:authTokenOverride] forHTTPHeaderField:@"Authorization"];
     return request;
@@ -1098,6 +1099,7 @@ static Arbiter *_sharedInstance = nil;
         handler( [self formatAsHandlerResponse:error] );
     } else {
         NSMutableURLRequest *request = [self makeHttpRequest:url authTokenOverride:authTokenOverride];
+        
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
     

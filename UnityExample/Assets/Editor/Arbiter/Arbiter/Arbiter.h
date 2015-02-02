@@ -51,6 +51,7 @@ void ClientCallbackWalletUpdated();
 */
 
 + (Arbiter *)sharedInstance;
++ (bool)isInitialized;
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString *)apiKey accessToken:(NSString *)accessToken;
 - (void)loginWithDevice:(void(^)(NSDictionary *))handler;

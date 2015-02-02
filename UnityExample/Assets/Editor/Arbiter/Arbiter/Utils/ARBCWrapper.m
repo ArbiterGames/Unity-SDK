@@ -44,6 +44,10 @@ NSMutableDictionary* JsonToDict( const char* jsonString )
 }
 
 
+bool CheckForInitialized() {
+    return [Arbiter isInitialized];
+}
+
 # pragma mark Client Triggers Events
 
 void ClientCallbackNewUser()
@@ -107,7 +111,11 @@ void _logout()
 
 bool _isUserAuthenticated()
 {
-    return [[Arbiter sharedInstance] isUserAuthenticated];
+    if( CheckForInitialized() ) { // tttd do something similar for the other calls. Or make the error more obvious for calls that really need to be initalized first.
+        return [[Arbiter sharedInstance] isUserAuthenticated];
+    } else {
+        return false;
+    }
 }
 
 void _verifyUser()

@@ -64,6 +64,11 @@ static Arbiter *_sharedInstance = nil;
     return _sharedInstance;
 }
 
++ (bool)isInitialized
+{
+    return _sharedInstance != nil;
+}
+
 - (id)init:(void(^)(NSDictionary *))handler apiKey:(NSString*)apiKey accessToken:(NSString*)accessToken
 {
     self = [super init];

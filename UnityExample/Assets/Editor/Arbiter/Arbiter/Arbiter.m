@@ -154,6 +154,11 @@ static Arbiter *_sharedInstance = nil;
     reach.reachableBlock = ^(Reachability* reach) {
         // ttt td this needs to get called when the app resumes from turning airplane mode off and then back on
         NSLog(@"ttt reachable block reached.");
+        
+        // Handle the case where internet came back on within a single app session
+        if( self.connectionStatus == NOT_CONNECTED ) {
+            self.connectionStatus = UNKNOWN;
+        }
 
         // Relying that this code executes on the non-main thread and therefore the http request is synchronous so we don't need to worry
         //      about hitting gameSettings more than once at a time

@@ -97,7 +97,8 @@ static Arbiter *_sharedInstance = nil;
 
 
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
-            if( [self hydrateUserWithCachedToken] ) {
+            if( [self isSuccessfulResponse:innerResponse] &&
+                    [self hydrateUserWithCachedToken] ) {
                 [self loginWithDevice:handler];
             } else {
                 handler(innerResponse);

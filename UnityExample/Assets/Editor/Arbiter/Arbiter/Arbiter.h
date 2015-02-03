@@ -44,12 +44,6 @@ void ClientCallbackWalletUpdated();
 - (void)setWallet:(NSMutableDictionary *)wallet;
 - (NSMutableDictionary *)wallet;
 
-/* ttt
-@property (atomic) int _connectionStatus;
-- (void)setConnectionStatus:(int)connectionStatus;
-- (int)connectionStatus;
-*/
-
 + (Arbiter *)sharedInstance;
 + (bool)isInitialized;
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;

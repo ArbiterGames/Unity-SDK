@@ -31,7 +31,6 @@ public partial class Arbiter : MonoBehaviour {
 
 
 	void Start() {
-		Debug.Log ("ttt Arbiter.start()");
 		if ( accessToken.Length == 0 || gameApiKey.Length == 0 ) {
 			Debug.LogWarning( "Arbiter Error: Missing Access Token or Game Api Key in the Arbiter Prefab inpesctor settings." );
 		}
@@ -63,7 +62,6 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.Init( _gameApiKey, _accessToken, InitializeSuccess, initializeErrorHandler );
 	}
 	void InitializeSuccess() {
-		Debug.Log ("ttt Initialize Success. Check a. Post Init Actions count="+postInitActions.Count);
 		postInitActions.ForEach( a => { 
 			if( a != null ) 
 				a.Invoke();
@@ -71,10 +69,7 @@ public partial class Arbiter : MonoBehaviour {
 		postInitActions.Clear();
 		initted = true;
 
-		Debug.Log ("ttt Initialize Success. Check b");
-
 		setupPollers();
-		Debug.Log ("ttt Initialize Success. Check c");
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {

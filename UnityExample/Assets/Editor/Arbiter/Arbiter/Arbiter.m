@@ -1022,13 +1022,16 @@ static Arbiter *_sharedInstance = nil;
                                              returningResponse:&response
                                                          error:&error];
         
-        NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];
-
-        if( error != nil ) {
-            handler( [self formatAsHandlerResponse:error] );
+        if( data == nil ) {
+            handler( _NO_CONNECTION_RESPONSE_DICT );
         } else {
-            NSLog( @"%@", dict );
-            handler(dict);
+            NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];
+            if( error != nil ) {
+                handler( [self formatAsHandlerResponse:error] );
+            } else {
+                NSLog( @"%@", dict );
+                handler(dict);
+            }
         }
     }
 }

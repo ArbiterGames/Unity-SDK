@@ -63,11 +63,18 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.Init( _gameApiKey, _accessToken, InitializeSuccess, initializeErrorHandler );
 	}
 	void InitializeSuccess() {
-		postInitActions.ForEach( a => a.Invoke() );
-		postInitActions = null;
+		Debug.Log ("ttt Initialize Success. Check a. Post Init Actions count="+postInitActions.Count);
+		postInitActions.ForEach( a => { 
+			if( a != null ) 
+				a.Invoke();
+		});
+		postInitActions.Clear();
 		initted = true;
 
+		Debug.Log ("ttt Initialize Success. Check b");
+
 		setupPollers();
+		Debug.Log ("ttt Initialize Success. Check c");
 	}
 	static void WaitUntilInitted( Action a ) {
 		if( initted ) {

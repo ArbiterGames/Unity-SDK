@@ -41,13 +41,6 @@ extern NSString *const StripeLivePublishableKey;
 extern NSString* const USER_TOKEN;
 extern NSString* const DEFAULTS_USER_TOKEN;
 
-/* ttt
-extern int const WAITING_FOR_REACHABILITY;
-extern int const ESTABLISHING_CONNECTION;
-extern int const CONNECTED;
-extern int const NEVER_CONNECTED;
-extern int const TEMPORARILY_NOT_CONNECTED;
-*/
 extern int const UNKNOWN;
 extern int const CONNECTED;
 extern int const NOT_CONNECTED;

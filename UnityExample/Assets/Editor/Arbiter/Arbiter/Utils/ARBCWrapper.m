@@ -111,7 +111,7 @@ void _logout()
 
 bool _isUserAuthenticated()
 {
-    if( CheckForInitialized() ) { // tttd do something similar for the other calls. Or make the error more obvious for calls that really need to be initalized first.
+    if( CheckForInitialized() ) {
         return [[Arbiter sharedInstance] isUserAuthenticated];
     } else {
         return false;

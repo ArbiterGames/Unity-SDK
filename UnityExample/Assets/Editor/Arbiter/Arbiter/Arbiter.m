@@ -152,10 +152,9 @@ static Arbiter *_sharedInstance = nil;
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
-        NSLog(@"ttt reachable block reached.");
-        
         // Handle the case where internet came back on within a single app session
         if( self.connectionStatus == NOT_CONNECTED ) {
+            NSLog(@"Arbiter SDK found internet connection. Re-enabling features.");
             self.connectionStatus = UNKNOWN;
         }
 
@@ -167,9 +166,8 @@ static Arbiter *_sharedInstance = nil;
         }
     };
     reach.unreachableBlock = ^(Reachability* reach) {
-        NSLog(@"ttt unreachable block reached.");
+        NSLog(@"Arbiter SDK detected loss of internet connection. Most features disabled.");
         self.connectionStatus = NOT_CONNECTED;
-        
         connectionHandler(_NO_CONNECTION_RESPONSE_DICT);
     };
     [reach startNotifier];
@@ -616,7 +614,7 @@ static Arbiter *_sharedInstance = nil;
 - (void)showWalletPanel:(void(^)(void))handler
 {
     [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
-    if ( [self isUserAuthenticated] ) {
+    if ( [self isUserAuthenticated] && self.connectionStatus == CONNECTED ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
         [self.spinnerView setFrame:keyRVCV.bounds];
@@ -628,7 +626,7 @@ static Arbiter *_sharedInstance = nil;
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
             
-            if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) { // ttt td test what happens when there is no connection here
+            if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) {
                 ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] init:self];
                 walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];
@@ -950,7 +948,7 @@ static Arbiter *_sharedInstance = nil;
     if( [NSThread isMainThread] ) {
         // Since this is the main thread, perform the web request asynchronously
         [_connectionHandlerRegistry setObject:handler forKey:key];
-        if ( isBlocking ) { // ttt can this be moved below the request? or before the handler is registered?
+        if ( isBlocking ) {
             [self addRequestToQueue:key];
         }
         [NSURLConnection connectionWithRequest:request delegate:self];

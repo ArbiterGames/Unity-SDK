@@ -90,14 +90,12 @@ void ClientCallbackWalletUpdated();
 - (NSMutableURLRequest*)makeHttpRequest:(NSString*)url authTokenOverride:(NSString*)authTokenOverride;
 - (void)doHttpCall:(NSURLRequest*)request key:(NSString*)key isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
-- (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverrde:(NSString*)authTokenOverrde isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
+- (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverrde isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 
 - (void)addRequestToQueue:(NSString *)key;
 - (void)removeRequestFromQueue:(NSString *)key;
-
-- (NSString*)getExistingAuthToken;
 
 - (NSString*)getPlayerScoreFromTournament:(NSDictionary *)tournament;
 - (NSString*)getOpponentScoreFromTournament:(NSDictionary *)tournament;

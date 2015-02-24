@@ -9,6 +9,7 @@
 
 NSString *const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
 NSString *const APIWalletDashboardWebViewURL = @"https://www.arbiter.me/api/v1/wallet/webview/";
+NSString *const APIWalletDashboardWebViewDepositURL = @"https://www.arbiter.me/api/v1/wallet/webview/#/tab/deposit";
 NSString *const APISendPromoCreditsURL = @"https://www.arbiter.me/api/v1/promo-credits/send";
 NSString *const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
 NSString *const APIUserLogoutURL = @"https://www.arbiter.me/api/v1/user/logout";
@@ -39,6 +40,7 @@ NSString *const StripeLivePublishableKey = @"pk_live_VxZ9u3zgtCRtaDe62rQyMwuj";
 
 NSString* const USER_TOKEN = @"token";
 NSString* const DEFAULTS_USER_TOKEN = @"arbiter_user_token";
+NSString* const DEPOSIT_TAB = @"deposit";
 
 extern int const UNKNOWN = 0;
 extern int const CONNECTED = 1;

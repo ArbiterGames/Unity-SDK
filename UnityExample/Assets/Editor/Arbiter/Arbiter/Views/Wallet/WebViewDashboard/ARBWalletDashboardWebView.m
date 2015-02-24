@@ -11,6 +11,12 @@
 
 @implementation ARBWalletDashboardWebView
 
+- (id)initOnTab:(NSString *)tab withArbiterInstance:(Arbiter *)arbiterInstance
+{
+    self.tab = tab;
+    return [super init:arbiterInstance];
+}
+
 - (void)renderLayout
 {
     CGRect screenFrame = [[UIApplication sharedApplication] keyWindow].frame;
@@ -19,12 +25,17 @@
     NSString *postString = [NSString stringWithFormat:@"token=%@&gameApiKey=%@", [self.arbiter.user objectForKey:@"token"], self.arbiter.apiKey];
     NSData *postData = [postString dataUsingEncoding:NSUTF8StringEncoding allowLossyConversion:YES];
     NSMutableURLRequest *request = [[NSMutableURLRequest alloc] init];
+    NSString *url = APIWalletDashboardWebViewURL;
     
     self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
     self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
     self.spinnerView.backgroundColor = [UIColor clearColor];
 
-    [request setURL:[NSURL URLWithString:APIWalletDashboardWebViewURL]];
+    if ( [self.tab  isEqual:DEPOSIT_TAB] ) {
+        url = APIWalletDashboardWebViewDepositURL;
+    }
+    
+    [request setURL:[NSURL URLWithString:url]];
     [request setHTTPMethod:@"POST"];
     [request setHTTPBody:postData];
 

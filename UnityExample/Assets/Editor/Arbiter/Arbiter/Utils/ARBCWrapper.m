@@ -8,6 +8,7 @@
 
 #import "Arbiter.h"
 #import "ARBLogger.h"
+#import "ARBConstants.h"
 
 
 # pragma mark Utility Methods
@@ -135,6 +136,13 @@ void _fetchWallet()
     [[Arbiter sharedInstance] fetchWallet:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "FetchWalletHandler", ProcessDictionaryParams( jsonDict ));
     } isBlocking:NO];
+}
+
+void _showWalletPanelOnDepositTab()
+{
+    [[Arbiter sharedInstance] showWalletPanel:^{
+        UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
+    } onTab:DEPOSIT_TAB];
 }
 
 

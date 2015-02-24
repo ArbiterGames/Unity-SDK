@@ -65,6 +65,7 @@ void ClientCallbackWalletUpdated();
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)addWalletObserver:(id<ARBWalletObserver>)observer;
+- (void)showWalletPanel:(void(^)(void))handler onTab:(NSString *)tab;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;
 - (void)getDeviceLocation:(void(^)(NSDictionary *))handler requireLatLong:(BOOL)requireLatLong;

@@ -610,8 +610,11 @@ static Arbiter *_sharedInstance = nil;
     }
 }
 
-
 - (void)showWalletPanel:(void(^)(void))handler
+{
+    [self showWalletPanel:handler onTab:nil];
+}
+- (void)showWalletPanel:(void(^)(void))handler onTab:(NSString *)tab
 {
     [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
     if ( [self isUserAuthenticated] && self.connectionStatus == CONNECTED ) {
@@ -627,7 +630,7 @@ static Arbiter *_sharedInstance = nil;
             [self.spinnerView removeFromSuperview];
             
             if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) {
-                ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] init:self];
+                ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] initOnTab:tab withArbiterInstance:self];
                 walletDashboard.callback = handler;
                 [self.panelWindow show:walletDashboard];
             } else {

@@ -192,6 +192,20 @@ namespace ArbiterInternal {
 			_showWalletPanel();
 #endif
 		}
+		
+		
+		[DllImport ("__Internal")]
+		private static extern void _showWalletPanelOnDepositTab();
+		public static void ShowWalletPanelOnDepositTab( SuccessHandler callback ) {
+			SetSimpleCallback( SHOW_WALLET_PANEL, callback );
+			#if UNITY_EDITOR
+			ReportIgnore( "ShowWalletOnDepositTab" );
+			if( callback != null )
+				callback();
+			#elif UNITY_IOS
+			_showWalletPanelOnDepositTab();
+			#endif
+		}
 
 
 		const string SEND_PROMO_CREDITS = "send_promo";

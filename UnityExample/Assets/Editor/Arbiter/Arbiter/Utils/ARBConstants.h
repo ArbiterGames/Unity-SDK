@@ -11,6 +11,7 @@
 
 extern NSString *const APIWalletURL;
 extern NSString *const APIWalletDashboardWebViewURL;
+extern NSString *const APIWalletDashboardWebViewDepositURL;
 extern NSString *const APISendPromoCreditsURL;
 extern NSString *const APIUserLoginURL;
 extern NSString *const APIUserLogoutURL;
@@ -40,6 +41,7 @@ extern NSString *const StripeLivePublishableKey;
 
 extern NSString* const USER_TOKEN;
 extern NSString* const DEFAULTS_USER_TOKEN;
+extern NSString* const DEPOSIT_TAB;
 
 extern int const UNKNOWN;
 extern int const CONNECTED;

@@ -4,7 +4,7 @@
 [Download link](https://github.com/ArbiterGames/Unity-SDK/blob/master/Arbiter.unitypackage?raw=true)
 
 ##Documentation for the SDK
-[Arbiter SDK Documentation](http://arbitergames.github.io/documentation/)
+[Arbiter SDK Documentation](http://arbiter.me/integration-guide/)
 
 ##Example Unity Project Using the SDK
 

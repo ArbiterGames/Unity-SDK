@@ -40,7 +40,8 @@ public partial class Arbiter {
 						"scoreToBeat:"+this.ScoreToBeat+", "+
 						"entryFee:"+this.EntryFee+", "+
 						"prize:"+this.Prize+", "+
-						"status:"+this.status+"]]";
+						"status:"+this.status+", "+
+						"winner:"+this.Winner+"]]";
 			return rv;
 		}
 		

@@ -9,8 +9,22 @@ using SimpleJSON;
 
 namespace ArbiterInternal {
 
-	public class ArbiterBinding : MonoBehaviour
-	{
+	public class ArbiterBinding : MonoBehaviour {
+
+
+		const string SHOW_NATIVE_DIALOG = "shownative";
+		[DllImport ("__Internal")]
+		private static extern bool _showNativeDialog( string title, string message );
+		public static void ShowNativeDialog( string title, string message, SuccessHandler callback ) {
+			SetSimpleCallback( SHOW_NATIVE_DIALOG, callback );
+#if UNITY_EDITOR
+			callback();
+#elif UNITY_IOS
+			_showNativeDialog( title, message );
+#else
+			throw new PlatformNotSupportedException();
+#endif
+		}
 
 
 #region Shared data
@@ -468,6 +482,10 @@ namespace ArbiterInternal {
 
 		public void InitHandler( string jsonString ) {
 			SimpleCallback( INIT, jsonString );
+		}
+
+		public void ShowNativeDialogHandler( string emptyString ) {
+			SimpleCallback( SHOW_NATIVE_DIALOG );
 		}
 
 		public void LoginWithDeviceIdHandler( string jsonString ) {

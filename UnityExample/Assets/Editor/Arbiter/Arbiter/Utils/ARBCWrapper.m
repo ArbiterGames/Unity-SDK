@@ -82,11 +82,13 @@ void _init( const char *apiKey, const char *accessToken )
     }];
 }
 
-void _showNativeDialog( const char *message )
+void _showNativeDialog( const char *alertTitle, const char *alertMessage )
 {
     [[Arbiter sharedInstance] showNativeAlertMessage:^(void) {
-        UnitySendMessage("ArbiterBinding", "AlertMessageHandler", AutonomousStringCopy([@"" UTF8String]) );
+        UnitySendMessage("ArbiterBinding", "ShowNativeDialogHandler", AutonomousStringCopy([@"" UTF8String]) );
     }
+                                               title:[[NSString alloc] initWithUTF8String:alertTitle]
+                                             message:[[NSString alloc] initWithUTF8String:alertMessage]];
 }
 
 void _loginWithDeviceId()

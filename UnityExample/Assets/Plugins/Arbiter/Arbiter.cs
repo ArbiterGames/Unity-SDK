@@ -8,6 +8,7 @@ using ArbiterInternal;
 public delegate void SuccessHandler();
 public delegate void ErrorHandler( List<string> errors );
 public delegate void FriendlyErrorHandler( List<string> errors, List<string> descriptions );
+public delegate void CodedErrorHandler( List<string> errorCodes, List<string> errors, List<string> descriptions );
 
 
 public partial class Arbiter : MonoBehaviour {
@@ -359,7 +360,8 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.AcceptCashChallenge( challengeId, success, ShowDescriptionInNativeAlert );
 	}
 	public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
-		ArbiterBinding.AcceptCashChallenge( challengeId, success, failure );
+		CodedErrorHandler failWrapper = ( c,e,d ) => { failure( e,d ); };
+		ArbiterBinding.AcceptCashChallenge( challengeId, success, failWrapper );
 	}
 	
 	public static void RejectCashChallenge( string challengeId, SuccessHandler success ) {
@@ -383,7 +385,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	
 	private static SuccessHandler nativeDialogCallback;
-	private static void ShowDescriptionInNativeAlert( List<string> errors, List<string> descriptions ) {
+	private static void ShowDescriptionInNativeAlert( List<string> errorCodes, List<string> errors, List<string> descriptions ) {
 		string msg = "";
 		for( int i=0; errors != null && i<errors.Count; i++ ) {
 			Debug.LogError( errors[0] );
@@ -391,6 +393,10 @@ public partial class Arbiter : MonoBehaviour {
 		}
 		if( descriptions != null ) {
 			msg = descriptions[0];
+		}
+		if( errorCodes != null ) {
+			// NOTE: the ActionFor function should put the current callback into a wrapper/cb so it's OK to re-assign the nativeDialogCallback here
+			nativeDialogCallback = ArbiterErrorCodes.ActionFor( errorCodes[0], nativeDialogCallback );
 		}
 		ShowNativeDialog( "ERROR", msg );
 	}

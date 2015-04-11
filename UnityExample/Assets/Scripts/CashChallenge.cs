@@ -17,7 +17,7 @@ public class CashChallenge : MonoBehaviour {
 	static int padding = 10;
 	static int buttonHeight = 100;
 	static int boxWidth = Screen.width - padding * 2;
-	static int boxHeight = buttonHeight * 5 + padding * 5;
+	static int boxHeight = buttonHeight * 6 + padding * 6;
 	static int boxY = (Screen.height - boxHeight) / 2;
 	static int buttonWidth = boxWidth - padding * 2;
 	static int labelHeight = 30;
@@ -59,17 +59,19 @@ public class CashChallenge : MonoBehaviour {
 				Arbiter.ReportScoreForChallenge( ChallengeId, Score, OnScoreReported, ErrorHandler );
 			}
 		} else {
-			if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + boxY + padding * 2, buttonWidth, buttonHeight), "Accept", buttonStyle)) {
+			if(GUI.Button(new Rect(padding * 2, buttonHeight * 2 + boxY + padding * 2, buttonWidth, buttonHeight), "Accept Custom", buttonStyle)) {
 				Arbiter.AcceptCashChallenge( ChallengeId, OnChallengeAccepted, ErrorHandler );
 			}
-			
-			if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + boxY + padding * 3, buttonWidth, buttonHeight), "Reject", buttonStyle)) {
+			if(GUI.Button(new Rect(padding * 2, buttonHeight * 3 + boxY + padding * 3, buttonWidth, buttonHeight), "Accept Default", buttonStyle)) {
+				Arbiter.AcceptCashChallengeUseNativeErrorDialogue( ChallengeId, OnChallengeAccepted, OnChallengeRejected );
+			}
+			if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + boxY + padding * 4, buttonWidth, buttonHeight), "Reject", buttonStyle)) {
 				Arbiter.RejectCashChallenge( ChallengeId, OnChallengeRejected );
 			}
 		}
 		
 		if ( ChallengeId != "Waiting" ) {
-			if(GUI.Button(new Rect(padding * 2, buttonHeight * 4 + boxY + padding * 4, buttonWidth, buttonHeight), "Official Rules", buttonStyle)) {
+			if(GUI.Button(new Rect(padding * 2, buttonHeight * 5 + boxY + padding * 5, buttonWidth, buttonHeight), "Official Rules", buttonStyle)) {
 				Arbiter.ShowCashChallengeRules( ChallengeId, OnRulesClosed );
 			}
 		}

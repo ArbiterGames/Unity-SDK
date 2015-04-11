@@ -185,7 +185,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _fetchWallet();
 		public static void FetchWallet( SuccessHandler success, ErrorHandler failure ) {
-			callbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure, ( e,d ) => {} );
+			callbacks[ FETCH_WALLET ] = new CallbackTuple( success, failure, ( e,d ) => {}, ( c,e,d ) => {} );
 #if UNITY_EDITOR
 			ReportIgnore( "FetchWallet" );
 			Arbiter.wallet = new Wallet();
@@ -399,8 +399,8 @@ namespace ArbiterInternal {
 		const string ACCEPT_SCORE_CHALLENGE = "accept_cash_challenge";
 		[DllImport ("__Internal")]
 		private static extern void _acceptCashChallenge( string challengeId );
-		public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
-			SetCallbacksWithFriendlyErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
+		public static void AcceptCashChallenge( string challengeId, SuccessHandler success, CodedErrorHandler failure ) {
+			SetCallbacksWithCodedErrors( ACCEPT_SCORE_CHALLENGE, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "AcceptCashChallenge" );
 #elif UNITY_IOS
@@ -619,34 +619,43 @@ namespace ArbiterInternal {
 
 
 		public struct CallbackTuple {
-			public CallbackTuple( SuccessHandler success, ErrorHandler failure, FriendlyErrorHandler friendlyFailure ) {
+			public CallbackTuple( SuccessHandler success, ErrorHandler failure, FriendlyErrorHandler friendlyFailure, CodedErrorHandler codedFailure ) {
 				Success = success;
 				Failure = failure;
 				FriendlyFailure = friendlyFailure;
+				CodedFailure = codedFailure;
 			}
 			public SuccessHandler Success;
 			public ErrorHandler Failure;
 			public FriendlyErrorHandler FriendlyFailure;
+			public CodedErrorHandler CodedFailure;
 		}
 		private static Dictionary<string,CallbackTuple> callbacks = new Dictionary<string,CallbackTuple>();
+		private static void SetCallbacksWithCodedErrors( string key, SuccessHandler success, CodedErrorHandler failure ) {
+			if( success == null )
+			success = () => {};
+			if( failure == null )
+			failure = (c,e,d) => {};
+			callbacks[ key ] = new CallbackTuple( success, ( e ) => {}, ( e,d ) => {}, failure );
+		}
 		private static void SetCallbacksWithFriendlyErrors( string key, SuccessHandler success, FriendlyErrorHandler failure ) {
 			if( success == null )
 				success = () => {};
 			if( failure == null )
 				failure = (e,d) => {};
-			callbacks[ key ] = new CallbackTuple( success, ( e ) => {}, failure );
+			callbacks[ key ] = new CallbackTuple( success, ( e ) => {}, failure, ( c,e,d ) => {} );
 		}
 		private static void SetCallbacksWithErrors( string key, SuccessHandler success, ErrorHandler failure ) {
 			if( success == null )
 				success = () => {};
 			if( failure == null )
 				failure = (e) => {};
-			callbacks[ key ] = new CallbackTuple( success, failure, ( e,d ) => {} );
+			callbacks[ key ] = new CallbackTuple( success, failure, ( e,d ) => {}, ( c,e,d ) => {} );
 		}
 		private static void SetSimpleCallback( string key, SuccessHandler callback ) {
 			if( callback == null )
 				callback = () => {};
-			callbacks[ key ] = new CallbackTuple( callback, ( e ) => {}, ( e,d ) => {} );
+			callbacks[ key ] = new CallbackTuple( callback, ( e ) => {}, ( e,d ) => {}, ( c,e,d ) => {} );
 		}
 		private void SimpleCallback( string callKey, string pluginResponse ) {
 			CallbackTuple callback = callbacks[ callKey ];
@@ -661,8 +670,12 @@ namespace ArbiterInternal {
 				if( wasSuccess( json )) {
 					callback.Success();
 				} else {
-					callback.Failure( getErrors( json ));
-					callback.FriendlyFailure( getErrors( json ), getDescriptions( json ));
+					List<string> codes = getCodes( json );
+					List<string> errors = getErrors( json );
+					List<string> descriptions = getDescriptions( json );
+					callback.Failure( errors );
+					callback.FriendlyFailure( errors, descriptions );
+					callback.CodedFailure( codes, errors, descriptions );
 				}
 			}
 		}
@@ -689,6 +702,18 @@ namespace ArbiterInternal {
 		}
 		
 
+		private List<string> getCodes( JSONNode json ) {
+			Debug.Log ("ttt getting codes...");
+			List<string> rv = new List<string>();
+			JSONArray errors = json["codes"].AsArray;
+			IEnumerator enumerator = errors.GetEnumerator();
+			while( enumerator.MoveNext() ) {
+				rv.Add( ((JSONData)(enumerator.Current)).Value );
+			}
+			// ttt remove these fake codes
+			rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
+			return rv;
+		}
 		private List<string> getErrors( JSONNode json ) {
 			List<string> rv = new List<string>();
 			JSONArray errors = json["errors"].AsArray;

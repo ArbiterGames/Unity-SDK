@@ -2,7 +2,7 @@
 //  Arbiter.m
 //  Arbiter
 //
-//  Copyright (c) 2014 Arbiter. All rights reserved.
+//  Copyright (c) 2015 Arbiter. All rights reserved.
 //
 
 //
@@ -29,6 +29,7 @@
 #define WALLET_ALERT_TAG 331
 #define VERIFICATION_ALERT_TAG 332
 #define ENABLE_LOCATION_ALERT_TAG 333
+#define MESSAGE_ALERT_TAG 334
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
@@ -43,6 +44,24 @@
     CLLocationManager *locationManager;
     CLLocation *currentLocation;
     NSDictionary *_NO_CONNECTION_RESPONSE_DICT;
+}
+
+- (void)showNativeAlertMessage:(void(^)(void))callback title:(NSString *)title message:(NSString *)message
+{
+    UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
+                                                    message:message
+                                                   delegate:self
+                                          cancelButtonTitle:@"OK"
+                                          otherButtonTitles:nil];
+    [alert setTag:MESSAGE_ALERT_TAG];
+    
+    void (^okHandler)(void) = ^{
+        [[UIApplication sharedApplication] endIgnoringInteractionEvents];
+        callback();
+    };
+
+    [_alertViewHandlerRegistry setObject:okHandler forKey:@"messageHandler"];
+    [alert show];
 }
 
 static Arbiter *_sharedInstance = nil;
@@ -74,10 +93,10 @@ static Arbiter *_sharedInstance = nil;
     self = [super init];
     if ( self ) {
         _NO_CONNECTION_RESPONSE_DICT = @{
-            @"success": @false, 
-            @"errors": @[@"Device has no internet connection."],
-            @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
-        };
+                                         @"success": @false,
+                                         @"errors": @[@"Device has no internet connection."],
+                                         @"descriptions": @[@"Your device appears to be offline. Make sure you are connected to the internet."]
+                                         };
         
         self.connectionStatus = UNKNOWN;;
         self.apiKey = apiKey;
@@ -94,11 +113,11 @@ static Arbiter *_sharedInstance = nil;
         self.spinnerView = [[UIActivityIndicatorView alloc] initWithFrame:[[UIScreen mainScreen] bounds]];
         self.spinnerView.activityIndicatorViewStyle = UIActivityIndicatorViewStyleWhiteLarge;
         self.spinnerView.backgroundColor = [[UIColor blackColor] colorWithAlphaComponent:0.5f];
-
-
+        
+        
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
             if( [self isSuccessfulResponse:innerResponse] &&
-                    [self hydrateUserWithCachedToken] ) {
+               [self hydrateUserWithCachedToken] ) {
                 [self loginWithDevice:handler];
             } else {
                 handler(innerResponse);
@@ -130,7 +149,7 @@ static Arbiter *_sharedInstance = nil;
             } else {
                 [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
             }
-
+            
             NSNumber* timesSeen = [NSNumber numberWithInt:0];
             NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
             if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
@@ -157,7 +176,7 @@ static Arbiter *_sharedInstance = nil;
             NSLog(@"Arbiter SDK found internet connection. Re-enabling features.");
             self.connectionStatus = UNKNOWN;
         }
-
+        
         // Relying that this code executes on the non-main thread and therefore the http request is synchronous so we don't need to worry
         //      about hitting gameSettings more than once at a time
         if( self.connectionStatus != CONNECTED ) {
@@ -241,11 +260,11 @@ static Arbiter *_sharedInstance = nil;
         if ([self isSuccessfulResponse:responseDict]) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];    
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         }
         handler(responseDict);
     } copy];
-
+    
     NSDictionary *urlParams = @{};
     if( [ARBTracking arbiterInstance] != nil ) {
         urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
@@ -270,22 +289,22 @@ static Arbiter *_sharedInstance = nil;
             handler(responseDict);
         } copy];
         
-            [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
-                if (error) {
-                    handler( @{@"success": @false,
-                               @"errors": @[[error localizedDescription]]});
-                } else {
-                    NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
-                                                 @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
-                                                 @"signature":[signature base64EncodedStringWithOptions:0],
-                                                 @"salt":[salt base64EncodedStringWithOptions:0],
-                                                 @"playerID":localPlayer.playerID,
-                                                 @"game_center_username": localPlayer.alias,
-                                                 @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
-                                                 @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
-                    [self httpPost:APIUserLoginGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
-                }
-            }];
+        [localPlayer generateIdentityVerificationSignatureWithCompletionHandler:^(NSURL *publicKeyUrl, NSData *signature, NSData *salt, uint64_t timestamp, NSError *error) {
+            if (error) {
+                handler( @{@"success": @false,
+                           @"errors": @[[error localizedDescription]]});
+            } else {
+                NSDictionary *paramsDict = @{@"publicKeyUrl":[publicKeyUrl absoluteString],
+                                             @"timestamp":[NSString stringWithFormat:@"%llu", timestamp],
+                                             @"signature":[signature base64EncodedStringWithOptions:0],
+                                             @"salt":[salt base64EncodedStringWithOptions:0],
+                                             @"playerID":localPlayer.playerID,
+                                             @"game_center_username": localPlayer.alias,
+                                             @"bundleID":[[NSBundle mainBundle] bundleIdentifier],
+                                             @"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
+                [self httpPost:APIUserLoginGameCenterURL params:paramsDict isBlocking:NO handler:connectionHandler];
+            }
+        }];
     } else {
         handler(@{@"success": @false,
                   @"errors": @[@"Linking a Game Center account requires iOS >= 7.0"]});
@@ -371,21 +390,21 @@ static Arbiter *_sharedInstance = nil;
         handler( @{@"success": @"false"} );
         return;
     }
-
+    
     [[ARBTracking arbiterInstance] track:@"Verifying User"];
-
+    
     /* Recursively call this function to check each thing that needs to be verified in order.
      * Once all checks pass, this function calls the handler (this method argument)
      */
-
-
+    
+    
     /**********************************************
      * COMMON ASYNC HANDLER DECLARATIONS
      **********************************************/
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if ([self isSuccessfulResponse:geoCodeResponse]) {
-
+            
             [self.user setObject:[geoCodeResponse objectForKey:@"postalCode"] forKey:@"postal_code"];
             if ( tryToGetLatLong ) {
                 NSString* lat = [geoCodeResponse objectForKey:@"lat"];
@@ -395,13 +414,13 @@ static Arbiter *_sharedInstance = nil;
                 if( lon != nil )
                     [self.user setObject:lon forKey:@"long"];
             }
-
+            
             [[ARBTracking arbiterInstance] track:@"Device Location Found"];
-
+            
             // Don't try to get lat/long more than 1 time--since we just tried to get it and it's optional, move on no matter what next time
             [self verifyUser:handler tryToGetLatLong:NO];
         } else {
-
+            
             void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
                 if ([self isSuccessfulResponse:response]) {
                     [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
@@ -414,44 +433,44 @@ static Arbiter *_sharedInstance = nil;
                                                                 message:@"Make sure Location Services are enabled in your phone\'s settings and you are playing from a location that permits cash features.\n\nYou can enable Location Services on your device through: Settings > Privacy > Location Services."
                                                                delegate:self
                                                       cancelButtonTitle:@"Keep disabled"
-                                                      otherButtonTitles:@"Check again", @"View locations", nil];
+                                                      otherButtonTitles:@"Check again", @"Availability", nil];
                 [_alertViewHandlerRegistry setObject:alertViewHandler forKey:@"enableLocationServices"];
                 [alert setTag:ENABLE_LOCATION_ALERT_TAG];
                 [[UIApplication sharedApplication] endIgnoringInteractionEvents];
                 [alert show];
-            }            
+            }
         }
     };
-
+    
     void (^postVerifyCallback)(NSDictionary* ) = ^(NSDictionary *verifyResponse) {
         if ([self isSuccessfulResponse:verifyResponse]) {
             [[ARBTracking arbiterInstance] track:@"Verify API Success"];
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
-
-            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];   
+            
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
         } else {
             [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
             handler(verifyResponse);
         }
     };
-
-
-
+    
+    
+    
     /**********************************************
      * VERIFICATION CHECKS
      **********************************************/
     if( IS_NULL_STRING([self.user objectForKey:@"postal_code"]) ) {
         [[ARBTracking arbiterInstance] track:@"Ask Device For Location"];
         [self getDeviceLocation:locationCallback requireLatLong:NO];
-
+        
     } else if( tryToGetLatLong && (IS_NULL_STRING([self.user objectForKey:@"lat"]) || IS_NULL_STRING([self.user objectForKey:@"long"])) ) {
         [[ARBTracking arbiterInstance] track:@"Ask Device For LatLong"];
         // NOTE: Lat/Long is a happy benefit but not a REQUIREMENT to verify a user
         [self getDeviceLocation:locationCallback requireLatLong:NO];
-
+        
     } else if( IS_NULL_STRING([self.user objectForKey:@"agreed_to_terms"]) || [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
-
+        
         void (^alertViewHandler)(NSDictionary *) = [^(NSDictionary *response) {
             if ([self isSuccessfulResponse:response]) {
                 [self postVerify:postVerifyCallback];
@@ -469,10 +488,10 @@ static Arbiter *_sharedInstance = nil;
         [[UIApplication sharedApplication] endIgnoringInteractionEvents];
         [alert show];
         [[ARBTracking arbiterInstance] track:@"Displayed Terms Dialog"];
-
+        
     } else if( IS_NULL_STRING([self.user objectForKey:@"location_approved"]) || [[self.user objectForKey:@"location_approved"] boolValue] == false ) {
         [self postVerify:postVerifyCallback];
-
+        
     } else {
         // Sanity check to ensure our isUserVerified() function validates the behavior of this function
         if( [self isUserVerified] ) {
@@ -481,9 +500,9 @@ static Arbiter *_sharedInstance = nil;
             NSString* msg = [NSString stringWithFormat:@"Verification Error. Could not verify user:%@", self.user];
             NSLog( @"%@", msg );
             handler( @{
-                @"success": @false, 
-                @"errors": @[ msg ]
-            });
+                       @"success": @false,
+                       @"errors": @[ msg ]
+                       });
             [[ARBTracking arbiterInstance] track:@"ERR: SDK Verify"];
         }
     }
@@ -623,7 +642,7 @@ static Arbiter *_sharedInstance = nil;
         [self.spinnerView setFrame:keyRVCV.bounds];
         [keyRVCV addSubview:self.spinnerView];
         [self.spinnerView startAnimating];
-
+        
         void (^populateThenShowPanel)(void) = [^(void) {
             [[UIApplication sharedApplication] endIgnoringInteractionEvents];
             [self.spinnerView stopAnimating];
@@ -896,15 +915,15 @@ static Arbiter *_sharedInstance = nil;
 {
     const char *cstr = [str cStringUsingEncoding:NSUTF8StringEncoding];
     NSData *data = [NSData dataWithBytes:cstr length:str.length];
- 
+    
     uint8_t digest[CC_SHA1_DIGEST_LENGTH];
     CC_SHA1(data.bytes, data.length, digest);
- 
+    
     NSMutableString* hash = [NSMutableString stringWithCapacity:CC_SHA1_DIGEST_LENGTH * 2];
- 
+    
     for(int i = 0; i < CC_SHA1_DIGEST_LENGTH; i++)
         [hash appendFormat:@"%02x", digest[i]];
- 
+    
     return hash;
 }
 
@@ -919,9 +938,9 @@ static Arbiter *_sharedInstance = nil;
 - (NSDictionary*)formatAsHandlerResponse:(NSError*)error {
     NSLog(@"ERROR: %@", error);
     return( @{
-                @"success": @"false",
-                @"errors": @[error]
-           });
+              @"success": @"false",
+              @"errors": @[error]
+              });
 }
 
 
@@ -990,7 +1009,7 @@ static Arbiter *_sharedInstance = nil;
     if( ![self hasConnection:handler] ) {
         return;
     }
-
+    
     NSMutableString *urlParams = [[NSMutableString alloc] initWithString:@""];
     if( params != nil ) {
         [urlParams appendString:@"?"];
@@ -1000,7 +1019,7 @@ static Arbiter *_sharedInstance = nil;
     }
     NSString *fullUrl = [NSString stringWithFormat:@"%@%@", url, urlParams];
     NSString *key = [fullUrl stringByAppendingString:@":GET"];
-
+    
     NSLog( @"ArbiterSDK GET %@", fullUrl );
     
     NSURLRequest* request = [self makeHttpRequest:fullUrl authTokenOverride:authTokenOverride];
@@ -1016,7 +1035,7 @@ static Arbiter *_sharedInstance = nil;
     if( ![self hasConnection:handler] ) {
         return;
     }
-
+    
     NSLog( @"ArbiterSDK POST %@", url );
     NSError *error = nil;
     NSData *paramsData;
@@ -1030,7 +1049,7 @@ static Arbiter *_sharedInstance = nil;
                                                  options:0
                                                    error:&error];
     paramsStr = [[NSString alloc] initWithData:paramsData encoding:NSUTF8StringEncoding];
-
+    
     if( error != nil ) {
         handler( [self formatAsHandlerResponse:error] );
     } else {
@@ -1038,7 +1057,7 @@ static Arbiter *_sharedInstance = nil;
         
         [request setHTTPMethod:@"POST"];
         [request setHTTPBody:[paramsStr dataUsingEncoding:NSUTF8StringEncoding]];
-    
+        
         [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
     }
 }
@@ -1122,7 +1141,10 @@ static Arbiter *_sharedInstance = nil;
     
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];
     
-    if ( alertView.tag == LOGIN_ALERT_TAG ) {
+    if ( alertView.tag == MESSAGE_ALERT_TAG ) {
+        void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"messageHandler"];
+        handler(@{});
+    } else if ( alertView.tag == LOGIN_ALERT_TAG ) {
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"loginHandler"];
         if ( buttonIndex == 0 ) {
             NSArray *errors  = [NSArray arrayWithObjects:@"User canceled the login.", nil];
@@ -1134,15 +1156,15 @@ static Arbiter *_sharedInstance = nil;
         void (^handler)(NSDictionary *) = [_alertViewHandlerRegistry objectForKey:@"invalidLoginHandler"];
         handler(@{});
     } else if ( alertView.tag == VERIFICATION_ALERT_TAG ) {
-
+        
         void(^agreeHandler)(NSDictionary*) = [_alertViewHandlerRegistry objectForKey:@"agreedToTermsHandler"];
-
+        
         // Agree
         if ( buttonIndex == 0 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked Agree to Terms"];
             agreeHandler(@{@"success":@true});
-
-        // View Terms
+            
+            // View Terms
         } else if ( buttonIndex == 1 ) {
             [[ARBTracking arbiterInstance] track:@"Clicked View Terms"];
             [[UIApplication sharedApplication] openURL:[NSURL URLWithString:@"https://www.arbiter.me/terms/"]];

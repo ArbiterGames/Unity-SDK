@@ -44,6 +44,8 @@ void ClientCallbackWalletUpdated();
 - (void)setWallet:(NSMutableDictionary *)wallet;
 - (NSMutableDictionary *)wallet;
 
+- (void)showNativeAlertMessage:(void(^)(void))callback title:(NSString *)title message:(NSString *)message;
+
 + (Arbiter *)sharedInstance;
 + (bool)isInitialized;
 + (Arbiter *)initWithApiKey:(NSString *)apiKey accessToken:(NSString *)accessToken handler:(void(^)(NSDictionary *))handler;

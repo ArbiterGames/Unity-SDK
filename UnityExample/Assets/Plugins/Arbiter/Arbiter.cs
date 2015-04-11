@@ -62,11 +62,14 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.Init( _gameApiKey, _accessToken, InitializeSuccess, initializeErrorHandler );
 	}
 	void InitializeSuccess() {
-		postInitActions.ForEach( a => { 
-			if( a != null ) 
-				a.Invoke();
-		});
-		postInitActions.Clear();
+		if( postInitActions.Count > 0 ) {
+			Debug.Log( "Arbiter logged-in. Invoking queued actions." );
+			postInitActions.ForEach( a => { 
+				if( a != null ) 
+					a.Invoke();
+			});
+			postInitActions.Clear();
+		}
 		initted = true;
 
 		setupPollers();
@@ -92,6 +95,7 @@ public partial class Arbiter : MonoBehaviour {
 		}
 	}
 #endif
+
 
 	
 	public static void Login( SuccessHandler success, ErrorHandler failure ) {
@@ -221,6 +225,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
+		Debug.Log("walletPoller="+walletPoller);
 		walletPoller.Reset();
 	}
 	
@@ -348,7 +353,11 @@ public partial class Arbiter : MonoBehaviour {
 		}
 		ArbiterBinding.RequestCashChallenge( filters, callback, failure );
 	}
-	
+
+	public static void AcceptCashChallengeUseNativeErrorDialogue( string challengeId, SuccessHandler success, SuccessHandler errorDialogueComplete ) {
+		nativeDialogCallback = errorDialogueComplete;
+		ArbiterBinding.AcceptCashChallenge( challengeId, success, ShowDescriptionInNativeAlert );
+	}
 	public static void AcceptCashChallenge( string challengeId, SuccessHandler success, FriendlyErrorHandler failure ) {
 		ArbiterBinding.AcceptCashChallenge( challengeId, success, failure );
 	}
@@ -369,6 +378,24 @@ public partial class Arbiter : MonoBehaviour {
 	
 	public static void ShowWalkThrough( string walkThroughId, SuccessHandler callback ) {
 		ArbiterBinding.ShowWalkThrough( walkThroughId, callback );
+	}
+
+
+	
+	private static SuccessHandler nativeDialogCallback;
+	private static void ShowDescriptionInNativeAlert( List<string> errors, List<string> descriptions ) {
+		string msg = "";
+		for( int i=0; errors != null && i<errors.Count; i++ ) {
+			Debug.LogError( errors[0] );
+			msg = errors[i];
+		}
+		if( descriptions != null ) {
+			msg = descriptions[0];
+		}
+		ShowNativeDialog( "ERROR", msg );
+	}
+	private static void ShowNativeDialog( string title, string message ) {
+		ArbiterBinding.ShowNativeDialog( title, message, nativeDialogCallback );
 	}
 
 	

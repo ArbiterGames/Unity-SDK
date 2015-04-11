@@ -2,7 +2,7 @@
 //  Arbiter.m
 //  Arbiter
 //
-//  Copyright (c) 2014 Arbiter. All rights reserved.
+//  Copyright (c) 2015 Arbiter. All rights reserved.
 //
 
 
@@ -80,6 +80,13 @@ void _init( const char *apiKey, const char *accessToken )
                     handler:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
     }];
+}
+
+void _showNativeDialog( const char *message )
+{
+    [[Arbiter sharedInstance] showNativeAlertMessage:^(void) {
+        UnitySendMessage("ArbiterBinding", "AlertMessageHandler", AutonomousStringCopy([@"" UTF8String]) );
+    }
 }
 
 void _loginWithDeviceId()

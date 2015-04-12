@@ -703,15 +703,23 @@ namespace ArbiterInternal {
 		
 
 		private List<string> getCodes( JSONNode json ) {
-			Debug.Log ("ttt getting codes...");
 			List<string> rv = new List<string>();
-			JSONArray errors = json["codes"].AsArray;
-			IEnumerator enumerator = errors.GetEnumerator();
+			JSONArray codes = json["codes"].AsArray;
+			IEnumerator enumerator = codes.GetEnumerator();
 			while( enumerator.MoveNext() ) {
 				rv.Add( ((JSONData)(enumerator.Current)).Value );
 			}
-			// ttt remove these fake codes
-			rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
+			// TODO: Get codes from the server
+			// hack {
+			List<string> errors = getErrors( json );
+			if( errors != null ) {
+				errors.ForEach( e => {
+					if( e.Substring(0,42) == "User does not have enough to pay entry fee" ) {
+						rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
+					}
+				});
+			}
+			// } hack
 			return rv;
 		}
 		private List<string> getErrors( JSONNode json ) {

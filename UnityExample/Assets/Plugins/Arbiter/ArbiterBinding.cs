@@ -714,7 +714,7 @@ namespace ArbiterInternal {
 			List<string> errors = getErrors( json );
 			if( errors != null ) {
 				errors.ForEach( e => {
-					if( e.Substring(0,42) == "User does not have enough to pay entry fee" ) {
+					if( e.Length >= 42 && e.Substring(0,42) == "User does not have enough to pay entry fee" ) {
 						rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
 					}
 				});

@@ -70,6 +70,7 @@ static Arbiter *_sharedInstance = nil;
 {
     static dispatch_once_t oncePredicate;
     dispatch_once(&oncePredicate, ^{
+        NSLog(@"Initializing Arbiter SDK. Settings API Key: %@, Token:%@", apiKey, accessToken);
         _sharedInstance = [[Arbiter alloc] init:handler apiKey:apiKey accessToken:accessToken];
     });
     return _sharedInstance;
@@ -100,8 +101,7 @@ static Arbiter *_sharedInstance = nil;
         
         self.connectionStatus = UNKNOWN;;
         self.apiKey = apiKey;
-        //tttself.accessToken = accessToken;
-        self.accessToken = @"badToken";
+        self.accessToken = accessToken;
         self._deviceHash = [self buildDeviceHash];
         self.locationVerificationAttempts = 0;
         self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
@@ -176,12 +176,13 @@ static Arbiter *_sharedInstance = nil;
         } else {
             NSLog(@"ttt check -a");
             handler( _NO_CONNECTION_RESPONSE_DICT );
+            NSLog(@"ttt check -b");
         }
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
-        NSLog(@"ttt REACHABLE. connectionStatus=%@",self.connectionStatus);
+        NSLog(@"ttt REACHABLE. connectionStatus=%i",self.connectionStatus);
         // Handle the case where internet came back on within a single app session
         if( self.connectionStatus == NOT_CONNECTED ) {
             NSLog(@"Arbiter SDK found internet connection. Re-enabling features.");
@@ -987,17 +988,20 @@ static Arbiter *_sharedInstance = nil;
         }
         [NSURLConnection connectionWithRequest:request delegate:self];
     } else {
+        // This is not the main thread, so go ahead and perform a syncronous web request
         NSURLResponse* response = nil;
         NSError* error = nil;
         NSData* data = [NSURLConnection sendSynchronousRequest:request
                                              returningResponse:&response
                                                          error:&error];
         
+        // Log any errors, but don't assume they are critical failures
         if( error != nil ) {
             NSLog(@"Error with call to %@", [request URL]);
             NSLog(@"Description:\n%@", [error localizedDescription]);
             NSLog(@"Reason:\n%@", [error localizedFailureReason]);
-        } else if( data == nil ) {
+        }
+        if( data == nil ) {
             handler( _NO_CONNECTION_RESPONSE_DICT );
         } else {
             NSDictionary *dict = [NSJSONSerialization JSONObjectWithData:data options:NSJSONReadingMutableLeaves error:&error];

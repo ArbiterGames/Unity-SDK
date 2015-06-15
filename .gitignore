@@ -17,7 +17,7 @@ DerivedData
 *.xccheckout
 *.pyc
 Pods
-**/iOS_Build/*
+**/iOS_Build*
 **/Library/*
 **/Temp*
 *.sln

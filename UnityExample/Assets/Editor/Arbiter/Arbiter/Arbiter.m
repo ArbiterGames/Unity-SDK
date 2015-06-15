@@ -140,49 +140,38 @@ static Arbiter *_sharedInstance = nil;
 -(void)establishConnection:(void(^)(NSDictionary *))handler
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
-        NSLog(@"ttt in connectionHandler.");
         // v1 of the api doesn't include success, here. So for now, do a hack to presume that the success key only exists if it was a failure
-        NSLog(@"response=%@",responseDict);
         if( IS_NULL_STRING([responseDict objectForKey:@"success"]) ) {
-            NSLog(@"ttt check a");
             self.connectionStatus = CONNECTED;
             self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
-            NSLog(@"ttt check b");
             self.game = responseDict;
             if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
                 [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
             } else {
                 [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
             }
-            NSLog(@"ttt check c");
             
             NSNumber* timesSeen = [NSNumber numberWithInt:0];
             NSString* thisGameId = [NSString stringWithFormat:@"seen_arbiter_game_%@", self.apiKey];
             if( [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId] != nil ) {
                 timesSeen = [[NSUserDefaults standardUserDefaults] objectForKey:thisGameId];
             }
-            NSLog(@"ttt check d");
             NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
             timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
             [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
             
-            NSLog(@"ttt check e");
             ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
             [arbiterInstance identify:arbiterInstance.distinctId];
             [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
             [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
-            NSLog(@"ttt check f");
             handler(@{@"success": @true});
         } else {
-            NSLog(@"ttt check -a");
             handler( _NO_CONNECTION_RESPONSE_DICT );
-            NSLog(@"ttt check -b");
         }
     } copy];
     
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
-        NSLog(@"ttt REACHABLE. connectionStatus=%i",self.connectionStatus);
         // Handle the case where internet came back on within a single app session
         if( self.connectionStatus == NOT_CONNECTED ) {
             NSLog(@"Arbiter SDK found internet connection. Re-enabling features.");
@@ -197,7 +186,6 @@ static Arbiter *_sharedInstance = nil;
         }
     };
     reach.unreachableBlock = ^(Reachability* reach) {
-        NSLog(@"ttt UN-REACHABLE.");
         NSLog(@"Arbiter SDK detected loss of internet connection. Most features disabled.");
         self.connectionStatus = NOT_CONNECTED;
         connectionHandler(_NO_CONNECTION_RESPONSE_DICT);
@@ -461,7 +449,7 @@ static Arbiter *_sharedInstance = nil;
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
             
-            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong]; // ttt seems weird this would need to call again.
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
         } else {
             [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
             handler(verifyResponse);
@@ -1026,7 +1014,6 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
-    NSLog(@"ttt in httpGet...");
     if( ![self hasConnection:handler] ) {
         return;
     }

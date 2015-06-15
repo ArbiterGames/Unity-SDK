@@ -461,7 +461,7 @@ static Arbiter *_sharedInstance = nil;
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[verifyResponse objectForKey:@"user"]];
             
-            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong];
+            [self verifyUser:handler tryToGetLatLong:tryToGetLatLong]; // ttt seems weird this would need to call again.
         } else {
             [[ARBTracking arbiterInstance] track:@"Verify API Failure"];
             handler(verifyResponse);

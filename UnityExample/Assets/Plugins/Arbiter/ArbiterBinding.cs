@@ -166,6 +166,7 @@ namespace ArbiterInternal {
 		[DllImport ("__Internal")]
 		private static extern void _verifyUser();
 		public static void VerifyUser( SuccessHandler success, ErrorHandler failure ) {
+			Debug.Log ("ttt Binding.Verify");
 			SetCallbacksWithErrors( VERIFY, success, failure );
 #if UNITY_EDITOR
 			ReportIgnore( "VerifyUser" );
@@ -505,6 +506,7 @@ namespace ArbiterInternal {
 		}
 
 		public void VerifyUserHandler( string jsonString ) {
+			Debug.Log("ttt verify response="+jsonString);
 			SimpleCallback( VERIFY, jsonString );
 		}
 		

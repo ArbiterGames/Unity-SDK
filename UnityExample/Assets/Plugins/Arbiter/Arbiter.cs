@@ -63,14 +63,9 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.Init( _gameApiKey, _accessToken, InitializeSuccess, initializeErrorHandler );
 	}
 	void InitializeSuccess() {
-		if( postInitActions.Count > 0 ) {
-			Debug.Log( "Arbiter logged-in. Invoking queued actions." );
-			postInitActions.ForEach( a => { 
-				if( a != null ) 
-					a.Invoke();
-			});
-			postInitActions.Clear();
-		}
+		Debug.Log( "Arbiter initialized. Invoking queued actions. (Post-Init:"+postInitActions.Count+", Post-Auth:"+postAuthenticateActions.Count+")" );
+		FireAndForget( postInitActions );
+		FirePostAuthenticateActionsIfAble();
 		initted = true;
 
 		setupPollers();
@@ -81,6 +76,22 @@ public partial class Arbiter : MonoBehaviour {
 		} else {
 			Debug.Log( "Arbiter is not yet logged-in, queueing request Action: "+a );
 			postInitActions.Add( a );
+		}
+	}
+	static void FireAndForget( List<Action> list ) {
+		var count = list.Count;
+		for( int i=0; i<count; i++ ) {
+			if( list[i] != null )
+				list[i].Invoke();
+		}
+		list.Clear();
+	}
+	static void FirePostAuthenticateActionsIfAble() {
+		if( IsAuthenticated ) {
+			Debug.Log( "Firing Post-Auth actions ("+postAuthenticateActions.Count+")" );
+			FireAndForget( postAuthenticateActions );
+		} else {
+			Debug.Log( "Waiting to fire Post-Auth actions ("+postAuthenticateActions.Count+")" );
 		}
 	}
 
@@ -109,8 +120,13 @@ public partial class Arbiter : MonoBehaviour {
 	/// This is only necessary to call if there is no cached user credentials on device. But calling it redundantly is harmless.
 	/// </summary>
 	public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
+		SuccessHandler successWrapper = () => {
+			FirePostAuthenticateActionsIfAble();
+			if( success != null )
+				success();
+		};
 		WaitUntilInitted( () => { 
-			ArbiterBinding.LoginWithDeviceId( success, failure );
+			ArbiterBinding.LoginWithDeviceId( successWrapper, failure );
 		});
 	}
 
@@ -143,6 +159,17 @@ public partial class Arbiter : MonoBehaviour {
 	} }
 
 
+	/// <summary>
+	/// Fires once on the first time authentication is successful
+	/// </summary>
+	/// <param name="listener">Listener.</param>
+	public static void AddAuthenticatedListener( Action listener ) {
+		if( !postAuthenticateActions.Contains( listener ))
+			postAuthenticateActions.Add( listener );
+	}
+	public static void RemoveAuthenticatedListener( Action listener ) {
+		postAuthenticateActions.Remove( listener );
+	}
 	/// <summary>
 	/// For when the currently-authenticated user updates a piece of his/her info
 	/// </summary>
@@ -201,6 +228,17 @@ public partial class Arbiter : MonoBehaviour {
 	}
 
 
+	/// <summary>
+	/// Assuming your Arbiter credits are worth exactly 1 US-Cent, return a format like typical US currency (eg $12.34)
+	/// </summary>
+	/// <returns>The balance as usd.</returns>
+	public static string FormattedBalanceAsUsd() {
+		if( !WalletExists(true) || wallet.Balance == null || wallet.Balance == "" )
+			return "...";
+		return String.Format( "{0:C}", float.Parse( wallet.Balance ) / 100f );
+	}
+
+
 	public static void AddWalletListener( Action listener ) {
 		if( !walletUpdatedListeners.Contains( listener ))
 			walletUpdatedListeners.Add( listener );
@@ -226,7 +264,6 @@ public partial class Arbiter : MonoBehaviour {
 
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
-		Debug.Log("walletPoller="+walletPoller);
 		walletPoller.Reset();
 	}
 	
@@ -463,6 +500,7 @@ public partial class Arbiter : MonoBehaviour {
 
 	private static bool initted = false;
 	private static List<Action> postInitActions = new List<Action>();
+	private static List<Action> postAuthenticateActions = new List<Action>();
 
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;

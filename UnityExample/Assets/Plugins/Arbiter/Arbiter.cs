@@ -163,12 +163,9 @@ public partial class Arbiter : MonoBehaviour {
 	/// Fires once on the first time authentication is successful
 	/// </summary>
 	/// <param name="listener">Listener.</param>
-	public static void AddAuthenticatedListener( Action listener ) {
+	public static void DoOnceOnAuthenticated( Action listener ) {
 		if( !postAuthenticateActions.Contains( listener ))
 			postAuthenticateActions.Add( listener );
-	}
-	public static void RemoveAuthenticatedListener( Action listener ) {
-		postAuthenticateActions.Remove( listener );
 	}
 	/// <summary>
 	/// For when the currently-authenticated user updates a piece of his/her info

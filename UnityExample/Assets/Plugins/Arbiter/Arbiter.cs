@@ -140,7 +140,8 @@ public partial class Arbiter : MonoBehaviour {
 
 
 	public static void Logout( SuccessHandler success, ErrorHandler failure ) {
-		teardownPollers();
+		wallet = null;
+		user = null;
 		ArbiterBinding.Logout( success, failure );
 	}
 
@@ -461,18 +462,6 @@ public partial class Arbiter : MonoBehaviour {
 			DontDestroyOnLoad( tournamentPoller.gameObject );
 			tournamentPoller.Verbose = true;
 		}
-	}
-	private static void teardownPollers() {
-		if ( walletPoller ) {
-			walletPoller.Stop();
-			walletPoller = null;
-		}
-		if ( tournamentPoller ) {
-			tournamentPoller.Stop();
-			tournamentPoller = null;
-		}
-		wallet = null;
-		user = null;
 	}
 
 

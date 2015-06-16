@@ -248,7 +248,8 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	public static void UpdateWallet() {
-		walletPoller.Reset();
+		if( walletPoller != null )
+			walletPoller.Reset();
 	}
 
 

@@ -1,8 +1,10 @@
 #import <CoreLocation/CoreLocation.h>
 #import <CommonCrypto/CommonDigest.h>
+#import <CoreLocation/CoreLocation.h>
 
 #import "Arbiter.h"
 #import "ARBConstants.h"
+#import "Reachability.h"
 
 
 
@@ -95,7 +97,7 @@ static Arbiter *_sharedInstance = nil;
         void (^handlerWrapper)(NSDictionary *) = [^(NSDictionary *innerResponse) {
             if( [self isSuccessfulResponse:innerResponse] &&
                [self hydrateUserWithCachedToken] ) {
-//ttt                [self loginWithDevice:handler];
+                [self loginWithDevice:handler];
             } else {
                 handler(innerResponse);
                 // At this point, we know that no user is logged in. So we are going from
@@ -178,7 +180,6 @@ static Arbiter *_sharedInstance = nil;
         }
     } copy];
     
-    /* ttt
     Reachability* reach = [Reachability reachabilityWithHostname:@"www.google.com"];
     reach.reachableBlock = ^(Reachability* reach) {
         // Handle the case where internet came back on within a single app session
@@ -200,7 +201,6 @@ static Arbiter *_sharedInstance = nil;
         connectionHandler(_NO_CONNECTION_RESPONSE_DICT);
     };
     [reach startNotifier];
-    */
 }
 
 
@@ -283,7 +283,7 @@ static Arbiter *_sharedInstance = nil;
         urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     }
     */
-//ttttttt    [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
+    [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
 }
 /* ttt
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
@@ -940,7 +940,7 @@ static Arbiter *_sharedInstance = nil;
     
     return hash;
 }
-/* ttt
+
 - (NSString*)formattedAuthHeaderForToken:(NSString*)authToken {
     NSString* tokenPrefix = @"";
     if (!IS_NULL_STRING(authToken)) {
@@ -969,6 +969,7 @@ static Arbiter *_sharedInstance = nil;
     }
     return true;
 }
+
 
 - (NSMutableURLRequest*)makeHttpRequest:(NSString*)url authTokenOverride:(NSString*)authTokenOverride {
     NSMutableURLRequest *request = [NSMutableURLRequest
@@ -1015,6 +1016,7 @@ static Arbiter *_sharedInstance = nil;
         }
     }
 }
+
 
 - (void)httpGet:(NSString*)url isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler
 {
@@ -1082,6 +1084,7 @@ static Arbiter *_sharedInstance = nil;
         [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
     }
 }
+/* ttt
 
 - (void)addRequestToQueue:(NSString *)key
 {

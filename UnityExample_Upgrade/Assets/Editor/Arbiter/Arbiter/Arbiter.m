@@ -1084,7 +1084,6 @@ static Arbiter *_sharedInstance = nil;
         [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
     }
 }
-/* ttt
 
 - (void)addRequestToQueue:(NSString *)key
 {
@@ -1160,7 +1159,7 @@ static Arbiter *_sharedInstance = nil;
 }
 
 #pragma mark UIAlertView Delegate Methods
-
+/* ttt
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     
     NSString *buttonTitle = [alertView buttonTitleAtIndex:buttonIndex];

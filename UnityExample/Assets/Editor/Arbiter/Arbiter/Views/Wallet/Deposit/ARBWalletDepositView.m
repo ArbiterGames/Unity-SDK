@@ -141,7 +141,6 @@
     tableView.tag = PAYMENT_INFO_VIEW_TAG;
     [tableView reloadData];
     [self addSubview:tableView];
-    [[ARBTracking arbiterInstance] track:@"Displayed Credit Card View"];
 }
 
 - (void)setupSuccessMessage

@@ -54,20 +54,22 @@ namespace ArbiterInternal {
 #endif
 		}
 
-		/* ttt
+
 		/// <summary>
 		/// Handler for native to call whenever it updates its user
 		/// </summary>
 		public void OnUserUpdated( string jsonString ) {
+			/* ttt
 			if( UserProtocol.Update( ref Arbiter.user, jsonString )) {
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
 				Arbiter.user = UserProtocol.Parse( jsonString );
 				Arbiter.userChangedListeners.ForEach( listener => listener() );
 			}
+			*/
 		}
 
-
+		/* ttt
 		/// <summary>
 		/// Handler for native to call whenever it updates its wallet
 		/// </summary>

@@ -37,34 +37,27 @@ NSMutableDictionary* JsonToDict( const char* jsonString )
     return dict;
 }
 
-/* ttt
 bool CheckForInitialized() {
     return [Arbiter isInitialized];
 }
 
 # pragma mark Client Triggers Events
 
-void ClientCallbackNewUser()
-{
-    [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
-        UnitySendMessage("ArbiterBinding", "OnNewUser", ProcessDictionaryParams( jsonDict ));
-    }];
-}
 void ClientCallbackUserUpdated()
 {
     [[Arbiter sharedInstance] getCachedUser:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnUserUpdated", ProcessDictionaryParams( jsonDict ));
     }];
 }
+/* ttt
 void ClientCallbackWalletUpdated()
 {
     [[Arbiter sharedInstance] getCachedWallet:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "OnWalletUpdated", ProcessDictionaryParams( jsonDict ));
     }];
 }
+
 */
-
-
 # pragma mark Arbiter Class Wrapper Methods
 
 void _init( const char *apiKey, const char *accessToken )
@@ -77,7 +70,7 @@ void _init( const char *apiKey, const char *accessToken )
     }];
 }
 
-/*
+/* ttt
 void _showNativeDialog( const char *alertTitle, const char *alertMessage )
 {
     [[Arbiter sharedInstance] showNativeAlertMessage:^(void) {
@@ -117,14 +110,11 @@ void _logout()
 */
 bool _isUserAuthenticated()
 {
-    /* ttt
     if( CheckForInitialized() ) {
         return [[Arbiter sharedInstance] isUserAuthenticated];
     } else {
         return false;
     }
-    */
-    return true;
 }
 /* ttt
 void _verifyUser()

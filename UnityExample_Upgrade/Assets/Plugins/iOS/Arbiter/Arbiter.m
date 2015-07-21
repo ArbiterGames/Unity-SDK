@@ -216,7 +216,7 @@ static Arbiter *_sharedInstance = nil;
 }
 
 
-/* ttt
+
 #pragma mark User Methods
 
 - (void)setUser:(NSMutableDictionary*)user
@@ -251,7 +251,7 @@ static Arbiter *_sharedInstance = nil;
     }
     [[NSUserDefaults standardUserDefaults] synchronize];
 }
-*/
+
 - (bool)hydrateUserWithCachedToken {
     NSString* savedToken = [[NSUserDefaults standardUserDefaults] objectForKey:DEFAULTS_USER_TOKEN];
     if ( !IS_NULL_STRING(savedToken)) {
@@ -387,12 +387,12 @@ static Arbiter *_sharedInstance = nil;
     
     [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
 }
-
+*/
 - (bool)isUserAuthenticated
 {
     return self.user != nil && !IS_NULL_STRING([self.user objectForKey:@"id"]);
 }
-
+/* ttt
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     [self verifyUser:handler tryToGetLatLong:YES];

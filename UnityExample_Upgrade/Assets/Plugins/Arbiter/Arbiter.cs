@@ -88,16 +88,12 @@ public partial class Arbiter : MonoBehaviour {
 		list.Clear();
 	}
 	static void FirePostAuthenticateActionsIfAble() {
-		Debug.Log ("Testing IsAuth...");
-		Debug.Log ("val="+IsAuthenticated);
-		/* ttttt
 		if( IsAuthenticated ) {
 			Debug.Log( "Firing Post-Auth actions ("+postAuthenticateActions.Count+")" );
 			FireAndForget( postAuthenticateActions );
 		} else {
 			Debug.Log( "Waiting to fire Post-Auth actions ("+postAuthenticateActions.Count+")" );
 		}
-		*/
 	}
 	
 	

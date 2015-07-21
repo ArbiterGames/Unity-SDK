@@ -270,7 +270,7 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([self isSuccessfulResponse:responseDict]) {
-            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+//ttt            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
 //ttt            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         }
@@ -1084,7 +1084,7 @@ static Arbiter *_sharedInstance = nil;
         [self doHttpCall:request key:key isBlocking:isBlocking handler:handler];
     }
 }
-/* ttt
+
 
 - (void)addRequestToQueue:(NSString *)key
 {
@@ -1160,6 +1160,7 @@ static Arbiter *_sharedInstance = nil;
 }
 
 #pragma mark UIAlertView Delegate Methods
+/* ttt
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     

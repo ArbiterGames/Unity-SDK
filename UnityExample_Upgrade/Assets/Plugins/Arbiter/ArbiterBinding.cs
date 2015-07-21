@@ -485,18 +485,17 @@ namespace ArbiterInternal {
 #region Plugin response handling
 
 		public void InitHandler( string jsonString ) {
-			Debug.Log ("made it back.");
 			SimpleCallback( INIT, jsonString );
 		}
-		/*ttt		
+		/* ttt
 		public void ShowNativeDialogHandler( string emptyString ) {
 			SimpleCallback( SHOW_NATIVE_DIALOG );
 		}
-
+*/
 		public void LoginWithDeviceIdHandler( string jsonString ) {
 			SimpleCallback( LOGIN_DEVICE, jsonString );
 		}
-
+/* ttt
 		public void LoginWithGameCenterHandler( string jsonString ) {
 			SimpleCallback( LOGIN_GAME_CENTER, jsonString );
 		}

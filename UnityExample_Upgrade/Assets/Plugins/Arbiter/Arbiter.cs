@@ -19,7 +19,7 @@ public partial class Arbiter : MonoBehaviour {
 	public string gameApiKey;
 	
 	/// <summary>True when the SDK knows which user is playing.</summary><remarks>Might be too slow to call this each frame.</remarks>
-//ttt	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
+	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	/// <summary>True when the authenticated user is able to participate in cash contests.</summary><remarks>Might be too slow to call this each frame.</remarks>
 //ttt	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
 /*ttt	public static bool		HasWallet					{ get { return WalletExists(false); } }
@@ -88,6 +88,8 @@ public partial class Arbiter : MonoBehaviour {
 		list.Clear();
 	}
 	static void FirePostAuthenticateActionsIfAble() {
+		Debug.Log ("Testing IsAuth...");
+		Debug.Log ("val="+IsAuthenticated);
 		/* ttttt
 		if( IsAuthenticated ) {
 			Debug.Log( "Firing Post-Auth actions ("+postAuthenticateActions.Count+")" );

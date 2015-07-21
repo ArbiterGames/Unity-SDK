@@ -114,16 +114,19 @@ void _logout()
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
-
+*/
 bool _isUserAuthenticated()
 {
+    /* ttt
     if( CheckForInitialized() ) {
         return [[Arbiter sharedInstance] isUserAuthenticated];
     } else {
         return false;
     }
+    */
+    return true;
 }
-
+/* ttt
 void _verifyUser()
 {
     [[Arbiter sharedInstance] verifyUser:^(NSDictionary *jsonDict) {

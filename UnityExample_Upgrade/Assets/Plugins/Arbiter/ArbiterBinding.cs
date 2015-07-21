@@ -41,7 +41,7 @@ namespace ArbiterInternal {
 #endif
 		}
 
-
+*/
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
@@ -483,8 +483,8 @@ namespace ArbiterInternal {
 #region Plugin response handling
 
 		public void InitHandler( string jsonString ) {
-			//ttt SimpleCallback( INIT, jsonString );
 			Debug.Log ("made it back.");
+			SimpleCallback( INIT, jsonString );
 		}
 		/*ttt		
 		public void ShowNativeDialogHandler( string emptyString ) {

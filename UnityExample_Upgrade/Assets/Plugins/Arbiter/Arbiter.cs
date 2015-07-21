@@ -6,26 +6,6 @@ using ArbiterInternal;
 
 
 
-/* ttt was working
-public class Arbiter : MonoBehaviour {
-
-
-	public string Token;
-	public string ApiKey;
-
-	
-	void Start () {
-		_init( ApiKey, Token );
-	}
-	
-	
-	[DllImport("__Internal")]
-	extern static public void _init( string apiKey, string token );
-}
-*/
-
-
-
 public delegate void SuccessHandler();
 public delegate void ErrorHandler( List<string> errors );
 public delegate void FriendlyErrorHandler( List<string> errors, List<string> descriptions );

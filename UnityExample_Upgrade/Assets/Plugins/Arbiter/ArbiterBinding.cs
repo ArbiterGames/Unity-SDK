@@ -481,11 +481,12 @@ namespace ArbiterInternal {
 
 		
 #region Plugin response handling
-		/*ttt		
-		public void InitHandler( string jsonString ) {
-			SimpleCallback( INIT, jsonString );
-		}
 
+		public void InitHandler( string jsonString ) {
+			//ttt SimpleCallback( INIT, jsonString );
+			Debug.Log ("made it back.");
+		}
+		/*ttt		
 		public void ShowNativeDialogHandler( string emptyString ) {
 			SimpleCallback( SHOW_NATIVE_DIALOG );
 		}

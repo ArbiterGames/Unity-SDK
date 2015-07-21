@@ -72,11 +72,7 @@ void _init( const char *apiKey, const char *accessToken )
     [Arbiter initWithApiKey:[[NSString alloc] initWithUTF8String:apiKey]
                 accessToken:[[NSString alloc] initWithUTF8String:accessToken]
                     handler:^(NSDictionary *jsonDict) {
-//ttt        UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
-                                UnitySendMessage(
-            "TestNativeReceiver", 
-            "SimpleUnityFunction", 
-            "MessageParam");
+        UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
 
     }];
 }

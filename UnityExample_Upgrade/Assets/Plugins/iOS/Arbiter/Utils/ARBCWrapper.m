@@ -72,16 +72,11 @@ void _init( const char *apiKey, const char *accessToken )
     [Arbiter initWithApiKey:[[NSString alloc] initWithUTF8String:apiKey]
                 accessToken:[[NSString alloc] initWithUTF8String:accessToken]
                     handler:^(NSDictionary *jsonDict) {
-//ttt        UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
-                                UnitySendMessage(
-            "TestNativeReceiver", 
-            "SimpleUnityFunction", 
-            "MessageParam");
-
+        UnitySendMessage("ArbiterBinding", "InitHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
 
-/*
+
 void _showNativeDialog( const char *alertTitle, const char *alertMessage )
 {
     [[Arbiter sharedInstance] showNativeAlertMessage:^(void) {
@@ -90,7 +85,7 @@ void _showNativeDialog( const char *alertTitle, const char *alertMessage )
                                                title:[[NSString alloc] initWithUTF8String:alertTitle]
                                              message:[[NSString alloc] initWithUTF8String:alertMessage]];
 }
-
+/*
 void _loginWithDeviceId()
 {
     [[Arbiter sharedInstance] loginWithDevice:^(NSDictionary *jsonDict) {
@@ -118,7 +113,7 @@ void _logout()
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
-
+*/
 bool _isUserAuthenticated()
 {
     if( CheckForInitialized() ) {
@@ -139,6 +134,7 @@ bool _isUserVerified()
 {
     return [[Arbiter sharedInstance] isUserVerified];
 }
+
 
 void _fetchWallet()
 {
@@ -270,6 +266,6 @@ void _showTournamentDetailsPanel( const char *tournamentId )
 
 void _dumpLogs( const char *jsonData ) 
 {
-     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:[Arbiter sharedInstance]];
+// ttt     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:[Arbiter sharedInstance]];
 }
-*/
+

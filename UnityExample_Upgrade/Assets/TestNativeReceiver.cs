@@ -10,7 +10,7 @@ public class TestNativeReceiver : MonoBehaviour {
 
 	
 	void Start() {
-		_init( Token, ApiKey );
+		_init( ApiKey, Token );
 	}
 
 

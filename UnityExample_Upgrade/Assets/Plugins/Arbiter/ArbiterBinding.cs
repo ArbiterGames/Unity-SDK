@@ -103,14 +103,12 @@ namespace ArbiterInternal {
 		public static void LoginWithDeviceId( SuccessHandler success, ErrorHandler failure ) {
 			SetCallbacksWithErrors( LOGIN_DEVICE, success, failure );
 #if UNITY_EDITOR
-			/* ttt
 			ReportIgnore( "Login:Device" );
 			User user = new User();
 			user.Id = "FakeId123";
 			user.Name = "Anonymock";
 			Arbiter.user = user;
 			success();
-			*/
 #elif UNITY_IOS
 			_loginWithDeviceId();
 #endif

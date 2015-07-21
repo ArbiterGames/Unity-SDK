@@ -22,14 +22,14 @@ public partial class Arbiter : MonoBehaviour {
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	/// <summary>True when the authenticated user is able to participate in cash contests.</summary><remarks>Might be too slow to call this each frame.</remarks>
 //ttt	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
-/*ttt	public static bool		HasWallet					{ get { return WalletExists(false); } }
+//	public static bool		HasWallet					{ get { return WalletExists(false); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  		return user.Id; } }
 	public static string    Username                    { get { if( !UserExists ) return null; 			return user.Name; } }
 	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  		return user.Token; } }
 	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  		return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  		return user.LocationApproved; } }
-	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
-	*/
+//ttt	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
+
 	
 	
 	void Start() {
@@ -52,10 +52,10 @@ public partial class Arbiter : MonoBehaviour {
 		GameObject abGO = new GameObject( "ArbiterBinding" );
 		abGO.AddComponent<ArbiterBinding>();
 		GameObject.DontDestroyOnLoad( abGO );
-		/* ttt
+
 		wallet = null;
 		user = null;
-		*/
+
 		ErrorHandler initializeErrorHandler = ( errors ) => {
 			Debug.LogError( "Cannot initialize Arbiter. Resolve errors below:" );
 			errors.ForEach( e => Debug.LogError( e ));
@@ -155,14 +155,14 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.VerifyUser( success, failure );
 	}
 	
-	
+	*/
 	private static bool UserExists { get {
 			if( user == null ) {
 				return false;
 			}
 			return true;
 		} }
-	*/
+
 	
 	/// <summary>
 	/// Fires once on the first time authentication is successful
@@ -497,9 +497,10 @@ public partial class Arbiter : MonoBehaviour {
 	/* ttt
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
+	*/
 	internal static User user;
 	internal static Wallet wallet;
-	*/
+
 	internal static List<Action> userUpdatedListeners = new List<Action>();
 	internal static List<Action> userChangedListeners = new List<Action>();
 	internal static List<Action> walletUpdatedListeners = new List<Action>();

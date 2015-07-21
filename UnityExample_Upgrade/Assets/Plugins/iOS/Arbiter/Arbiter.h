@@ -92,7 +92,7 @@ void ClientCallbackWalletUpdated();
 - (void)httpGet:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverride isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
 - (void)httpPost:(NSString*)url params:(NSDictionary*)params authTokenOverride:(NSString*)authTokenOverrde isBlocking:(BOOL)isBlocking handler:(void(^)(NSDictionary*))handler;
-
+- (bool)isSuccessfulResponse:(NSDictionary*)response;
 - (void)addRequestToQueue:(NSString *)key;
 - (void)removeRequestFromQueue:(NSString *)key;
 

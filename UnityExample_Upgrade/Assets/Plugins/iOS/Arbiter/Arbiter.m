@@ -392,7 +392,7 @@ static Arbiter *_sharedInstance = nil;
 {
     return self.user != nil && !IS_NULL_STRING([self.user objectForKey:@"id"]);
 }
-/* ttt
+
 - (void)verifyUser:(void(^)(NSDictionary *))handler
 {
     [self verifyUser:handler tryToGetLatLong:YES];
@@ -405,7 +405,7 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
     
-    [[ARBTracking arbiterInstance] track:@"Verifying User"];
+    //ttt [[ARBTracking arbiterInstance] track:@"Verifying User"];
     
     /* Recursively call this function to check each thing that needs to be verified in order.
      * Once all checks pass, this function calls the handler (this method argument)
@@ -522,6 +522,7 @@ static Arbiter *_sharedInstance = nil;
             [[ARBTracking arbiterInstance] track:@"ERR: SDK Verify"];
         }
     }
+    */
 }
 
 - (void)postVerify:(void(^)(NSDictionary *))handler
@@ -551,7 +552,7 @@ static Arbiter *_sharedInstance = nil;
         return false;
     }
 }
-
+/* ttt
 - (void)getDeviceLocation:(void(^)(NSDictionary *))handler requireLatLong:(BOOL)requireLatLong
 {
     if (nil == locationManager)

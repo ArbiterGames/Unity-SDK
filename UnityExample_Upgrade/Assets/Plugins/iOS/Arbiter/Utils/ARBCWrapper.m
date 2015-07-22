@@ -116,7 +116,7 @@ bool _isUserAuthenticated()
         return false;
     }
 }
-/* ttt
+
 void _verifyUser()
 {
     [[Arbiter sharedInstance] verifyUser:^(NSDictionary *jsonDict) {
@@ -128,7 +128,7 @@ bool _isUserVerified()
 {
     return [[Arbiter sharedInstance] isUserVerified];
 }
-
+/* ttt
 void _fetchWallet()
 {
     [[Arbiter sharedInstance] fetchWallet:^(NSDictionary *jsonDict) {

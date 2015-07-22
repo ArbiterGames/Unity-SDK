@@ -28,7 +28,6 @@ namespace ArbiterInternal {
 */
 
 #region Shared data
-		/* ttt
 		[DllImport ("__Internal")]
 		private static extern bool _isUserVerified();
 		public static bool IsUserVerified() {
@@ -41,7 +40,7 @@ namespace ArbiterInternal {
 #endif
 		}
 
-*/
+
 		[DllImport ("__Internal")]
 		private static extern bool _isUserAuthenticated();
 		public static bool IsUserAuthenticated() {
@@ -59,14 +58,12 @@ namespace ArbiterInternal {
 		/// Handler for native to call whenever it updates its user
 		/// </summary>
 		public void OnUserUpdated( string jsonString ) {
-			/* ttt
 			if( UserProtocol.Update( ref Arbiter.user, jsonString )) {
 				Arbiter.userUpdatedListeners.ForEach( listener => listener() );
 			} else {
 				Arbiter.user = UserProtocol.Parse( jsonString );
 				Arbiter.userChangedListeners.ForEach( listener => listener() );
 			}
-			*/
 		}
 
 		/* ttt

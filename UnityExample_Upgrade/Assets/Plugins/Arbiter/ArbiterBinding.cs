@@ -194,7 +194,7 @@ namespace ArbiterInternal {
 			_fetchWallet();
 #endif
 		}
-		
+		*/
 
 		const string SHOW_WALLET_PANEL = "wallet_panel";
 		[DllImport ("__Internal")]
@@ -209,7 +209,7 @@ namespace ArbiterInternal {
 			_showWalletPanel();
 #endif
 		}
-		
+
 		
 		[DllImport ("__Internal")]
 		private static extern void _showWalletPanelOnDepositTab();
@@ -224,7 +224,7 @@ namespace ArbiterInternal {
 			#endif
 		}
 
-
+		/* ttt
 		const string SEND_PROMO_CREDITS = "send_promo";
 		[DllImport ("__Internal")]
 		private static extern void _sendPromoCredits( string amount );

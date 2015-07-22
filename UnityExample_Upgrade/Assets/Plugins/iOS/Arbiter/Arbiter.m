@@ -629,7 +629,7 @@ static Arbiter *_sharedInstance = nil;
 {
     self.walletObserver = observer;
 }
-
+*/
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -689,7 +689,7 @@ static Arbiter *_sharedInstance = nil;
         NSLog(@"Arbiter Error: No user is currently logged in.");
     }
 }
-
+/* ttt
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
     [self httpPost:APISendPromoCreditsURL params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]} authTokenOverride:self.accessToken isBlocking:NO handler:handler];

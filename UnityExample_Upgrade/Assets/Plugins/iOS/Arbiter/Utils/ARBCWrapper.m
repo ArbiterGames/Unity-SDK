@@ -128,7 +128,7 @@ bool _isUserVerified()
 {
     return [[Arbiter sharedInstance] isUserVerified];
 }
-/* ttt
+
 void _fetchWallet()
 {
     [[Arbiter sharedInstance] fetchWallet:^(NSDictionary *jsonDict) {
@@ -150,7 +150,7 @@ void _showWalletPanel()
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
-
+/* ttt
 void _sendPromoCredits( const char *amount )
 {
     [[Arbiter sharedInstance] sendPromoCredits:^(NSDictionary *jsonDict) {

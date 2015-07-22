@@ -653,7 +653,7 @@ static Arbiter *_sharedInstance = nil;
 }
 - (void)showWalletPanel:(void(^)(void))handler onTab:(NSString *)tab
 {
-    [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
+//ttt    [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
     if ( [self isUserAuthenticated] && self.connectionStatus == CONNECTED ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
@@ -665,7 +665,7 @@ static Arbiter *_sharedInstance = nil;
             [[UIApplication sharedApplication] endIgnoringInteractionEvents];
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
-            
+            /* ttt
             if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) {
                 ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] initOnTab:tab withArbiterInstance:self];
                 walletDashboard.callback = handler;
@@ -676,6 +676,7 @@ static Arbiter *_sharedInstance = nil;
                 [self addWalletObserver:walletDashboard];
                 [self.panelWindow show:walletDashboard];
             }
+            */
         } copy];
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
             void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {

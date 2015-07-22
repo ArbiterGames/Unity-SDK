@@ -5,7 +5,7 @@
 #import "Arbiter.h"
 #import "ARBConstants.h"
 #import "Reachability.h"
-
+#import "ARBTracking.h"
 
 
 /* ttt
@@ -35,9 +35,10 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
+*/
 #define DEVELOPMENT_TRACKING_ID @"2dd66d1b05b4ce8c7dcc7c3cb35e113a"
 #define PRODUCTION_TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
-*/
+
 
 @implementation Arbiter
 {
@@ -155,9 +156,9 @@ static Arbiter *_sharedInstance = nil;
             self.isWalletDashboardWebViewEnabled = [[responseDict objectForKey:@"is_wallet_webview_enabled"] boolValue];
             self.game = responseDict;
             if ( [[self.game objectForKey:@"is_live"] boolValue] ) {
-//ttt                [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
+                [ARBTracking arbiterInstanceWithToken:PRODUCTION_TRACKING_ID];
             } else {
-//ttt                [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
+                [ARBTracking arbiterInstanceWithToken:DEVELOPMENT_TRACKING_ID];
             }
             
             NSNumber* timesSeen = [NSNumber numberWithInt:0];
@@ -168,12 +169,12 @@ static Arbiter *_sharedInstance = nil;
             NSDictionary* trackingProperties = @{@"seen_game_on_device":timesSeen};
             timesSeen = [NSNumber numberWithInt:([timesSeen intValue]+1)];
             [[NSUserDefaults standardUserDefaults] setObject:timesSeen forKey:thisGameId];
-/* ttt            
+            
             ARBTracking *arbiterInstance = [ARBTracking arbiterInstance];
             [arbiterInstance identify:arbiterInstance.distinctId];
             [arbiterInstance registerSuperProperties:@{@"game": [self.game objectForKey:@"name"]}];
             [arbiterInstance track:@"Loaded Game" properties:trackingProperties];
-            */
+            
             handler(@{@"success": @true});
         } else {
             handler( _NO_CONNECTION_RESPONSE_DICT );

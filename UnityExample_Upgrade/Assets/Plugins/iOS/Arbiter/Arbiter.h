@@ -1,20 +1,19 @@
-/* ttt
+
 #import <CoreLocation/CoreLocation.h>
 #import "ARBPanelWindow.h"
 #import "ARBWalletObserver.h"
-*/
+
 void ClientCallbackUserUpdated();
 void ClientCallbackWalletUpdated();
 
-//@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
-@interface Arbiter : NSObject<NSURLConnectionDelegate>
+@interface Arbiter : NSObject<NSURLConnectionDelegate, UIAlertViewDelegate, CLLocationManagerDelegate>
 
 @property (atomic) int connectionStatus;
 @property BOOL isWalletDashboardWebViewEnabled;
 @property (strong, atomic) NSDictionary *game;
 @property (copy) NSString *accessToken;
 @property (copy) NSString *apiKey;
-//ttt @property (retain) ARBPanelWindow *panelWindow;
+@property (retain) ARBPanelWindow *panelWindow;
 @property (strong) UIActivityIndicatorView *spinnerView;
 @property (strong) NSMutableDictionary *requestQueue;
 @property (copy) NSString *verificationUrl;
@@ -25,7 +24,7 @@ void ClientCallbackWalletUpdated();
 @property int previousTournamentsCount;
 @property int locationVerificationAttempts;
 @property (copy) NSString *currentIncompleteTournamentId;
-//ttt @property (strong, atomic) id<ARBWalletObserver> walletObserver;
+@property (strong, atomic) id<ARBWalletObserver> walletObserver;
 
 
 @property (strong, atomic) NSString* _deviceHash;
@@ -62,7 +61,7 @@ void ClientCallbackWalletUpdated();
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking;
 - (void)getCachedWallet:(void(^)(NSDictionary *))handler;
-//ttt - (void)addWalletObserver:(id<ARBWalletObserver>)observer;
+- (void)addWalletObserver:(id<ARBWalletObserver>)observer;
 - (void)showWalletPanel:(void(^)(void))handler onTab:(NSString *)tab;
 - (void)showWalletPanel:(void(^)(void))handler;
 - (void)sendPromoCredits:(void(^)(NSDictionary *))handler amount:(NSString *)amount;

@@ -3,13 +3,8 @@ using System.Collections;
 
 public class WalletDashboardShower : MonoBehaviour {
 
-	// Use this for initialization
-	void Start () {
-	
+	public void ShowWallet() {
+		Arbiter.DisplayWalletDashboard( null );
 	}
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+
 }

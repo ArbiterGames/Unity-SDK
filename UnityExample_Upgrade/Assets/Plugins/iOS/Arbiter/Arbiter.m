@@ -6,6 +6,8 @@
 #import "ARBConstants.h"
 #import "Reachability.h"
 #import "ARBTracking.h"
+#import "ARBWalletDashboardView.h"
+#import "ARBWalletDashboardWebView.h"
 
 
 /* ttt
@@ -25,7 +27,7 @@
 #import "ARBCashChallengeOfficialRules.h"
 #import "ARBLogger.h"
 #import "ARBTracking.h"
-
+*/
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
@@ -35,7 +37,7 @@
 #define SHOW_INCOMPLETE_TOURNAMENTS_ALERT_TAG 337
 #define TOURNAMENT_DETAILS_ALERT_TAG 338
 #define NO_ACTION_ALERT_TAG 339
-*/
+
 #define DEVELOPMENT_TRACKING_ID @"2dd66d1b05b4ce8c7dcc7c3cb35e113a"
 #define PRODUCTION_TRACKING_ID @"d9bda693b63f0d1922a3c153b65d02d9"
 
@@ -83,7 +85,7 @@ static Arbiter *_sharedInstance = nil;
         self.accessToken = accessToken;
         self._deviceHash = [self buildDeviceHash];
         self.locationVerificationAttempts = 0;
-//ttt        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
+        self.panelWindow = [[ARBPanelWindow alloc] initWithGameWindow:[[UIApplication sharedApplication] keyWindow]];
         
         _alertViewHandlerRegistry = [[NSMutableDictionary alloc] init];
         _responseDataRegistry = [[NSMutableDictionary alloc] init];
@@ -271,7 +273,7 @@ static Arbiter *_sharedInstance = nil;
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
         if ([self isSuccessfulResponse:responseDict]) {
-//ttt            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
+            self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
 //ttt            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         }
@@ -416,7 +418,6 @@ static Arbiter *_sharedInstance = nil;
     /**********************************************
      * COMMON ASYNC HANDLER DECLARATIONS
      **********************************************/
-/*ttt
     void (^locationCallback)(NSDictionary *) = ^(NSDictionary *geoCodeResponse) {
         NSLog(@"GeoCodeResponse:\n%@", geoCodeResponse);
         if ([self isSuccessfulResponse:geoCodeResponse]) {
@@ -475,8 +476,7 @@ static Arbiter *_sharedInstance = nil;
     
     /**********************************************
      * VERIFICATION CHECKS
-     **********************************************/
-/*ttt     
+     **********************************************/    
     if( IS_NULL_STRING([self.user objectForKey:@"postal_code"]) ) {
         [[ARBTracking arbiterInstance] track:@"Ask Device For Location"];
         [self getDeviceLocation:locationCallback requireLatLong:NO];
@@ -523,7 +523,6 @@ static Arbiter *_sharedInstance = nil;
             [[ARBTracking arbiterInstance] track:@"ERR: SDK Verify"];
         }
     }
-    */
 }
 
 - (void)postVerify:(void(^)(NSDictionary *))handler
@@ -553,7 +552,7 @@ static Arbiter *_sharedInstance = nil;
         return false;
     }
 }
-/* ttt
+
 - (void)getDeviceLocation:(void(^)(NSDictionary *))handler requireLatLong:(BOOL)requireLatLong
 {
     if (nil == locationManager)
@@ -577,8 +576,7 @@ static Arbiter *_sharedInstance = nil;
         if( error ) {
             /* NOTE/HACK: Turning on device location services is not really asynchronous. Therefore poll it a few times
              *          here before giving up and falling back to tha handler given to this method call
-             */
-/*ttt             
+             */            
             if ( self.locationVerificationAttempts < 4 ) {
                 [NSThread sleepForTimeInterval:2 * self.locationVerificationAttempts];
                 self.locationVerificationAttempts++;
@@ -630,7 +628,7 @@ static Arbiter *_sharedInstance = nil;
 {
     self.walletObserver = observer;
 }
-*/
+
 - (void)fetchWallet:(void(^)(NSDictionary *))handler isBlocking:(BOOL)isBlocking
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -666,7 +664,7 @@ static Arbiter *_sharedInstance = nil;
             [[UIApplication sharedApplication] endIgnoringInteractionEvents];
             [self.spinnerView stopAnimating];
             [self.spinnerView removeFromSuperview];
-            /* ttt
+            
             if ( self.isWalletDashboardWebViewEnabled && self.connectionStatus == CONNECTED ) {
                 ARBWalletDashboardWebView *walletDashboard = [[ARBWalletDashboardWebView alloc] initOnTab:tab withArbiterInstance:self];
                 walletDashboard.callback = handler;
@@ -677,8 +675,8 @@ static Arbiter *_sharedInstance = nil;
                 [self addWalletObserver:walletDashboard];
                 [self.panelWindow show:walletDashboard];
             }
-            */
         } copy];
+
         if ( [[self.user objectForKey:@"agreed_to_terms"] boolValue] == false ) {
             void (^verifyCallback)(NSDictionary *) = [^(NSDictionary *dict) {
                 populateThenShowPanel();
@@ -1162,8 +1160,8 @@ static Arbiter *_sharedInstance = nil;
     NSLog(@"Error:%@", error);
 }
 
+
 #pragma mark UIAlertView Delegate Methods
-/* ttt
 
 - (void)alertView:(UIAlertView *)alertView clickedButtonAtIndex:(NSInteger)buttonIndex {
     
@@ -1250,7 +1248,6 @@ static Arbiter *_sharedInstance = nil;
  Handler once location coordinates are returned from a location request.
  Stops updating location after the first coordinates are returned on all device location requests.
  */
-/*ttt 
 - (void)locationManager:(CLLocationManager *)manager didUpdateLocations:(NSArray *)locations
 {
     currentLocation = [locations objectAtIndex:0];
@@ -1268,7 +1265,7 @@ static Arbiter *_sharedInstance = nil;
         }
     }
 }
-
+/*ttt
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
@@ -1313,7 +1310,7 @@ static Arbiter *_sharedInstance = nil;
     }
     return @"...";
 }
-
+*/
 - (UIWindow*)getTopApplicationWindow
 {
     UIApplication *clientApp = [UIApplication sharedApplication];
@@ -1325,6 +1322,6 @@ static Arbiter *_sharedInstance = nil;
     
     return topWindow;
 }
-*/
+
 
 @end

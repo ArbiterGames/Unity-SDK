@@ -66,7 +66,7 @@ namespace ArbiterInternal {
 			}
 		}
 
-		/* ttt
+
 		/// <summary>
 		/// Handler for native to call whenever it updates its wallet
 		/// </summary>
@@ -76,7 +76,7 @@ namespace ArbiterInternal {
 			WalletProtocol.Update( ref Arbiter.wallet, jsonString );
 			Arbiter.walletUpdatedListeners.ForEach( listener => listener() );
 		}
-*/		
+	
 #endregion
 
 
@@ -159,7 +159,7 @@ namespace ArbiterInternal {
 			_logout();
 #endif
 		}
-
+*/
 
 		const string VERIFY = "verify";
 		[DllImport ("__Internal")]
@@ -194,7 +194,7 @@ namespace ArbiterInternal {
 			_fetchWallet();
 #endif
 		}
-		*/
+
 
 		const string SHOW_WALLET_PANEL = "wallet_panel";
 		[DllImport ("__Internal")]
@@ -215,13 +215,13 @@ namespace ArbiterInternal {
 		private static extern void _showWalletPanelOnDepositTab();
 		public static void ShowWalletPanelOnDepositTab( SuccessHandler callback ) {
 			SetSimpleCallback( SHOW_WALLET_PANEL, callback );
-			#if UNITY_EDITOR
+#if UNITY_EDITOR
 			ReportIgnore( "ShowWalletOnDepositTab" );
 			if( callback != null )
 				callback();
-			#elif UNITY_IOS
+#elif UNITY_IOS
 			_showWalletPanelOnDepositTab();
-			#endif
+#endif
 		}
 
 		/* ttt
@@ -502,7 +502,7 @@ namespace ArbiterInternal {
 		public void LogoutHandler( string emptyString ) {
 			SimpleCallback( LOGOUT );
 		}
-
+*/
 		public void VerifyUserHandler( string jsonString ) {
 			SimpleCallback( VERIFY, jsonString );
 		}
@@ -514,7 +514,7 @@ namespace ArbiterInternal {
 		public void ShowWalletPanelHandler( string emptyString ) {
 			SimpleCallback( SHOW_WALLET_PANEL );
 		}
-		
+		/* ttt
 		public void SendPromoCreditsHandler( string jsonString ) {
 			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}

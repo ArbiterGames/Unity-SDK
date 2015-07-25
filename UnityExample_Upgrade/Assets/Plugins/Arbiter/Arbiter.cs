@@ -263,13 +263,13 @@ public partial class Arbiter : MonoBehaviour {
 		
 		ArbiterBinding.FetchWallet( success, failure );
 	}
-	
+	*/
 	
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
-		walletPoller.Reset();
+//ttt		walletPoller.Reset();
 	}
-	*/
+
 	public static void DisplayWalletDashboardOnDepositTab( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanelOnDepositTab( callback );
 //ttt		walletPoller.Reset();

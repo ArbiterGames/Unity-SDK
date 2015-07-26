@@ -28,7 +28,7 @@ public partial class Arbiter : MonoBehaviour {
 	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  		return user.Token; } }
 	public static bool		AgreedToTerms				{ get { if( !UserExists ) return false;  		return user.AgreedToTerms; } }
 	public static bool		LocationApproved			{ get { if( !UserExists ) return false;  		return user.LocationApproved; } }
-//ttt	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
+	public static string    Balance                     { get { if( !WalletExists(true) ) return null;	return wallet.Balance; } }
 
 	
 	
@@ -193,7 +193,7 @@ public partial class Arbiter : MonoBehaviour {
 		userChangedListeners.Remove( listener );
 	}
 	
-	/* ttt
+
 	private static bool WalletExists( bool warn ) {
 		if( wallet == null ) {
 			if( warn )
@@ -203,7 +203,7 @@ public partial class Arbiter : MonoBehaviour {
 		return true;
 	}
 	
-	
+	/* ttt
 	/// <summary>
 	/// Returns a human-readable string no longer than X characters long
 	/// </summary>

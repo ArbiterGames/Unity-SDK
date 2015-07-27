@@ -111,7 +111,7 @@ namespace ArbiterInternal {
 #endif
 		}
 		
-		/* ttt
+
 		const string LOGIN_GAME_CENTER = "login_game_center";
 		[DllImport ("__Internal")]
 		private static extern void _loginWithGameCenterPlayer();
@@ -145,8 +145,8 @@ namespace ArbiterInternal {
 			_login();
 #endif
 		}
-	*/	
-		/*ttt
+	
+
 		const string LOGOUT = "logout";
 		[DllImport ("__Internal")]
 		private static extern void _logout();
@@ -159,7 +159,7 @@ namespace ArbiterInternal {
 			_logout();
 #endif
 		}
-*/
+
 
 		const string VERIFY = "verify";
 		[DllImport ("__Internal")]
@@ -490,7 +490,7 @@ namespace ArbiterInternal {
 		public void LoginWithDeviceIdHandler( string jsonString ) {
 			SimpleCallback( LOGIN_DEVICE, jsonString );
 		}
-/* ttt
+
 		public void LoginWithGameCenterHandler( string jsonString ) {
 			SimpleCallback( LOGIN_GAME_CENTER, jsonString );
 		}
@@ -502,7 +502,7 @@ namespace ArbiterInternal {
 		public void LogoutHandler( string emptyString ) {
 			SimpleCallback( LOGOUT );
 		}
-*/
+
 		public void VerifyUserHandler( string jsonString ) {
 			SimpleCallback( VERIFY, jsonString );
 		}

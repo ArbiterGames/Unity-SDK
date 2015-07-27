@@ -1,16 +1,3 @@
-#import <CoreLocation/CoreLocation.h>
-#import <CommonCrypto/CommonDigest.h>
-#import <CoreLocation/CoreLocation.h>
-
-#import "Arbiter.h"
-#import "ARBConstants.h"
-#import "Reachability.h"
-#import "ARBTracking.h"
-#import "ARBWalletDashboardView.h"
-#import "ARBWalletDashboardWebView.h"
-
-
-/* ttt
 
 #import <Foundation/Foundation.h>
 #import <GameKit/GameKit.h>
@@ -27,7 +14,7 @@
 #import "ARBCashChallengeOfficialRules.h"
 #import "ARBLogger.h"
 #import "ARBTracking.h"
-*/
+
 #define LOGIN_ALERT_TAG 329
 #define INVALID_LOGIN_ALERT_TAG 330
 #define WALLET_ALERT_TAG 331
@@ -105,7 +92,7 @@ static Arbiter *_sharedInstance = nil;
                 handler(innerResponse);
                 // At this point, we know that no user is logged in. So we are going from
                 //      undefined user to no user.
-                //ttt ClientCallbackUserUpdated();
+                ClientCallbackUserUpdated();
             }
         } copy];
         [self establishConnection:handlerWrapper];
@@ -127,7 +114,6 @@ static Arbiter *_sharedInstance = nil;
 }
 
 
-/* ttt
 - (void)showNativeAlertMessage:(void(^)(void))callback title:(NSString *)title message:(NSString *)message
 {
     UIAlertView *alert = [[UIAlertView alloc] initWithTitle:title
@@ -146,7 +132,7 @@ static Arbiter *_sharedInstance = nil;
     [alert show];
 }
 
-*/
+
 # pragma mark Internet Connection Utilities
 
 -(void)establishConnection:(void(^)(NSDictionary *))handler
@@ -214,8 +200,7 @@ static Arbiter *_sharedInstance = nil;
 // NOTE: Use the self.deviceHash property to get the hash. This is designed to be called once and then cash it in the deviceHash property.
 - (NSString*)buildDeviceHash {
     NSString* deviceId = [UIDevice currentDevice].identifierForVendor.UUIDString;
-        return @"asdf";
-//ttt    return [self sha1:[deviceId stringByAppendingString:self.apiKey]];
+    return [self sha1:[deviceId stringByAppendingString:self.apiKey]];
 }
 
 
@@ -275,24 +260,24 @@ static Arbiter *_sharedInstance = nil;
         if ([self isSuccessfulResponse:responseDict]) {
             self.wallet = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"wallet"]];
             self.user = [NSMutableDictionary dictionaryWithDictionary:[responseDict objectForKey:@"user"]];
-//ttt            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
+            [[ARBTracking arbiterInstance] identify:[self.user objectForKey:@"id"]];
         }
         handler(responseDict);
     } copy];
     
     NSDictionary *urlParams = @{};
-    /* ttt
     if( [ARBTracking arbiterInstance] != nil ) {
         urlParams = @{@"tracking_id":[[ARBTracking arbiterInstance] distinctId]};
     }
-    */
     [self httpPost:APIUserLoginDevice params:urlParams authTokenOverride:self.accessToken isBlocking:NO handler:connectionHandler];
 }
-/* ttt
+
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
+    NSLog(@"ttt in ARbiter.m");
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
+        NSLog(@"ttt not-authed");
         handler(@{@"success": @false,
                   @"errors": @[@"local player is not authenticated"]});
         return;
@@ -390,7 +375,7 @@ static Arbiter *_sharedInstance = nil;
     
     [self httpPost:APIUserLogoutURL params:nil isBlocking:NO handler:connectionHandler];
 }
-*/
+
 - (bool)isUserAuthenticated
 {
     return self.user != nil && !IS_NULL_STRING([self.user objectForKey:@"id"]);
@@ -408,7 +393,7 @@ static Arbiter *_sharedInstance = nil;
         return;
     }
     
-    //ttt [[ARBTracking arbiterInstance] track:@"Verifying User"];
+    [[ARBTracking arbiterInstance] track:@"Verifying User"];
     
     /* Recursively call this function to check each thing that needs to be verified in order.
      * Once all checks pass, this function calls the handler (this method argument)
@@ -652,7 +637,7 @@ static Arbiter *_sharedInstance = nil;
 }
 - (void)showWalletPanel:(void(^)(void))handler onTab:(NSString *)tab
 {
-//ttt    [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
+    [[ARBTracking arbiterInstance] track:@"Show Wallet Dashboard"];
     if ( [self isUserAuthenticated] && self.connectionStatus == CONNECTED ) {
         [[UIApplication sharedApplication] beginIgnoringInteractionEvents];
         UIView *keyRVCV = [[UIApplication sharedApplication] keyWindow].rootViewController.view;
@@ -689,7 +674,8 @@ static Arbiter *_sharedInstance = nil;
         NSLog(@"Arbiter Error: No user is currently logged in.");
     }
 }
-/* ttt
+
+
 - (void)sendPromoCredits:(void (^)(NSDictionary *))handler amount:(NSString *)amount
 {
     [self httpPost:APISendPromoCreditsURL params:@{@"amount": amount, @"to": [self.user objectForKey:@"id"]} authTokenOverride:self.accessToken isBlocking:NO handler:handler];
@@ -697,10 +683,10 @@ static Arbiter *_sharedInstance = nil;
 
 #pragma mark Tournament Methods
 
+
 /**
  Requests a new Tournament for this user from Arbiter
  */
- /*ttt
 - (void)requestTournament:(void(^)(NSDictionary *))handler buyIn:(NSString*)buyIn filters:(NSString*)filters
 {
     NSDictionary *paramsDict = @{@"buy_in":buyIn, @"filters":filters};
@@ -734,7 +720,6 @@ static Arbiter *_sharedInstance = nil;
 /**
  Makes the request to Arbiter to a paginated set of tournaments for this user
  */
- /*ttt
 - (void)fetchTournaments:(void(^)(NSDictionary*))handler page:(NSString *)page isBlocking:(BOOL)isBlocking excludeViewed:(BOOL)excludeViewed
 {
     void (^connectionHandler)(NSDictionary *) = [^(NSDictionary *responseDict) {
@@ -845,6 +830,7 @@ static Arbiter *_sharedInstance = nil;
     [self fetchIncompleteTournaments:connectionHandler page:page isBlocking:YES];
 }
 
+
 - (void)reportScore:(void(^)(NSDictionary *))handler tournamentId:(NSString*)tournamentId score:(NSString*)score
 {
     NSDictionary *paramsDict = @{@"score": score};
@@ -918,7 +904,7 @@ static Arbiter *_sharedInstance = nil;
     [self.panelWindow show:view];
 }
 
-*/
+
 #pragma mark Utility Helper Methods
 
 - (bool)isSuccessfulResponse:(NSDictionary*)response {
@@ -1265,7 +1251,7 @@ static Arbiter *_sharedInstance = nil;
         }
     }
 }
-/*ttt
+
 - (NSString *)getPlayerScoreFromTournament: (NSDictionary *)tournament
 {
     for ( NSDictionary *user in [tournament objectForKey:@"users"] ) {
@@ -1310,7 +1296,7 @@ static Arbiter *_sharedInstance = nil;
     }
     return @"...";
 }
-*/
+
 - (UIWindow*)getTopApplicationWindow
 {
     UIApplication *clientApp = [UIApplication sharedApplication];

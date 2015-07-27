@@ -1,6 +1,6 @@
 
 #import "Arbiter.h"
-//ttt #import "ARBLogger.h"
+#import "ARBLogger.h"
 #import "ARBConstants.h"
 
 
@@ -70,7 +70,7 @@ void _init( const char *apiKey, const char *accessToken )
     }];
 }
 
-/* ttt
+
 void _showNativeDialog( const char *alertTitle, const char *alertMessage )
 {
     [[Arbiter sharedInstance] showNativeAlertMessage:^(void) {
@@ -79,14 +79,14 @@ void _showNativeDialog( const char *alertTitle, const char *alertMessage )
                                                title:[[NSString alloc] initWithUTF8String:alertTitle]
                                              message:[[NSString alloc] initWithUTF8String:alertMessage]];
 }
-*/
+
 void _loginWithDeviceId()
 {
     [[Arbiter sharedInstance] loginWithDevice:^(NSDictionary *jsonDict) {
         UnitySendMessage("ArbiterBinding", "LoginWithDeviceIdHandler", ProcessDictionaryParams( jsonDict ));
     }];
 }
-/* ttt
+
 void _loginWithGameCenterPlayer()
 {
     [[Arbiter sharedInstance] loginWithGameCenterPlayer:^(NSDictionary *jsonDict) {
@@ -107,7 +107,7 @@ void _logout()
         UnitySendMessage( "ArbiterBinding", "LogoutHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
-*/
+
 bool _isUserAuthenticated()
 {
     if( CheckForInitialized() ) {
@@ -150,7 +150,7 @@ void _showWalletPanel()
         UnitySendMessage( "ArbiterBinding", "ShowWalletPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     }];
 }
-/* ttt
+
 void _sendPromoCredits( const char *amount )
 {
     [[Arbiter sharedInstance] sendPromoCredits:^(NSDictionary *jsonDict) {
@@ -242,6 +242,7 @@ void _showCashChallengeRules( const char* challengeId )
     } challengeId:[[NSString alloc] initWithUTF8String:challengeId]];
 }
 
+
 void _showWalkThrough( const char* walkThroughId )
 {
     [[Arbiter sharedInstance] showWalkThrough:^{
@@ -255,9 +256,9 @@ void _showTournamentDetailsPanel( const char *tournamentId )
         UnitySendMessage("ArbiterBinding", "ShowTournamentDetailsPanelHandler", AutonomousStringCopy([@"" UTF8String]) );
     } tournamentId:[[NSString alloc] initWithUTF8String:tournamentId]];
 }
-*/
+
 
 void _dumpLogs( const char *jsonData ) 
 {
-//ttt     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:[Arbiter sharedInstance]];
+     [[ARBLogger sharedManager] reportLog:JsonToDict(jsonData) arbiterState:[Arbiter sharedInstance]];
 }

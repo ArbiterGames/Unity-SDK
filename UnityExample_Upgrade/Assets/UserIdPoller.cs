@@ -1,11 +1,11 @@
-﻿using UnityEngine;
+using UnityEngine;
 using UnityEngine.UI;
 using System.Collections;
 
-public class UserIdPoller : TextFieldPoller {
+public class UserIdPoller : DynamicTextField {
 
 	void Update () {
-		text.text = Arbiter.UserId;
+		SetText( Arbiter.UserId );
 	}
 
 }

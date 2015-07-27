@@ -1,10 +1,10 @@
-﻿using UnityEngine;
+using UnityEngine;
 using System.Collections;
 
-public class WalletBalancePoller : TextFieldPoller {
+public class WalletBalancePoller : DynamicTextField {
 	
 	void Update () {
-		text.text = Arbiter.Balance;
+		SetText( Arbiter.Balance );
 	}
 
 }

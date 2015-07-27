@@ -132,7 +132,7 @@ public partial class Arbiter : MonoBehaviour {
 		});
 	}
 
-	/* ttt
+
 	#if UNITY_IOS
 	public static void LoginWithGameCenter( SuccessHandler success, ErrorHandler failure ) {
 		WaitUntilInitted( () => { 
@@ -140,7 +140,7 @@ public partial class Arbiter : MonoBehaviour {
 		});
 	}
 	#endif
-	*/
+
 	
 	/* ttt
 	public static void Logout( SuccessHandler success, ErrorHandler failure ) {

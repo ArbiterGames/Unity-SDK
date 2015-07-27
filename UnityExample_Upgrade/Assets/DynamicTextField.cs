@@ -6,6 +6,10 @@ public class DynamicTextField : MonoBehaviour {
 	
 	
 	void Start () {
+		Initialize();
+	}
+
+	protected virtual void Initialize() {
 		text = GetComponent<Text>();
 	}
 

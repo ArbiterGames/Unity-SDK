@@ -16,8 +16,12 @@ public class GameCenterLinker : MonoBehaviour {
 		if( !success )
 			LastErrorField.ShowGlobalError( "Problem with this app logging in to GameCenter." );
 		else
-			Arbiter.LoginWithGameCenter( null, LastErrorField.ShowGlobalError ); //ttt handle the success
+			Arbiter.LoginWithGameCenter( LinkSuccess, LastErrorField.ShowGlobalError );
 	}
 
+
+	void LinkSuccess() {
+		Debug.Log( "Link with GameCenter successful." );
+	}
 
 }

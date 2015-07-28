@@ -11,7 +11,7 @@ namespace ArbiterInternal {
 
 	public class ArbiterBinding : MonoBehaviour {
 
-		/*ttt
+
 		const string SHOW_NATIVE_DIALOG = "shownative";
 		[DllImport ("__Internal")]
 		private static extern bool _showNativeDialog( string title, string message );
@@ -25,7 +25,7 @@ namespace ArbiterInternal {
 			throw new PlatformNotSupportedException();
 #endif
 		}
-*/
+
 
 #region Shared data
 		[DllImport ("__Internal")]
@@ -224,7 +224,7 @@ namespace ArbiterInternal {
 #endif
 		}
 
-		/* ttt
+
 		const string SEND_PROMO_CREDITS = "send_promo";
 		[DllImport ("__Internal")]
 		private static extern void _sendPromoCredits( string amount );
@@ -464,7 +464,7 @@ namespace ArbiterInternal {
 			_showWalkThrough( walkThroughId );
 #endif
 		}
-*/
+
 
 		[DllImport ("__Internal")]
 		private static extern void _dumpLogs( string logData );
@@ -482,11 +482,11 @@ namespace ArbiterInternal {
 		public void InitHandler( string jsonString ) {
 			SimpleCallback( INIT, jsonString );
 		}
-		/* ttt
+
 		public void ShowNativeDialogHandler( string emptyString ) {
 			SimpleCallback( SHOW_NATIVE_DIALOG );
 		}
-*/
+
 		public void LoginWithDeviceIdHandler( string jsonString ) {
 			SimpleCallback( LOGIN_DEVICE, jsonString );
 		}
@@ -514,7 +514,7 @@ namespace ArbiterInternal {
 		public void ShowWalletPanelHandler( string emptyString ) {
 			SimpleCallback( SHOW_WALLET_PANEL );
 		}
-		/* ttt
+
 		public void SendPromoCreditsHandler( string jsonString ) {
 			SimpleCallback( SEND_PROMO_CREDITS, jsonString );
 		}
@@ -615,7 +615,7 @@ namespace ArbiterInternal {
 				reportScoreErrorHandler( getErrors( json ));
 			}
 		}
-		*/
+
 
 
 		public struct CallbackTuple {
@@ -715,7 +715,7 @@ namespace ArbiterInternal {
 			if( errors != null ) {
 				errors.ForEach( e => {
 					if( e.Length >= 42 && e.Substring(0,42) == "User does not have enough to pay entry fee" ) {
-//ttt						rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
+						rv.Add( ArbiterErrorCodes.INSUFFICIENT_FUNDS );
 					}
 				});
 			}

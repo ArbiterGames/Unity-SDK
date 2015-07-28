@@ -274,10 +274,8 @@ static Arbiter *_sharedInstance = nil;
 
 - (void)loginWithGameCenterPlayer:(void(^)(NSDictionary *))handler
 {
-    NSLog(@"ttt in ARbiter.m");
     GKLocalPlayer *localPlayer = [GKLocalPlayer localPlayer];
     if( !localPlayer.isAuthenticated ) {
-        NSLog(@"ttt not-authed");
         handler(@{@"success": @false,
                   @"errors": @[@"local player is not authenticated"]});
         return;

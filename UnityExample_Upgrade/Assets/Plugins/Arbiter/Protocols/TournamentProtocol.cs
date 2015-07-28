@@ -7,7 +7,7 @@ using SimpleJSON;
 
 namespace ArbiterInternal {
 	public class TournamentProtocol {
-		/* ttt
+
 
 		public static List<Arbiter.Tournament> ParseTournaments( JSONNode tournamentsNode ) {
 			List<Arbiter.Tournament> rv = new List<Arbiter.Tournament>();
@@ -90,6 +90,6 @@ namespace ArbiterInternal {
 			return rv;
 		}
 
-*/
+
 	}
 }

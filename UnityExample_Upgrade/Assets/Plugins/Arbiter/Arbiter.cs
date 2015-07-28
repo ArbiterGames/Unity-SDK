@@ -21,8 +21,8 @@ public partial class Arbiter : MonoBehaviour {
 	/// <summary>True when the SDK knows which user is playing.</summary><remarks>Might be too slow to call this each frame.</remarks>
 	public static bool		IsAuthenticated				{ get { return ArbiterBinding.IsUserAuthenticated(); } }
 	/// <summary>True when the authenticated user is able to participate in cash contests.</summary><remarks>Might be too slow to call this each frame.</remarks>
-//ttt	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
-//	public static bool		HasWallet					{ get { return WalletExists(false); } }
+	public static bool		IsVerified					{ get { return ArbiterBinding.IsUserVerified(); } }
+	public static bool		HasWallet					{ get { return WalletExists(false); } }
 	public static string    UserId                      { get { if( !UserExists ) return null;  		return user.Id; } }
 	public static string    Username                    { get { if( !UserExists ) return null; 			return user.Name; } }
 	public static string	AccessToken				  	{ get { if( !UserExists ) return null;  		return user.Token; } }
@@ -109,14 +109,13 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	#endif
 	
-	
-	/* ttt
+
 	public static void Login( SuccessHandler success, ErrorHandler failure ) {
 		WaitUntilInitted( () => { 
 			ArbiterBinding.Login( success, failure ); 
 		});
 	}
-	*/
+
 	
 	/// <summary>
 	/// This is only necessary to call if there is no cached user credentials on device. But calling it redundantly is harmless.
@@ -141,8 +140,7 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	#endif
 
-	
-	/* ttt
+
 	public static void Logout( SuccessHandler success, ErrorHandler failure ) {
 		wallet = null;
 		user = null;
@@ -155,7 +153,7 @@ public partial class Arbiter : MonoBehaviour {
 		ArbiterBinding.VerifyUser( success, failure );
 	}
 	
-	*/
+
 	private static bool UserExists { get {
 			if( user == null ) {
 				return false;
@@ -203,7 +201,7 @@ public partial class Arbiter : MonoBehaviour {
 		return true;
 	}
 	
-	/* ttt
+
 	/// <summary>
 	/// Returns a human-readable string no longer than X characters long
 	/// </summary>
@@ -263,19 +261,19 @@ public partial class Arbiter : MonoBehaviour {
 		
 		ArbiterBinding.FetchWallet( success, failure );
 	}
-	*/
+
 	
 	public static void DisplayWalletDashboard( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanel( callback );
-//ttt		walletPoller.Reset();
+		walletPoller.Reset();
 	}
 
 	public static void DisplayWalletDashboardOnDepositTab( SuccessHandler callback ) {
 		ArbiterBinding.ShowWalletPanelOnDepositTab( callback );
-//ttt		walletPoller.Reset();
+		walletPoller.Reset();
 	}
 	
-	/* ttt
+
 	public static void SendPromoCredits( string amount, SuccessHandler success, ErrorHandler failure ) {
 		ArbiterBinding.SendPromoCredits( amount, success, failure );
 		walletPoller.Reset();
@@ -338,8 +336,7 @@ public partial class Arbiter : MonoBehaviour {
 		}
 		ArbiterBinding.RequestTournament( buyIn, filters, callback, failure );
 	}
-	*/
-	/* ttt
+	
 	public static void FetchTournaments( SuccessHandler success, FriendlyErrorHandler failure ) {
 		fetchedTournamentsCallback = () => { 
 			success();
@@ -443,7 +440,7 @@ public partial class Arbiter : MonoBehaviour {
 	private static void ShowNativeDialog( string title, string message ) {
 		ArbiterBinding.ShowNativeDialog( title, message, nativeDialogCallback );
 	}
-	*/
+
 	
 	private static void defaultErrorHandler( List<string> errors ) {
 		string msg = "";
@@ -452,7 +449,6 @@ public partial class Arbiter : MonoBehaviour {
 	}
 	
 	private static void setupPollers() {
-		/* ttt
 		if ( !walletPoller ) {
 			walletPoller = Poller.Create( "ArbiterWalletPoller" );
 			DontDestroyOnLoad( walletPoller.gameObject );
@@ -467,7 +463,6 @@ public partial class Arbiter : MonoBehaviour {
 			DontDestroyOnLoad( tournamentPoller.gameObject );
 			tournamentPoller.Verbose = true;
 		}
-		*/
 	}
 	
 	
@@ -494,10 +489,8 @@ public partial class Arbiter : MonoBehaviour {
 	private static bool initted = false;
 	private static List<Action> postInitActions = new List<Action>();
 	private static List<Action> postAuthenticateActions = new List<Action>();
-	/* ttt
 	private static Poller walletPoller;
 	private static Poller tournamentPoller;
-	*/
 	internal static User user;
 	internal static Wallet wallet;
 

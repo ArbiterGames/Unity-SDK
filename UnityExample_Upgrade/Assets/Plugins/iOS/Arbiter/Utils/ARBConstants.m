@@ -30,7 +30,7 @@ NSString *const APICashChallengeRejectURLPart2 = @"/reject";
 NSString *const APICashChallengeReportURLPart2 = @"/report-score";
 
 NSString *const APIDepositURL = @"http://192.168.1.12:5000/stripe/deposit";
-NSString *const APIWithdrawURL = @"http://192.168.1.12:5000:5000/stripe/withdraw";
+NSString *const APIWithdrawURL = @"http://192.168.1.12:5000/stripe/withdraw";
 
 NSString *const GameSettingsURL = @"http://192.168.1.12:5000/api/v1/games/";
 NSString *const BundleURL = @"http://192.168.1.12:5000/cashier/bundle";

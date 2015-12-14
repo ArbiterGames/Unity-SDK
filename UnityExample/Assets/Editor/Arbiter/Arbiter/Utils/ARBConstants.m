@@ -7,33 +7,33 @@
 //
 #import "ARBConstants.h"
 
-NSString *const APIWalletURL = @"https://www.arbiter.me/api/v1/wallet/";
-NSString *const APIWalletDashboardWebViewURL = @"https://www.arbiter.me/api/v1/wallet/webview/";
-NSString *const APIWalletDashboardWebViewDepositURL = @"https://www.arbiter.me/api/v1/wallet/webview/#/tab/deposit";
-NSString *const APISendPromoCreditsURL = @"https://www.arbiter.me/api/v1/promo-credits/send";
-NSString *const APIUserLoginURL = @"https://www.arbiter.me/api/v1/user/login";
-NSString *const APIUserLogoutURL = @"https://www.arbiter.me/api/v1/user/logout";
-NSString *const APIUserLoginDevice = @"https://www.arbiter.me/api/v1/user/login-by-device";
-NSString *const APIUserLoginGameCenterURL = @"https://www.arbiter.me/api/v1/user/login-by-game-center";
-NSString *const APIUserDetailsURL = @"https://www.arbiter.me/api/v1/user/";
-NSString *const APITournamentCreateURL = @"https://www.arbiter.me/api/v1/tournament/create";
-NSString *const APIRequestTournamentURL = @"https://www.arbiter.me/api/v1/tournament";
-NSString *const APITournamentBaseURL = @"https://www.arbiter.me/api/v1/tournament/";
-NSString *const APITournamentMarkAsViewed = @"https://www.arbiter.me/api/v1/tournament/mark-as-viewed";
+NSString *const APIWalletURL = @"http://192.168.1.12:5000/api/v1/wallet/";
+NSString *const APIWalletDashboardWebViewURL = @"http://192.168.1.12:5000/api/v1/wallet/webview/";
+NSString *const APIWalletDashboardWebViewDepositURL = @"http://192.168.1.12:5000/api/v1/wallet/webview/#/tab/deposit";
+NSString *const APISendPromoCreditsURL = @"http://192.168.1.12:5000/api/v1/promo-credits/send";
+NSString *const APIUserLoginURL = @"http://192.168.1.12:5000/api/v1/user/login";
+NSString *const APIUserLogoutURL = @"http://192.168.1.12:5000/api/v1/user/logout";
+NSString *const APIUserLoginDevice = @"http://192.168.1.12:5000/api/v1/user/login-by-device";
+NSString *const APIUserLoginGameCenterURL = @"http://192.168.1.12:5000/api/v1/user/login-by-game-center";
+NSString *const APIUserDetailsURL = @"http://192.168.1.12:5000/api/v1/user/";
+NSString *const APITournamentCreateURL = @"http://192.168.1.12:5000/api/v1/tournament/create";
+NSString *const APIRequestTournamentURL = @"http://192.168.1.12:5000/api/v1/tournament";
+NSString *const APITournamentBaseURL = @"http://192.168.1.12:5000/api/v1/tournament/";
+NSString *const APITournamentMarkAsViewed = @"http://192.168.1.12:5000/api/v1/tournament/mark-as-viewed";
 NSString *const APIReportScoreURLPart2 = @"/report-score/";
 
-NSString *const APICashChallengeCreateURL = @"https://www.arbiter.me/api/v1/score-challenge/create";
-NSString *const APICashChallengeBaseURL = @"https://www.arbiter.me/api/v1/score-challenge/";
-NSString *const APICashChallengeRulesURL = @"https://www.arbiter.me/api/v1/regulation/challenge-rules/";
+NSString *const APICashChallengeCreateURL = @"http://192.168.1.12:5000/api/v1/score-challenge/create";
+NSString *const APICashChallengeBaseURL = @"http://192.168.1.12:5000/api/v1/score-challenge/";
+NSString *const APICashChallengeRulesURL = @"http://192.168.1.12:5000/api/v1/regulation/challenge-rules/";
 NSString *const APICashChallengeAcceptURLPart2 = @"/accept";
 NSString *const APICashChallengeRejectURLPart2 = @"/reject";
 NSString *const APICashChallengeReportURLPart2 = @"/report-score";
 
-NSString *const APIDepositURL = @"https://www.arbiter.me/stripe/deposit";
-NSString *const APIWithdrawURL = @"https://www.arbiter.me/stripe/withdraw";
+NSString *const APIDepositURL = @"http://192.168.1.12:5000/stripe/deposit";
+NSString *const APIWithdrawURL = @"http://192.168.1.12:5000/stripe/withdraw";
 
-NSString *const GameSettingsURL = @"https://www.arbiter.me/api/v1/games/";
-NSString *const BundleURL = @"https://www.arbiter.me/cashier/bundle";
+NSString *const GameSettingsURL = @"http://192.168.1.12:5000/api/v1/games/";
+NSString *const BundleURL = @"http://192.168.1.12:5000/cashier/bundle";
 NSString *const StripeTestPublishableKey = @"pk_test_1SQ84edElZEWoGqlR7XB9V5j";
 NSString *const StripeLivePublishableKey = @"pk_live_VxZ9u3zgtCRtaDe62rQyMwuj";
 
